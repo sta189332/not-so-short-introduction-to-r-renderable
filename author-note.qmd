@@ -1,0 +1,249 @@
+---
+number-sections: false
+---
+
+# Author’s Note {.unnumbered}
+
+## Why This Book Had to Exist
+
+There are too many capable people doing serious analytical work while feeling as if the work is always one step away from breaking.
+
+Not because they lack intelligence.
+
+Not because they are careless.
+
+Because the system around their work has never been made clear enough, stable enough, or repeatable enough.
+
+That is the part outsiders often miss. The quiet pressure of opening a file and hoping the paths still work. The hesitation before running code copied from an old tutorial. The frustration of seeing an error message that feels less like guidance and more like judgment. The small professional embarrassment of needing the same online search again, not because the learner is lazy, but because the mental model was never built in the first place.
+
+This book had to exist because too many smart professionals were being asked to produce credible analytical work with fragile tools, scattered habits, and shallow explanations.
+
+A researcher should not have to rebuild confidence every time a dataset arrives in a slightly different format.
+
+A graduate student should not feel defeated by a working directory before the analysis has even begun.
+
+An analyst should not have to depend on memory, luck, and a chain of copied commands to produce a report that others will trust.
+
+A teacher, supervisor, or data worker should not be forced to choose between getting quick output and understanding the system that produced it.
+
+Many learners meet R at the wrong point in the journey. They meet it as a strange language full of symbols, brackets, packages, functions, and error messages. They are shown commands before they are given a map. They are handed recipes before they understand the kitchen. They are told to run code before they know what R thinks it is being asked to do.
+
+The result is predictable. R begins to look like a catalogue of things to memorise. Syntax looks separate from meaning. Errors look like failure. Reproducibility sounds like an advanced luxury instead of the foundation of trustworthy work.
+
+That was never good enough.
+
+*Not So Short Introduction to R* exists because learning R should not mean memorising scattered commands until something works. It should mean entering a more disciplined way of thinking about data, evidence, structure, and communication.
+
+This is why the book is not so short.
+
+A short introduction can show the surface. It can give a learner quick wins. It can produce early output. Those things matter. But serious analytical confidence needs something deeper. It needs a way to understand what a value is, why type matters, how structures hold data, why syntax carries meaning, how functions act on objects, how packages extend the system, how files become data, how raw evidence becomes analysis, and how a report can be rebuilt without fear.
+
+The point was never to make R look easy by hiding its difficulty.
+
+The point was to make R understandable enough that difficulty no longer feels like chaos.
+
+## What I Hope Changed for You
+
+This book was never mainly about code.
+
+It was about control.
+
+About what changes when the objects on the screen stop looking mysterious and start having names, types, structures, and relationships.
+
+About what changes when an error message stops being a wall and starts becoming a clue.
+
+About what changes when a dataset is no longer just a table to survive, but a piece of evidence that can be inspected, cleaned, transformed, checked, summarised, visualised, reported, shared, and rebuilt.
+
+This book began with small pieces because that is where confidence begins. A value. A name. A type. A structure. A condition. A function. A file. A package. A project.
+
+Those pieces may seem modest at first.
+
+They are not.
+
+They are the difference between copying a script and knowing why the script works. They are the difference between being trapped by a red error message and knowing where the conversation with R broke down. They are the difference between having output and having a workflow.
+
+That is the shift I hoped this book would make possible.
+
+Not that you would become someone else.
+
+Not that you would suddenly think like a software engineer.
+
+Not that you would pretend the work is always simple.
+
+But that you would stop working below your level.
+
+The strongest outcome is not that you now know more R commands.
+
+It is that you can see analytical work differently.
+
+You can look at a messy file and ask better questions before rushing to fix it.
+
+You can look at a column and wonder not only what it contains, but what type of evidence it represents.
+
+You can look at a repeated task and recognize the need for a function, a script, a project structure, or a report that can be rebuilt.
+
+You can look at a package and understand that it is not magic. It is an organised extension of what R can do.
+
+You can look at a chart and ask whether it merely decorates the page or actually clarifies the pattern.
+
+You can look at a Quarto document and understand that analysis does not have to live apart from explanation.
+
+You can look at Git, automation, performance, and integration without treating them as distant professional mysteries. You can see them as parts of the same movement from fragile work to traceable work.
+
+That is a real change.
+
+It is the change from commands to concepts.
+
+From output to evidence.
+
+From improvisation to workflow.
+
+From fear of breaking things to the ability to inspect, test, repair, and rebuild.
+
+This book cannot remove every difficulty from data work. No honest book can. Real data will still be messy. Packages will still change. Paths will still break. Code will still fail. Reports will still need revision. But difficulty feels different when it arrives inside a system you understand.
+
+The aim was not to make you dependent on this book.
+
+The aim was to help you become less dependent on fragile explanations, scattered searches, and blind copying.
+
+## The Companion Materials for This Book
+
+A book like this should not leave the reader with insight alone.
+
+Insight matters.
+
+But practice is where insight becomes usable.
+
+That is why the companion materials for *Not So Short Introduction to R* matter. They are designed to shorten the distance between reading and doing, especially for readers who already carry the pressure of deadlines, reports, supervision, coursework, research, teaching, or professional analysis.
+
+The companion ecosystem may include:
+
+- downloadable teaching datasets built around the book’s learner-progress narrative
+- raw and cleaned data files for import, inspection, cleaning, and analysis practice
+- Quarto chapter files that show how code, explanation, tables, figures, and cross-references work together
+- code packs that follow the major workflows introduced in the book
+- practice labs for building confidence without having to invent exercises from scratch
+- reusable project folder structures for disciplined analytical work
+- reporting templates for turning analysis into documents others can read and trust
+- AI-assisted learning prompts that help readers ask better questions without surrendering judgment
+- checklists for debugging, cleaning, reproducibility, automation, and final project review
+
+The point of these materials is practical.
+
+A learner should not finish a chapter on importing data and then wonder where to find a file safe enough to practise with.
+
+A reader should not understand Quarto in principle and then lose momentum because no starter document is available.
+
+A professional should not feel the power of reproducibility for one evening, then return the next morning to the same scattered folders, unnamed scripts, and improvised habits.
+
+The companion materials exist to help the learning stay attached to work.
+
+Start with the material closest to your real pressure point.
+
+If files and folders are the problem, begin with the project structure.
+
+If messy data is the problem, begin with the raw dataset and the cleaning labs.
+
+If reporting is the problem, begin with the Quarto templates.
+
+If error fear is the problem, begin with the debugging checklist and the smallest reproducible examples.
+
+If repetition is the problem, return to functions, scripts, and automation.
+
+If confidence is the problem, begin again with one small workflow you can complete, explain, save, and rerun.
+
+The right next step is not the most impressive one.
+
+It is the one that reduces the next real friction.
+
+## For Teams, Teachers, Researchers, and Organizations
+
+Some readers will use this book alone.
+
+Some will finish a chapter and immediately see a wider need.
+
+One person can build a cleaner script. A team can still remain trapped in an unclear workflow.
+
+One lecturer can teach R commands. A curriculum can still fail to teach how data work actually holds together.
+
+One researcher can produce a reproducible report. A department can still lack shared standards for files, scripts, documentation, version control, review, and evidence management.
+
+That is where this book can serve a larger purpose.
+
+For teams, it can support practical workshops on moving from spreadsheet-dependent reporting to reproducible R workflows.
+
+For educators, it can provide a structured pathway for teaching R without overwhelming learners with theory before they can see progress.
+
+For supervisors, it can help make analytical expectations more explicit: where data live, how scripts are named, how results are rebuilt, how tables and figures are checked, and how final reports connect back to source evidence.
+
+For researchers, it can strengthen the habits that make computational work more credible, especially when projects involve cleaning, transformation, visualisation, documentation, and repeated revision.
+
+For organizations, it can support a deeper form of data literacy. Not the shallow kind that celebrates dashboards without asking how the data were prepared. Not the performative kind that buys tools without improving workflows. A steadier kind. The kind that helps people understand how evidence moves from raw file to decision, report, publication, or policy conversation.
+
+This level of change does not require turning every learner into a programmer.
+
+It requires helping serious people build serious workflows.
+
+That work does not need drama.
+
+It needs structure.
+
+## You Were Never the Problem
+
+The problem was never that you were bad at R.
+
+The problem was never that you were too old, too busy, too humanities-oriented, too spreadsheet-dependent, too anxious, too late, or not technical enough.
+
+The problem was often architecture.
+
+You were being asked to do modern analytical work without being given a stable analytical system.
+
+So you adapted.
+
+You copied what worked.
+
+You searched again.
+
+You kept old scripts because they once produced the right output.
+
+You avoided changing folders because the path might break.
+
+You treated errors as interruptions instead of information because no one had shown you how to read them.
+
+You trusted screenshots, manual edits, and memory because the workflow had not yet become trustworthy enough to carry the work.
+
+You became careful. Persistent. Resourceful. Sometimes frustrated. Often more capable than you gave yourself credit for.
+
+But survival is not the same as mastery.
+
+That is what this book has been trying to make visible from the beginning.
+
+You did not need more shame about not understanding R quickly enough.
+
+You needed better explanations.
+
+You needed mental models.
+
+You needed a workflow that respected the seriousness of your work.
+
+You needed to see how the small pieces connect: values, types, structures, syntax, logic, functions, packages, data import, cleaning, transformation, summarising, visualisation, reporting, collaboration, reusable tools, automation, performance, and integration.
+
+Now you have a different path.
+
+A calmer one.
+
+A more reproducible one.
+
+A more professional one.
+
+You do not need to become a software developer to do responsible analytical work in R.
+
+You need to become dangerous to confusion, dangerous to manual repetition, dangerous to fragile files, dangerous to outputs that cannot be rebuilt, and dangerous to the quiet waste that keeps capable people working smaller than they should.
+
+That shift does not need applause.
+
+It needs practice.
+
+It needs to stay.
+
+And once it stays, the work does not feel the same again.

@@ -1,0 +1,651 @@
+learner_id,learner_name,country,region,job_role,industry,background,excel_years,r_experience_level,enrolment_date,first_login_date,week,study_hours,lessons_completed,confidence_score,pre_assessment_score,project_score,first_script_completed,used_rstudio,used_quarto,used_git,used_renv,preferred_learning_mode,monthly_income_band,completion_status,manager_support,notes,payment_probability_score
+L0001,Learner_001,norway,Europe,Student,Finance,power bi,6.3,Intermediate,13-11-2025,NA,4,12,39,68,56,NA,FALSE,0,1,0,1,Instructor-led,High, Completed ,Y,NA,22.1
+L0002,Learner_002,Australia,South America,Engineer, Government ,spreadsheet,0.1,Beginner,02/18/2025,21-02-2025,7,5.7,6,49,24,89.85,No,N,No,FALSE,Yes,Instructor-led,Low,In Progress,No,Good progress,15.9
+L0003,Learner_003,Germany,Asia,Analyst, Tech ,SpreadSheet,1.4,Beginner,27 Dec 2025,06-01-2026,9,8.4,8,55,25,86.2,No,1,Y,No,0,Hybrid,High, Completed ,FALSE,NA,21.8
+L0004,Learner_004, INDIA ,Oceania, Manager ,Government,MS Excel,5.1,Beginner,2025-02-01,02/02/2025,5,8.9,26,68,33,85.45,TRUE,N,1,FALSE,N,Instructor-led,Upper-Middle, Completed ,Y,NA,9.7
+L0005,Learner_005,indonesia,North America, Student , Finance ,excel,4.7,Beginner,05-05-2025,05/09/2025,5,13.6,21,75,64,88.8,0,1,1,TRUE,0,Self-paced,High,Dropped,0,Needs support,6.8
+L0006,Learner_006,united states,Africa,Manager,Finance,spreadsheet,5.2,Intermediate,07 Feb 2025,NA,9,16.6,34,59,31,98.3,No,Y,No,FALSE,1,Instructor-led,Lower-Middle,Dropped,0,NA,24.2
+L0006,Learner_007,Japan,Africa,Manager,Retail, google sheets ,6.9,Intermediate,2025-06-12,18 Jun 2025,2,8.4,6,53,78,NA,1,0,Yes,No,Y,Self-paced,Lower-Middle,Completed,No,Fast learner,17.9
+L0008,Learner_008,India,Asia,Student,Education,MS Excel,10,Beginner,2025-09-13,14-09-2025,11,8.4,18,95,28,76.2,No,FALSE,N,TRUE,1,Self-paced,Lower-Middle, In Progress ,1,Needs support,9.7
+L0009,Learner_009,Japan,North America,Consultant,Healthcare,spreadsheet,9.5,Intermediate,16 Jun 2025,24-06-2025,12,11.8,35,90,44,81.9,N,Y,No,N,Y,Hybrid,Upper-Middle,Completed,No,Struggling,17.9
+L0010,Learner_010, GERMANY ,Asia,Consultant, Government ,MS Excel,9.5,Intermediate,12 May 2025,12 May 2025,11,10.6,36,98,75,93.3,N,TRUE,FALSE,TRUE,N,Hybrid,Low,Dropped,N,Struggling,21.8
+L0011,Learner_011,mexico,Asia,Clerk,Healthcare,Power BI,6.8,Beginner,16 Aug 2025,08/17/2025,1,12.2,43,48,72,100,FALSE,TRUE,No,N,1,Self-paced,Lower-Middle,Completed,Y,NA,7.6
+L0012,Learner_012,Germany,Europe,Manager, Retail , Google Sheets ,7.4,Intermediate,06/22/2025,NA,5,9.6,13,82,61,100,Y,Yes,FALSE,N,1,Self-paced,Low,Completed,1,Needs support,21.8
+L0013,Learner_013,CANADA,South America,Student,Finance,google sheets,9.6,Beginner,07 May 2025,16-05-2025,3,10,42,99,75,71,No,1,1,Y,1,Instructor-led,Lower-Middle,Paused,N,NA,17.2
+L0014,Learner_014,SOUTH KOREA,Africa,Student,Finance,Google Sheets,2.1,Beginner,08/13/2025,NA,7,10,25,72,56,76,No,No,TRUE,N,1,Self-paced,Lower-Middle, Paused ,FALSE,Needs support,18.6
+L0015,Learner_015,ireland,Oceania, Manager , Retail ,MS Excel,6.7,Advanced,17 Jun 2025,06/18/2025,12,11.4,22,89,70,100,Yes,Yes,FALSE,0,No,Self-paced,Lower-Middle,Dropped,0,Fast learner,25.8
+L0016,Learner_016, INDIA ,Oceania,Clerk,Finance,Google Sheets,1,Beginner,02/28/2025,03/03/2025,12,12.1,28,95,50,98.05,Yes,FALSE,FALSE,N,No,Hybrid,High, Completed ,FALSE,NA,9.7
+L0017,Learner_017,Denmark,South America,Student,Finance,Power BI,5,Advanced,23 Jun 2025,NA,8,14.6,25,61,34,99.3,N,N,TRUE,0,FALSE,Instructor-led,High,Completed,TRUE,Struggling,23.5
+L0018,Learner_018,UNITED STATES,Asia,Clerk,Tech,Power BI,7.6,Intermediate,2025-02-06,NA,7,12.8,22,59,70,81.4,0,Y,0,Y,No,Self-paced,Upper-Middle,Completed,Y,Needs support,24.2
+L0019,Learner_019,Norway,North America, Clerk , Government ,power bi,0.1,Beginner,15 Aug 2025,17 Aug 2025,12,13.7,24,52,20,73.85,Y,N,0,0,No,Instructor-led,High, In Progress ,Yes,NA,22.1
+L0020,Learner_020,MEXICO,Oceania,Engineer,Finance,power bi,1.6,Beginner,23 Nov 2025,30 Nov 2025,11,8.2,14,69,69,65.1,FALSE,N,Y,FALSE,FALSE,Instructor-led,Lower-Middle,Dropped,FALSE,Good progress,7.6
+L0021,Learner_021,india,Africa, Analyst ,Healthcare,google sheets,1.1,Beginner,09 Aug 2025,15-08-2025,4,11.7,34,89,70,100,Yes,No,FALSE,Yes,TRUE,Instructor-led,Low,Completed,TRUE,NA,9.7
+L0022,Learner_022,Canada,South America,Consultant,Education, Excel ,8,Beginner,10-08-2025,2025-08-18,2,12.6,25,91,31,NA,N,0,TRUE,1,1,Self-paced,High,In Progress,0,Needs support,17.2
+L0023,Learner_023, CHINA ,North America,Student,Tech, Power BI ,3.7,Beginner,2025-04-14,04/19/2025,12,7.2,14,95,43,NA,FALSE,FALSE,Yes,0,TRUE,Self-paced,Lower-Middle,Completed,0,Needs support,16.5
+L0024,Learner_024,nigeria,Asia,Manager, Education ,google sheets,6.3,Beginner,11/29/2025,30-11-2025,7,9,17,73,21,88.5,N,FALSE,N,N,FALSE,Hybrid,Low, Completed ,FALSE,Good progress,4.1
+L0025,Learner_025,china,Asia,Analyst, Finance ,Spreadsheet,7.6,Beginner,2025-12-08,12/14/2025,11,10,12,41,48,100,FALSE,0,Y,FALSE,Y,Hybrid,High,Completed,Yes,Good progress,16.5
+L0026,Learner_026, canada ,Africa,Analyst,Healthcare,Manual Reporting,2.5,Beginner,18-03-2025,03/23/2025,3,12.1,18,59,27,75.05,0,FALSE,TRUE,1,1,Hybrid,Low,Completed,No,Good progress,17.2
+L0027,Learner_027, japan ,Europe,Analyst,Tech,MS Excel,3.7,Advanced,27-02-2025,03/01/2025,6,3,28,98,47,66.5,FALSE,Yes,Y,TRUE,1,Instructor-led,Low, In Progress ,FALSE,Fast learner,17.9
+L0028,Learner_028,south korea,Africa, Student , Education ,power bi,3.4,Beginner,06 Sep 2025,2025-09-07,9,17.3,35,NA,39,100,N,N,TRUE,Y,No,Hybrid,Low, Dropped ,FALSE,Fast learner,18.6
+L0029,Learner_029,norway,Asia,Consultant, Finance ,MS Excel,7.1,Advanced,07/27/2025,08/01/2025,10,13.3,17,58,51,92.65,N,Y,Y,FALSE,N,Hybrid,Lower-Middle,In Progress,TRUE,NA,22.1
+L0030,Learner_030,UNITED KINGDOM,North America, Analyst , Healthcare , google sheets ,5.7,Intermediate,2025-04-19,04/29/2025,7,14.4,20,NA,50,NA,1,FALSE,No,N,Yes,Instructor-led,Lower-Middle,Paused,0,Struggling,24.9
+L0030,Learner_031,MEXICO,Asia,Student, Healthcare ,excel,1.4,Beginner,02/08/2025,2025-02-18,1,13.9,25,48,26,NA,1,TRUE,TRUE,No,Y,Hybrid,Lower-Middle,Completed,Yes,Needs support,7.6
+L0032,Learner_032,India,Asia,Manager,Retail,Spreadsheet,3,Intermediate,03 Apr 2025,2025-04-03,12,12.9,22,98,76,80.45,Yes,N,0,Yes,0,Instructor-led,Low,Paused,No,NA,9.7
+L0033,Learner_033,canada,Europe,Engineer,Government,spreadsheet,3.9,Beginner,2025-11-17,21-11-2025,7,1.9,37,72,52,65.95,0,1,1,Yes,TRUE,Hybrid,Low,Dropped,0,NA,17.2
+L0033,Learner_034,AUSTRALIA,Africa, Manager , Retail ,excel,5.2,Intermediate,12/25/2025,12/31/2025,2,12.2,29,61,64,77.1,0,TRUE,N,TRUE,TRUE,Hybrid,Upper-Middle, Paused ,FALSE,NA,15.9
+L0035,Learner_035, united states ,North America,Consultant,Education,power bi,5.9,Beginner,27 Sep 2025,NA,2,11.8,44,61,42,97.9,Yes,TRUE,1,Yes,Y,Hybrid,Upper-Middle,In Progress,TRUE,NA,24.2
+L0036,Learner_036,Switzerland,North America,Manager, Retail , Excel ,3.1,Beginner,2025-07-02,10 Jul 2025,5,4.8,20,90,65,74.4,No,N,1,0,N,Hybrid,Low, Dropped ,Yes,Struggling,19.7
+L0037,Learner_037,australia,North America,Manager,Education, Excel ,3.6,Advanced,12 Nov 2025,NA,8,15.2,11,94,62,67.6,FALSE,Y,FALSE,Yes,Y,Hybrid,Lower-Middle, In Progress ,FALSE,Good progress,15.9
+L0038,Learner_038,denmark,Oceania, Consultant ,Retail,excel,9.3,Beginner,13-08-2025,22 Aug 2025,8,6.1,38,70,67,80.05,TRUE,1,N,Y,TRUE,Instructor-led,Low, In Progress ,0,Good progress,23.5
+L0039,Learner_039,NORWAY,Africa,Engineer,Tech,power bi,5.4,Beginner,14-08-2025,14 Aug 2025,10,10.6,16,85,22,91.3,Y,1,N,0,1,Instructor-led,Low, In Progress ,0,NA,22.1
+L0040,Learner_040,denmark,Europe, Clerk ,Healthcare,spreadsheet,5.9,Intermediate,29-11-2025,12/06/2025,6,5.6,22,NA,47,100,1,1,1,FALSE,0,Self-paced,Upper-Middle,Completed,N,Good progress,23.5
+L0041,Learner_041,United Kingdom,South America,Student,Government,power bi,2.5,Beginner,04/22/2025,27 Apr 2025,10,10,14,NA,26,NA,0,Yes,No,No,1,Self-paced,Upper-Middle,Completed,FALSE,NA,24.9
+L0042,Learner_042,Germany,South America, Consultant ,Tech,excel,3.9,Beginner,14-02-2025,2025-02-22,10,16.1,30,89,28,59.05,1,N,Y,Yes,Y,Hybrid,Low,Dropped,No,Fast learner,21.8
+L0043,Learner_043,Germany,Asia, Student ,Tech, Power BI ,6.5,Intermediate,01-06-2025,06/01/2025,5,11.8,39,86,51,NA,FALSE,Y,TRUE,TRUE,1,Hybrid,Upper-Middle,Completed,FALSE,Fast learner,21.8
+L0044,Learner_044,Singapore,Africa,Clerk, Tech , spreadsheet ,3.7,Beginner,17-01-2025,24-01-2025,12,10.7,12,55,31,98.35,1,No,TRUE,No,Y,Instructor-led,High, Completed ,Yes,NA,20.4
+L0045,Learner_045, united kingdom ,Asia, Engineer , Government ,Power BI,4.7,Beginner,06/02/2025,04 Jun 2025,5,17.3,35,64,47,NA,0,Y,No,FALSE,1,Hybrid,Low, Completed ,TRUE,Good progress,24.9
+L0046,Learner_046, ireland ,Africa,Analyst, Education ,excel,1.8,Beginner,10/03/2025,12-10-2025,2,17.6,22,77,25,NA,FALSE,Y,No,No,0,Hybrid,Lower-Middle, Completed ,0,Good progress,25.8
+L0047,Learner_047,denmark,South America,Student,Education,power bi,4.8,Intermediate,2025-02-21,25-02-2025,9,10.7,28,69,45,57.35,N,TRUE,0,No,N,Self-paced,Low,Paused,1,Fast learner,23.5
+L0048,Learner_048,Switzerland,Europe, Engineer ,Retail,google sheets,9.3,Beginner,30-04-2025,09-05-2025,4,9,14,67,26,95.5,N,N,No,FALSE,N,Hybrid,Low,Dropped,N,Struggling,19.7
+L0049,Learner_049, Denmark ,Oceania,Student,Education,SpreadSheet,0.3,Advanced,18-10-2025,18-10-2025,12,14,12,73,75,77,N,Y,No,N,TRUE,Hybrid,Low, Paused ,FALSE,Fast learner,23.5
+L0050,Learner_050,brazil,North America,Manager,Tech,excel,3.8,Intermediate,11/30/2025,30-11-2025,5,13.9,29,NA,24,72.95,Y,N,TRUE,N,Y,Self-paced,Upper-Middle,Completed,FALSE,Struggling,8.9
+L0051,Learner_051,united states,South America,Analyst,Finance,SpreadSheet,2.5,Beginner,19-05-2025,23 May 2025,6,16.8,13,68,43,64.4,Y,0,0,Y,FALSE,Hybrid,Upper-Middle,Completed,No,Fast learner,24.2
+L0052,Learner_052,GERMANY,Africa,Student,Education,spreadsheet,5.8,Beginner,2025-05-12,21 May 2025,12,7.6,36,69,68,93.8,Y,Y,TRUE,0,FALSE,Instructor-led,Lower-Middle,Dropped,Yes,Fast learner,21.8
+L0053,Learner_053,Netherlands,Oceania,Consultant, Finance ,spreadsheet,0.7,Advanced,2025-12-04,13-12-2025,1,12,35,49,43,74,FALSE,0,N,0,1,Self-paced,Low, In Progress ,FALSE,NA,13.4
+L0054,Learner_054,ireland,Africa, Clerk ,Finance,Spreadsheet,6.5,Beginner,09/01/2025,NA,8,13.9,21,81,27,77.95,Yes,No,0,1,No,Self-paced,Upper-Middle,Completed,1,NA,25.8
+L0055,Learner_055,japan,South America, Engineer ,Finance,Google Sheets,0.5,Intermediate,15-02-2025,23 Feb 2025,2,8.7,44,97,30,65.35,No,No,No,1,FALSE,Instructor-led,Low,Dropped,TRUE,NA,17.9
+L0056,Learner_056,United Kingdom,Europe, Engineer ,Retail,Excel,2.9,Beginner,19 Apr 2025,22 Apr 2025,7,6.8,5,67,64,67.4,Yes,1,N,FALSE,FALSE,Hybrid,Lower-Middle,Completed,Y,Good progress,24.9
+L0057,Learner_057,ireland,North America,Analyst, Education ,power bi,3.1,Beginner,2025-02-05,02/15/2025,9,4.4,15,54,37,88.2,FALSE,No,Y,Yes,TRUE,Hybrid,Low, Completed ,Yes,NA,25.8
+L0058,Learner_058, france ,Asia, Engineer ,Retail,excel,4.4,Advanced,2025-08-19,2025-08-21,4,11.8,17,90,79,60.9,Yes,Y,Yes,No,0,Instructor-led,Lower-Middle, In Progress ,N,NA,14.1
+L0059,Learner_059,INDIA,Europe,Engineer,Healthcare,Manual Reporting,4.4,Intermediate,03/08/2025,NA,4,11.8,20,51,72,NA,Y,1,1,TRUE,TRUE,Self-paced,High,In Progress,No,Fast learner,9.7
+L0060,Learner_060, Singapore ,Europe,Clerk,Healthcare,Excel,9.9,Intermediate,12/26/2025,2025-12-26,8,10.2,11,77,45,63.1,N,N,N,0,Yes,Self-paced,Low,Completed,TRUE,Needs support,20.4
+L0061,Learner_061,canada,Asia,Analyst, Retail ,MS Excel,6.1,Beginner,2025-04-29,05/05/2025,7,11.7,41,45,78,63.85,Y,Y,0,N,0,Instructor-led,Upper-Middle,Completed,1,NA,17.2
+L0062,Learner_062, IRELAND ,North America, Consultant ,Healthcare,MS Excel,3.2,Beginner,28 Mar 2025,NA,11,5.9,41,46,46,70.95,FALSE,1,No,Y,0,Instructor-led,Low,Completed,N,Struggling,25.8
+L0063,Learner_063,Singapore,Oceania,Engineer,Government,Power BI,8.6,Beginner,2025-12-20,28-12-2025,7,15.2,39,81,77,98.6,0,FALSE,TRUE,Yes,1,Hybrid,Lower-Middle, Completed ,TRUE,Fast learner,20.4
+L0064,Learner_064,DENMARK,South America, Student ,Healthcare,Manual Reporting,3.4,Beginner,03/12/2025,18-03-2025,8,12.7,29,70,68,80.35,0,1,Yes,Y,N,Instructor-led,High,In Progress,1,Struggling,23.5
+L0065,Learner_065, Netherlands ,Asia, Clerk ,Education, excel ,6.7,Intermediate,28-01-2025,30 Jan 2025,10,9.6,5,51,35,71.8,1,Y,0,N,TRUE,Instructor-led,Lower-Middle,In Progress,No,Needs support,13.4
+L0066,Learner_066,germany,Oceania, Engineer , Healthcare ,spreadsheet,9,Beginner,30-06-2025,2025-07-10,8,10.3,43,62,50,90.15,0,1,0,FALSE,No,Self-paced,High, Completed ,N,Good progress,21.8
+L0067,Learner_067,netherlands,South America,Engineer,Retail,MS Excel,8.4,Beginner,11-06-2025,2025-06-17,9,15.2,28,59,72,64.6,Y,N,No,TRUE,N,Instructor-led,High,Completed,FALSE,Fast learner,13.4
+L0068,Learner_068,netherlands,Asia,Engineer, Education , Google Sheets ,0.9,Advanced,06/30/2025,04 Jul 2025,7,10.5,33,92,33,78.25,N,0,FALSE,Yes,0,Hybrid,Lower-Middle,In Progress,1,Fast learner,13.4
+L0069,Learner_069,AUSTRALIA,Europe, Clerk , Healthcare ,MS Excel,3,Beginner,2025-11-06,2025-11-10,4,20.4,23,73,25,88.2,1,N,Y,No,N,Hybrid,Low, Dropped ,0,Struggling,15.9
+L0070,Learner_070,germany,Africa,Clerk,Finance,Excel,5.3,Advanced,17 Mar 2025,03/20/2025,10,16.1,12,47,25,100,1,TRUE,Yes,Yes,No,Hybrid,Low,Completed,TRUE,Needs support,21.8
+L0071,Learner_071,france,South America,Clerk, Finance ,Spreadsheet,3.8,Intermediate,26 Sep 2025,29-09-2025,1,9,36,NA,32,59.5,N,FALSE,FALSE,FALSE,Y,Self-paced,Lower-Middle, Completed ,FALSE,Good progress,14.1
+L0072,Learner_072,china,North America,Engineer,Tech,Manual Reporting,8.5,Advanced,2025-05-20,NA,7,7.7,34,41,52,58.85,Y,0,Y,FALSE,1,Self-paced,High, Completed ,N,NA,16.5
+L0073,Learner_073, Canada ,Oceania,Student,Healthcare, spreadsheet ,8.6,Beginner,26 Sep 2025,10/05/2025,1,14.6,35,65,57,77.3,N,TRUE,0,FALSE,Yes,Instructor-led,Lower-Middle, In Progress ,FALSE,Needs support,17.2
+L0074,Learner_074,United States,North America,Clerk,Government,MS Excel,6.8,Beginner,11/17/2025,2025-11-18,12,12,18,81,40,NA,1,1,Yes,FALSE,TRUE,Self-paced,Low,In Progress,0,Fast learner,24.2
+L0075,Learner_075,Switzerland,Europe,Clerk, Healthcare , Power BI ,5,Advanced,2025-05-04,05/11/2025,5,14.7,17,73,78,78.35,1,0,No,TRUE,0,Self-paced,High,Completed,FALSE,Fast learner,19.7
+L0076,Learner_076, Denmark ,South America,Manager,Finance, Google Sheets ,8,Intermediate,02/09/2025,02/18/2025,2,8.1,28,90,59,95.05,FALSE,FALSE,0,FALSE,TRUE,Instructor-led,High,Dropped,TRUE,NA,23.5
+L0077,Learner_077,Singapore,Africa,Engineer,Education,excel,0.5,Advanced,04/10/2025,NA,12,12.4,38,87,52,60.2,No,Yes,0,0,TRUE,Instructor-led,Low,In Progress,No,Struggling,20.4
+L0078,Learner_078, south korea ,North America,Student,Retail,MS Excel,2.6,Advanced,11-12-2025,2025-12-15,7,11.7,26,80,57,90.85,N,Y,Yes,1,Y,Self-paced,Lower-Middle,Completed,0,Needs support,18.6
+L0079,Learner_079,SINGAPORE,South America,Engineer, Healthcare , Excel ,2,Intermediate,03/09/2025,03/19/2025,7,15.9,12,99,71,89.95,TRUE,FALSE,0,0,N,Instructor-led,Lower-Middle, Paused ,1,Struggling,20.4
+L0080,Learner_080,ireland,Africa,Manager,Government,Spreadsheet,8.2,Beginner,24-06-2025,29 Jun 2025,7,13,25,95,74,78.5,TRUE,Y,N,No,FALSE,Instructor-led,Lower-Middle,Dropped,TRUE,Fast learner,25.8
+L0081,Learner_081,denmark,Europe, Student ,Healthcare, google sheets ,8.4,Intermediate,06/25/2025,06/29/2025,5,10.6,21,50,48,81.3,Yes,Y,N,N,0,Instructor-led,Low, Completed ,TRUE,Needs support,23.5
+L0082,Learner_082,Canada,Europe,Engineer,Tech, Manual Reporting ,8.3,Beginner,11/03/2025,NA,7,10.8,23,89,64,70.4,Yes,No,N,N,FALSE,Self-paced,Lower-Middle,Completed,Yes,Good progress,17.2
+L0083,Learner_083,germany,Africa,Consultant,Healthcare, MS Excel ,2.7,Beginner,2025-10-28,NA,1,12.8,20,92,50,82.4,TRUE,Yes,N,Yes,TRUE,Hybrid,High, Completed ,N,NA,21.8
+L0084,Learner_084,AUSTRALIA,North America, Engineer , Education ,Google Sheets,0.2,Intermediate,2025-05-30,2025-06-08,3,9.5,44,51,72,58.75,No,Yes,0,0,No,Hybrid,Low, Completed ,TRUE,NA,15.9
+L0085,Learner_085,Ireland,Africa,Analyst,Tech,google sheets,6.3,Intermediate,03/04/2025,11-03-2025,3,12.9,6,88,60,100,N,N,FALSE,No,1,Hybrid,High,Dropped,FALSE,Struggling,25.8
+L0086,Learner_086,GERMANY,Oceania,Consultant,Education,excel,7.5,Intermediate,14-11-2025,2025-11-24,9,6.4,38,89,52,56.2,TRUE,0,Yes,Y,0,Hybrid,Lower-Middle, Dropped ,Yes,Good progress,21.8
+L0087,Learner_087,nigeria,North America,Clerk, Education ,Spreadsheet,5.1,Beginner,01/11/2025,18-01-2025,4,10.3,45,40,77,98.15,N,Yes,No,Yes,Y,Self-paced,High, In Progress ,Yes,Good progress,4.1
+L0088,Learner_088,INDIA,Europe,Clerk,Healthcare,Spreadsheet,3.6,Intermediate,08/22/2025,08/28/2025,12,15.7,12,57,68,95.85,N,N,No,N,FALSE,Self-paced,Low, Dropped ,0,Fast learner,9.7
+L0089,Learner_089,INDIA,Europe,Analyst, Education , SpreadSheet ,3.1,Intermediate,03/30/2025,2025-03-30,1,11.7,36,69,33,NA,1,1,FALSE,1,0,Hybrid,Low, In Progress ,N,NA,9.7
+L0090,Learner_090, United Kingdom ,Europe,Analyst,Education,Manual Reporting,3.6,Beginner,2025-10-10,10/16/2025,5,16.8,25,92,44,77.4,Y,0,Yes,1,FALSE,Self-paced,Upper-Middle, Dropped ,FALSE,Needs support,24.9
+L0091,Learner_091,IRELAND,Oceania,Clerk, Government ,google sheets,3.6,Beginner,27 Jul 2025,NA,11,12.1,35,82,44,58.05,No,No,Y,0,1,Instructor-led,Low,Paused,0,NA,25.8
+L0092,Learner_092,China,Europe,Engineer, Finance ,MS Excel,5.4,Intermediate,2025-12-28,2026-01-04,1,15.9,36,90,46,60.95,Y,Y,FALSE,0,Yes,Self-paced,Low,Dropped,Y,Needs support,16.5
+L0093,Learner_093,singapore,Asia,Engineer,Finance, excel ,6.5,Intermediate,31 Mar 2025,04/10/2025,3,13.3,28,97,57,58.65,TRUE,No,0,Yes,No,Self-paced,Upper-Middle, Dropped ,0,Good progress,20.4
+L0094,Learner_094,china,North America,Clerk,Tech,Spreadsheet,4,Beginner,16-02-2025,02/22/2025,7,9.7,40,69,52,89.85,0,FALSE,0,0,Yes,Hybrid,Low,In Progress,1,Good progress,16.5
+L0094,Learner_095,Norway,Europe,Consultant,Education,spreadsheet,5.8,Intermediate,02 May 2025,2025-05-04,2,15.4,35,NA,52,NA,Yes,1,TRUE,FALSE,Yes,Self-paced,Low, Completed ,No,Fast learner,22.1
+L0096,Learner_096,United Kingdom,Europe,Analyst,Healthcare, MS Excel ,7,Intermediate,09/10/2025,13 Sep 2025,9,15.7,11,91,28,96.85,N,No,1,FALSE,Yes,Instructor-led,Upper-Middle,Paused,N,Struggling,24.9
+L0097,Learner_097,AUSTRALIA,South America, Consultant ,Retail,Power BI,8.9,Intermediate,03 Nov 2025,05 Nov 2025,4,8.1,18,65,27,82.05,Yes,0,Yes,Y,Y,Self-paced,High,In Progress,0,NA,15.9
+L0098,Learner_098,Ireland,South America,Analyst, Tech ,Spreadsheet,9.5,Beginner,2025-02-04,02/04/2025,2,13,37,64,27,57.5,1,0,N,1,N,Self-paced,Lower-Middle,Completed,1,Needs support,25.8
+L0098,Learner_099,Switzerland,Oceania,Analyst,Finance,excel,4.2,Advanced,03-08-2025,08-08-2025,11,18,13,41,47,NA,Yes,Y,TRUE,Y,N,Instructor-led,Upper-Middle, In Progress ,1,Needs support,19.7
+L0100,Learner_100,switzerland,Africa, Engineer ,Tech, excel ,6.4,Advanced,25-02-2025,02/25/2025,5,12.7,13,91,43,100,No,Yes,TRUE,0,FALSE,Hybrid,High,In Progress,No,Struggling,19.7
+L0101,Learner_101, south korea ,Oceania,Student,Education,power bi,1.8,Beginner,2025-04-10,04/17/2025,4,14.7,42,NA,65,63.35,N,Y,Yes,TRUE,No,Self-paced,Low,Completed,Y,Fast learner,18.6
+L0102,Learner_102,Norway,Oceania,Clerk,Tech,Manual Reporting,0.8,Intermediate,02 Mar 2025,2025-03-04,5,17.4,29,41,25,100,Yes,Yes,N,TRUE,0,Hybrid,Lower-Middle,Completed,N,Needs support,22.1
+L0103,Learner_103,switzerland,South America,Engineer,Healthcare,Manual Reporting,5.7,Intermediate,22 Oct 2025,10/24/2025,3,12.8,31,93,46,79.4,1,Yes,No,FALSE,TRUE,Self-paced,Upper-Middle,Completed,1,Needs support,19.7
+L0104,Learner_104, Mexico ,Oceania,Clerk, Finance , MS Excel ,8.2,Beginner,2025-09-30,NA,8,5.2,30,49,52,57.6,TRUE,N,0,No,N,Instructor-led,Lower-Middle, Dropped ,N,Needs support,7.6
+L0105,Learner_105,switzerland,Europe,Analyst,Government, Spreadsheet ,7.6,Beginner,05/26/2025,26 May 2025,10,11.2,29,72,52,NA,0,Y,Y,1,TRUE,Hybrid,Low,In Progress,Yes,NA,19.7
+L0106,Learner_106,India,Asia,Manager, Tech , SpreadSheet ,5.7,Intermediate,03-10-2025,10/04/2025,7,15.3,11,74,67,68.65,Y,No,N,FALSE,No,Hybrid,Low,Completed,N,Fast learner,9.7
+L0107,Learner_107,Indonesia,South America, Student ,Retail,Power BI,9.9,Beginner,20-07-2025,28 Jul 2025,7,7.9,24,86,26,53.95,0,TRUE,TRUE,No,N,Self-paced,Lower-Middle,Paused,0,NA,6.8
+L0108,Learner_108,south korea,Oceania, Clerk , Government ,SpreadSheet,10,Beginner,15 Nov 2025,23-11-2025,11,10.7,21,58,31,84.35,FALSE,0,0,No,N,Instructor-led,Low, Dropped ,Yes,Good progress,18.6
+L0109,Learner_109,GERMANY,North America,Clerk, Healthcare ,SpreadSheet,3.2,Intermediate,2025-01-02,01/02/2025,5,10.2,24,51,40,NA,FALSE,0,Yes,Yes,TRUE,Instructor-led,Upper-Middle,Completed,No,Good progress,21.8
+L0110,Learner_110,United Kingdom,Africa,Student,Government, google sheets ,1.7,Advanced,30 Dec 2025,07 Jan 2026,7,2.7,6,40,51,83.35,FALSE,N,0,TRUE,1,Hybrid,Lower-Middle,Completed,TRUE,Fast learner,24.9
+L0110,Learner_111,indonesia,Europe,Analyst,Education, SpreadSheet ,3.7,Beginner,03/31/2025,2025-04-08,7,15.2,37,92,33,100,Yes,1,N,Yes,1,Hybrid,Upper-Middle,In Progress,No,Good progress,6.8
+L0112,Learner_112,NORWAY,Oceania,Analyst,Education,Excel,5.4,Beginner,03 Jan 2025,10 Jan 2025,2,8,11,NA,24,60,TRUE,Y,TRUE,1,N,Instructor-led,Low, Completed ,Y,Fast learner,22.1
+L0113,Learner_113, UNITED STATES ,Europe,Analyst,Government,spreadsheet,8.1,Intermediate,03/10/2025,2025-03-17,7,6.6,24,69,57,85.3,N,N,1,TRUE,Y,Instructor-led,Low,Completed,No,Fast learner,24.2
+L0114,Learner_114, Mexico ,Asia,Analyst,Retail,Manual Reporting,7,Intermediate,30 May 2025,2025-06-01,6,9.1,32,97,70,67.55,TRUE,FALSE,FALSE,1,Yes,Self-paced,Low,In Progress,No,Struggling,7.6
+L0115,Learner_115,FRANCE,Europe,Manager, Healthcare ,SpreadSheet,9,Beginner,2025-07-07,2025-07-08,1,9.9,24,NA,40,54.95,TRUE,No,Yes,TRUE,0,Self-paced,Low,Paused,TRUE,Struggling,14.1
+L0116,Learner_116,united kingdom,Asia, Manager ,Government,Spreadsheet,7.2,Beginner,12 Dec 2025,13 Dec 2025,1,13.1,27,47,42,100,Yes,Y,TRUE,Yes,Y,Instructor-led,Low, In Progress ,FALSE,Good progress,24.9
+L0117,Learner_117, Japan ,Asia,Student, Retail ,Google Sheets,2.6,Beginner,2025-05-09,05/10/2025,4,5.7,30,72,38,73.85,FALSE,N,N,0,Y,Self-paced,Lower-Middle, Completed ,Y,Fast learner,17.9
+L0118,Learner_118, mexico ,North America,Analyst, Finance ,SpreadSheet,3.1,Intermediate,2025-04-20,2025-04-25,7,7.5,39,74,76,94.75,Y,N,Y,Y,N,Hybrid,Low,Completed,No,NA,7.6
+L0119,Learner_119, South Korea ,Asia,Manager,Education,Manual Reporting,7.5,Beginner,29 May 2025,2025-06-06,4,9.8,22,81,69,68.9,1,No,0,TRUE,N,Hybrid,Upper-Middle,Completed,Yes,Good progress,18.6
+L0120,Learner_120, GERMANY ,Africa, Engineer ,Finance,Excel,2.1,Beginner,2025-04-20,04/30/2025,5,12.2,28,59,51,100,1,FALSE,FALSE,1,TRUE,Self-paced,High,Paused,TRUE,NA,21.8
+L0121,Learner_121,CHINA,Oceania, Analyst ,Government,spreadsheet,2.9,Beginner,27-03-2025,27 Mar 2025,12,16.2,26,81,50,65.1,TRUE,FALSE,FALSE,Yes,TRUE,Self-paced,Low,Completed,Yes,Struggling,16.5
+L0122,Learner_122,Norway,North America,Clerk,Education,Google Sheets,9,Intermediate,04-12-2025,12/11/2025,2,9.9,19,70,78,65.95,TRUE,No,No,0,FALSE,Hybrid,Upper-Middle, Dropped ,TRUE,Fast learner,22.1
+L0123,Learner_123,NORWAY,Europe, Clerk , Government ,google sheets,1.7,Beginner,25-01-2025,03-02-2025,9,13.2,31,NA,79,100,TRUE,No,Y,Y,N,Instructor-led,High,In Progress,No,Fast learner,22.1
+L0124,Learner_124,denmark,South America, Consultant ,Healthcare,spreadsheet,1.4,Beginner,2025-01-11,2025-01-12,3,16.5,17,66,58,77.25,Yes,1,FALSE,Y,TRUE,Hybrid,Lower-Middle,In Progress,N,Struggling,23.5
+L0125,Learner_125, singapore ,Asia, Student ,Finance, spreadsheet ,7.3,Beginner,26 Apr 2025,2025-04-28,12,0.9,25,88,21,53.45,TRUE,Y,Y,1,Yes,Instructor-led,Lower-Middle,In Progress,Yes,Needs support,20.4
+L0126,Learner_126, NIGERIA ,Oceania, Student ,Government, power bi ,5.4,Beginner,12 Nov 2025,12 Nov 2025,4,11.1,38,67,45,NA,0,Yes,N,No,No,Instructor-led,High, In Progress ,Y,Needs support,4.1
+L0127,Learner_127,United Kingdom,South America,Manager, Retail ,Spreadsheet,5.4,Intermediate,07 Aug 2025,08/13/2025,6,15.2,7,96,72,71.6,0,N,N,0,1,Self-paced,Upper-Middle,Paused,No,Struggling,24.9
+L0128,Learner_128,IRELAND,Africa, Engineer ,Education,power bi,7,Beginner,2025-01-09,NA,2,11.3,37,67,71,NA,Y,N,Y,Y,N,Instructor-led,Upper-Middle,Completed,Yes,NA,25.8
+L0129,Learner_129,ireland,South America,Engineer, Healthcare ,Excel,6.5,Beginner,2025-09-07,2025-09-16,1,15,27,86,55,94.5,FALSE,0,FALSE,TRUE,0,Hybrid,High,In Progress,N,Good progress,25.8
+L0130,Learner_130, CANADA ,Africa, Manager , Education ,power bi,7.6,Intermediate,20 Oct 2025,24 Oct 2025,9,11.2,33,41,62,79.6,Y,TRUE,Yes,No,1,Self-paced,Upper-Middle, Dropped ,TRUE,Struggling,17.2
+L0131,Learner_131, china ,Oceania,Analyst,Retail,google sheets,2.8,Beginner,2025-01-10,16 Jan 2025,7,15.4,27,69,27,58.7,No,N,Yes,0,FALSE,Self-paced,High,In Progress,TRUE,Fast learner,16.5
+L0132,Learner_132, india ,Africa,Manager,Government, google sheets ,9.8,Beginner,2025-03-23,03/31/2025,7,12.6,26,70,37,100,Y,N,TRUE,N,N,Hybrid,Lower-Middle, In Progress ,Y,Struggling,9.7
+L0133,Learner_133,canada,Europe,Consultant,Finance,Power BI,9.6,Intermediate,12/21/2025,2025-12-25,1,10.6,22,42,55,75.3,FALSE,0,N,Yes,TRUE,Hybrid,High, Dropped ,Y,Fast learner,17.2
+L0134,Learner_134,france,Europe,Manager, Tech , excel ,0.3,Intermediate,25-03-2025,2025-03-26,7,12.4,27,73,66,75.2,1,FALSE,Y,1,Yes,Self-paced,Low, Completed ,No,Needs support,14.1
+L0135,Learner_135, Japan ,Oceania, Consultant ,Government,Spreadsheet,7.5,Intermediate,22-07-2025,07/30/2025,12,10.2,27,NA,55,75.1,FALSE,TRUE,Yes,Y,0,Instructor-led,Lower-Middle,In Progress,0,NA,17.9
+L0136,Learner_136, China ,Africa,Student, Healthcare ,excel,3.7,Beginner,20-08-2025,2025-08-27,7,17.6,38,80,64,NA,No,Y,Y,N,Y,Instructor-led,Lower-Middle,In Progress,FALSE,Struggling,16.5
+L0137,Learner_137, NETHERLANDS ,Asia,Analyst, Tech ,SpreadSheet,3.5,Beginner,2025-01-27,05 Feb 2025,10,17,37,44,45,67.5,0,1,FALSE,Y,No,Instructor-led,High,Completed,Yes,Struggling,13.4
+L0138,Learner_138, australia ,South America,Clerk,Tech, excel ,0.2,Beginner,15 Aug 2025,25 Aug 2025,9,13.9,10,95,59,65.95,1,Yes,1,1,TRUE,Hybrid,Upper-Middle,In Progress,FALSE,Needs support,15.9
+L0139,Learner_139,NIGERIA,North America,Student,Finance,Google Sheets,7.6,Intermediate,12/03/2025,2025-12-12,10,10.5,40,91,51,75.25,0,0,1,Yes,TRUE,Instructor-led,High,Dropped,FALSE,NA,4.1
+L0140,Learner_140,Germany,Europe,Engineer, Education , excel ,1.6,Beginner,17 Oct 2025,17-10-2025,7,9.8,34,71,42,84.9,Yes,0,FALSE,0,Yes,Self-paced,Lower-Middle,Completed,No,Struggling,21.8
+L0141,Learner_141,norway,Oceania,Analyst,Tech,Google Sheets,1.1,Beginner,28-03-2025,NA,6,8.5,18,NA,74,91.25,N,No,0,1,No,Instructor-led,Lower-Middle,In Progress,Yes,NA,22.1
+L0142,Learner_142, germany ,Oceania, Analyst ,Retail,power bi,7.1,Beginner,02/04/2025,02/14/2025,9,9.5,20,76,49,NA,1,1,FALSE,0,TRUE,Self-paced,Low, Completed ,1,Fast learner,21.8
+L0143,Learner_143, United States ,Africa, Engineer ,Healthcare, Power BI ,4.5,Beginner,03-11-2025,2025-11-06,5,11,18,58,59,75.5,1,Yes,Yes,Y,FALSE,Instructor-led,High, Dropped ,FALSE,Good progress,24.2
+L0144,Learner_144, united kingdom ,Oceania,Consultant, Education ,power bi,0.3,Beginner,06/06/2025,06/12/2025,5,13.5,10,NA,69,63.75,Y,1,Y,No,Yes,Instructor-led,Low, Paused ,0,NA,24.9
+L0144,Learner_145,BRAZIL,Asia,Manager, Education ,excel,9.2,Beginner,04/02/2025,07-04-2025,12,20.3,11,90,28,82.15,0,TRUE,TRUE,TRUE,FALSE,Hybrid,Upper-Middle, In Progress ,Yes,NA,8.9
+L0146,Learner_146,DENMARK,North America,Analyst,Education, excel ,7.8,Beginner,07 Nov 2025,10 Nov 2025,8,15,38,72,72,80.5,0,N,1,Y,1,Instructor-led,Low, Paused ,Yes,Struggling,23.5
+L0147,Learner_147,Denmark,North America,Analyst,Government, Power BI ,4.3,Beginner,06/19/2025,22 Jun 2025,1,9.4,39,50,32,83.7,Y,No,1,Y,0,Self-paced,Lower-Middle,Completed,FALSE,Needs support,23.5
+L0148,Learner_148, IRELAND ,Asia,Manager,Tech, Google Sheets ,1.3,Beginner,29 Jun 2025,29 Jun 2025,2,16.5,16,NA,57,NA,1,TRUE,Y,Y,N,Hybrid,Lower-Middle,Dropped,FALSE,Good progress,25.8
+L0149,Learner_149,Denmark,South America,Engineer,Education, SpreadSheet ,8.2,Advanced,07/03/2025,NA,12,6.5,31,83,21,96.25,TRUE,N,Y,FALSE,0,Self-paced,High,In Progress,FALSE,Good progress,23.5
+L0149,Learner_150,France,Africa,Clerk,Government,spreadsheet,7.2,Beginner,2025-11-29,03-12-2025,8,8,32,99,33,64,Y,1,FALSE,Y,No,Self-paced,Lower-Middle, Completed ,FALSE,Good progress,14.1
+L0151,Learner_151,brazil,Oceania, Clerk ,Tech,power bi,4.1,Intermediate,04/23/2025,04/23/2025,4,7.3,17,47,64,81.65,0,Yes,Yes,0,FALSE,Hybrid,Lower-Middle,Completed,0,Fast learner,8.9
+L0152,Learner_152,SWITZERLAND,Asia,Student,Tech, MS Excel ,1.7,Beginner,2025-03-23,2025-03-30,12,11.9,25,NA,66,90.95,FALSE,Yes,TRUE,N,N,Instructor-led,Low, Dropped ,Y,Needs support,19.7
+L0153,Learner_153,Singapore,Asia,Analyst, Healthcare ,MS Excel,0.1,Intermediate,2025-06-03,10-06-2025,10,4.7,33,45,42,57.35,TRUE,TRUE,0,Y,Yes,Self-paced,Low,Paused,Yes,Needs support,20.4
+L0154,Learner_154,DENMARK,Europe,Manager,Government,Manual Reporting,3.4,Intermediate,08 Apr 2025,04/12/2025,8,17.7,29,78,54,100,1,N,Yes,FALSE,TRUE,Self-paced,Upper-Middle, Dropped ,0,Good progress,23.5
+L0155,Learner_155,Ireland,South America,Consultant, Retail ,Excel,1.9,Beginner,09 Apr 2025,04/09/2025,12,14.9,13,NA,58,100,0,1,0,Yes,No,Self-paced,Low, Completed ,FALSE,Fast learner,25.8
+L0156,Learner_156,Singapore,South America,Clerk,Government,spreadsheet,5.6,Beginner,06/15/2025,06/18/2025,8,16.4,6,80,72,98.2,No,1,No,N,No,Self-paced,Lower-Middle,Paused,1,Fast learner,20.4
+L0157,Learner_157,south korea,Europe,Manager,Government,Google Sheets,5.9,Beginner,19 Sep 2025,2025-09-25,10,11.9,34,82,55,87.95,N,Y,FALSE,Yes,Y,Self-paced,High,Completed,Y,NA,18.6
+L0158,Learner_158,DENMARK,Europe,Clerk,Healthcare,Power BI,2.8,Intermediate,2025-12-13,2025-12-16,11,16.2,30,46,23,83.1,No,Yes,N,TRUE,Y,Instructor-led,Low,Completed,FALSE,NA,23.5
+L0159,Learner_159, Germany ,Europe, Clerk ,Tech,Excel,9.3,Intermediate,2025-04-24,01-05-2025,9,13.3,43,72,35,95.65,Yes,0,Y,FALSE,TRUE,Self-paced,High, Paused ,N,NA,21.8
+L0160,Learner_160,DENMARK,South America,Manager,Retail,Google Sheets,7,Beginner,11-04-2025,20 Apr 2025,3,16.1,21,81,34,NA,1,Yes,Yes,Yes,No,Instructor-led,High,Dropped,Y,NA,23.5
+L0161,Learner_161,switzerland,South America, Clerk , Retail , power bi ,2.8,Intermediate,14 Jan 2025,01/23/2025,6,9.2,26,51,48,83.6,Yes,TRUE,No,TRUE,1,Instructor-led,Low,Dropped,0,Fast learner,19.7
+L0162,Learner_162,Singapore,Oceania,Engineer,Education, Google Sheets ,7.2,Beginner,10/01/2025,08-10-2025,5,9.5,18,48,62,65.75,Yes,0,FALSE,N,Y,Self-paced,High, Paused ,FALSE,Good progress,20.4
+L0163,Learner_163,China,North America,Clerk,Education,excel,6.1,Beginner,15 Jul 2025,2025-07-18,1,14,34,78,70,92,N,Yes,FALSE,No,1,Hybrid,High, Dropped ,TRUE,Good progress,16.5
+L0164,Learner_164,SINGAPORE,Africa,Clerk, Government ,google sheets,4.1,Intermediate,04/05/2025,2025-04-07,4,7.6,14,81,25,84.8,Y,No,TRUE,N,N,Instructor-led,Upper-Middle,Completed,0,Needs support,20.4
+L0165,Learner_165,Singapore,North America,Manager, Healthcare , Spreadsheet ,1.7,Intermediate,2025-09-30,2025-10-01,12,19.7,16,92,40,69.85,FALSE,TRUE,TRUE,N,Y,Self-paced,High,Dropped,Y,Fast learner,20.4
+L0166,Learner_166,japan,Oceania, Consultant , Finance , MS Excel ,0.2,Intermediate,11 Jul 2025,17-07-2025,11,12.9,14,56,80,98.45,Yes,0,0,TRUE,N,Hybrid,Low,Dropped,0,NA,17.9
+L0167,Learner_167,France,North America,Consultant,Tech,excel,1.5,Beginner,24-05-2025,NA,7,14.8,34,66,57,63.4,TRUE,0,TRUE,1,0,Instructor-led,Low,Completed,1,Struggling,14.1
+L0168,Learner_168, denmark ,Africa,Engineer,Education,excel,5.9,Beginner,27 Oct 2025,27 Oct 2025,12,13.2,12,55,32,64.6,1,N,0,N,Yes,Self-paced,Low,Paused,FALSE,Needs support,23.5
+L0169,Learner_169,GERMANY,Europe, Engineer ,Education,Power BI,2.2,Advanced,2025-03-24,2025-03-24,1,19,26,87,51,100,No,Y,Yes,No,Yes,Hybrid,Low,Completed,Y,Needs support,21.8
+L0170,Learner_170,DENMARK,Asia,Student, Government , MS Excel ,0.4,Beginner,13-09-2025,2025-09-15,9,10,41,80,60,97,FALSE,No,N,FALSE,Yes,Instructor-led,High,In Progress,1,Struggling,23.5
+L0171,Learner_171, CHINA ,South America,Student,Tech,excel,9.1,Beginner,20-06-2025,NA,11,11.5,12,88,21,70.75,TRUE,Y,TRUE,FALSE,N,Self-paced,Low,In Progress,TRUE,NA,16.5
+L0172,Learner_172,united kingdom,Asia, Clerk ,Tech,Google Sheets,8.7,Beginner,23 Apr 2025,01-05-2025,12,12.5,31,79,23,69.25,1,Yes,0,TRUE,Y,Self-paced,Lower-Middle,Dropped,No,NA,24.9
+L0173,Learner_173,BRAZIL,Europe,Analyst, Finance ,Power BI,8.3,Intermediate,26 Oct 2025,2025-11-02,10,11.3,20,69,25,81.65,N,0,No,Yes,Yes,Instructor-led,Low,Completed,FALSE,Fast learner,8.9
+L0174,Learner_174,France,North America,Consultant,Finance,Excel,6.1,Intermediate,03-05-2025,13-05-2025,9,12.3,26,64,79,89.15,Yes,0,1,Yes,1,Hybrid,High,Completed,N,Struggling,14.1
+L0175,Learner_175,Canada,Oceania,Consultant,Tech, Excel ,7.2,Intermediate,03-09-2025,09 Sep 2025,12,10.2,36,75,29,97.1,Y,FALSE,TRUE,FALSE,Y,Instructor-led,Lower-Middle,Completed,1,Struggling,17.2
+L0176,Learner_176, China ,Oceania,Consultant,Retail,Power BI,8,Beginner,05 Apr 2025,04/08/2025,1,15.5,43,54,66,NA,1,0,FALSE,1,1,Self-paced,Lower-Middle,Completed,No,NA,16.5
+L0177,Learner_177,singapore,Europe,Consultant, Healthcare ,Manual Reporting,8.7,Beginner,18 Oct 2025,22 Oct 2025,9,11.3,18,60,72,65.65,N,No,No,1,1,Instructor-led,Lower-Middle,Completed,0,Needs support,20.4
+L0178,Learner_178, JAPAN ,South America,Clerk,Finance,MS Excel,7,Intermediate,16 Apr 2025,04/19/2025,10,11.8,43,75,38,83.9,No,No,1,FALSE,TRUE,Self-paced,High, Completed ,N,Needs support,17.9
+L0179,Learner_179, india ,Europe, Engineer ,Healthcare,Google Sheets,3.4,Intermediate,18-04-2025,04/27/2025,6,12.2,19,NA,33,NA,TRUE,No,N,Y,FALSE,Self-paced,Upper-Middle, Dropped ,TRUE,Needs support,9.7
+L0180,Learner_180,SOUTH KOREA,Oceania, Student ,Healthcare,Power BI,5,Beginner,02 Jun 2025,06/04/2025,10,8.3,34,69,56,99.15,No,Yes,0,N,N,Self-paced,Upper-Middle,Completed,FALSE,Needs support,18.6
+L0181,Learner_181,BRAZIL,Asia,Student, Education , Power BI ,7.8,Beginner,03/19/2025,NA,1,13.9,18,63,39,71.95,TRUE,No,TRUE,TRUE,No,Instructor-led,Low, Paused ,0,NA,8.9
+L0182,Learner_182,Norway,Oceania,Analyst, Tech ,Google Sheets,4.2,Beginner,05/23/2025,26-05-2025,7,10.5,14,90,34,78.25,1,0,Yes,Y,0,Hybrid,High,In Progress,No,Needs support,22.1
+L0183,Learner_183,CANADA,South America,Consultant,Tech,Excel,5.8,Intermediate,06 Oct 2025,10/16/2025,12,12.9,33,41,68,70.45,Y,N,N,N,FALSE,Self-paced,Upper-Middle, Dropped ,N,Good progress,17.2
+L0184,Learner_184,denmark,South America,Manager,Government,power bi,3,Advanced,08-05-2025,05/17/2025,12,12.4,42,56,23,59.2,No,Y,0,Y,N,Self-paced,Lower-Middle, In Progress ,Yes,Fast learner,23.5
+L0185,Learner_185,SOUTH KOREA,Africa,Analyst,Retail,MS Excel,1.5,Beginner,04-12-2025,12-12-2025,3,13.5,34,75,61,69.75,Yes,TRUE,1,0,1,Instructor-led,Upper-Middle,Completed,FALSE,Fast learner,18.6
+L0186,Learner_186,SWITZERLAND,Oceania, Consultant , Government ,power bi,2.8,Intermediate,2025-10-26,31 Oct 2025,3,13.7,20,67,28,100,Yes,1,Y,FALSE,Yes,Self-paced,Upper-Middle,In Progress,1,NA,19.7
+L0187,Learner_187,DENMARK,Asia,Clerk,Tech,MS Excel,2,Intermediate,30-12-2025,01 Jan 2026,5,13.2,23,93,34,100,0,FALSE,0,Y,TRUE,Self-paced,Upper-Middle,Completed,N,Fast learner,23.5
+L0188,Learner_188,JAPAN,Asia,Student, Healthcare ,spreadsheet,2.3,Beginner,18 Sep 2025,28-09-2025,12,15.4,19,99,31,67.7,Y,1,Yes,FALSE,No,Self-paced,High, In Progress ,TRUE,Fast learner,17.9
+L0189,Learner_189,indonesia,North America,Analyst, Finance ,Power BI,5.2,Beginner,20 Jul 2025,22 Jul 2025,1,9.5,23,82,20,99.75,Yes,0,N,0,TRUE,Self-paced,Low,Dropped,FALSE,Needs support,6.8
+L0190,Learner_190,india,South America,Manager,Education, google sheets ,9.2,Beginner,02/12/2025,20 Feb 2025,2,10.3,26,46,72,63.15,TRUE,FALSE,FALSE,No,TRUE,Hybrid,Low,Completed,Yes,NA,9.7
+L0191,Learner_191,DENMARK,South America, Manager , Finance , spreadsheet ,5.8,Intermediate,2025-10-09,10/12/2025,7,13.7,6,96,68,100,0,Y,FALSE,N,Yes,Instructor-led,Upper-Middle,Completed,FALSE,NA,23.5
+L0192,Learner_192,Norway,Europe,Manager, Healthcare ,google sheets,2.6,Intermediate,2025-09-02,2025-09-06,1,8.3,23,77,61,67.15,0,N,TRUE,No,1,Self-paced,Upper-Middle,Paused,Yes,Struggling,22.1
+L0192,Learner_193,NIGERIA,Asia, Consultant ,Healthcare,SpreadSheet,3.7,Beginner,30-11-2025,12/08/2025,8,16.7,19,70,20,94.35,Y,FALSE,Y,Yes,N,Instructor-led,Upper-Middle,Completed,N,NA,4.1
+L0194,Learner_194,China,North America, Student ,Retail, Manual Reporting ,5.6,Advanced,05/20/2025,30-05-2025,3,11.2,16,80,41,63.6,FALSE,FALSE,1,1,1,Instructor-led,Low,In Progress,N,Good progress,16.5
+L0195,Learner_195,Indonesia,Asia,Consultant,Retail,google sheets,1.6,Intermediate,14 Jan 2025,2025-01-21,6,11.7,36,42,67,56.85,Y,No,No,TRUE,Y,Instructor-led,Low,In Progress,Y,Struggling,6.8
+L0196,Learner_196,switzerland,Oceania,Engineer,Finance,google sheets,6.7,Beginner,10/04/2025,NA,9,8.5,31,60,44,NA,FALSE,0,Y,N,No,Instructor-led,Low, In Progress ,No,Good progress,19.7
+L0196,Learner_197,Germany,North America,Clerk,Retail,Power BI,0.2,Intermediate,04 Oct 2025,12 Oct 2025,1,16.2,18,58,52,94.1,No,No,Yes,1,Y,Self-paced,Lower-Middle, Paused ,FALSE,Fast learner,21.8
+L0198,Learner_198, China ,South America, Clerk ,Retail,spreadsheet,0.1,Beginner,11/21/2025,25-11-2025,11,13.6,16,54,71,88.8,N,TRUE,Yes,TRUE,TRUE,Hybrid,Low,Completed,FALSE,Struggling,16.5
+L0199,Learner_199,UNITED KINGDOM,Asia, Analyst ,Finance,Manual Reporting,6.6,Intermediate,29 Mar 2025,2025-04-04,3,13.4,39,NA,54,100,No,Yes,Y,0,FALSE,Self-paced,Lower-Middle, Completed ,No,Fast learner,24.9
+L0200,Learner_200, south korea ,Asia,Student,Education,MS Excel,2.1,Beginner,2025-03-23,27 Mar 2025,5,10.1,20,NA,29,73.05,Y,Y,TRUE,N,TRUE,Hybrid,Low,Completed,Yes,Fast learner,18.6
+L0201,Learner_201,Denmark,North America, Clerk ,Healthcare,SpreadSheet,3.8,Beginner,2025-11-26,27 Nov 2025,7,9.1,31,90,51,82.55,N,0,TRUE,N,FALSE,Instructor-led,Upper-Middle,Paused,FALSE,NA,23.5
+L0201,Learner_202,Mexico,North America,Student,Education,Power BI,1.6,Beginner,01/08/2025,2025-01-17,2,9.5,19,45,64,94.75,0,FALSE,1,FALSE,1,Instructor-led,High,Completed,TRUE,Struggling,7.6
+L0203,Learner_203,south korea,Oceania,Clerk,Education,spreadsheet,7.1,Beginner,10/15/2025,17 Oct 2025,10,18.8,19,84,67,60.4,Y,1,Yes,1,TRUE,Self-paced,Low, In Progress ,FALSE,Good progress,18.6
+L0204,Learner_204, JAPAN ,North America, Analyst ,Tech,power bi,6.1,Beginner,2025-11-21,NA,7,11.7,13,64,31,89.85,Y,TRUE,0,TRUE,Yes,Self-paced,High, In Progress ,Y,NA,17.9
+L0205,Learner_205,germany,Africa, Engineer ,Finance,Manual Reporting,0.6,Beginner,08 Jul 2025,07/17/2025,6,20.3,43,97,79,100,1,Y,FALSE,FALSE,TRUE,Self-paced,Lower-Middle, In Progress ,TRUE,NA,21.8
+L0206,Learner_206, INDIA ,Europe,Engineer,Tech, Spreadsheet ,4.1,Beginner,2025-02-09,2025-02-17,1,12.2,30,94,66,61.1,0,Yes,1,TRUE,FALSE,Instructor-led,Lower-Middle,Dropped,No,Good progress,9.7
+L0207,Learner_207,SINGAPORE,Oceania,Student,Tech,power bi,1.1,Intermediate,2025-12-12,18 Dec 2025,4,14.2,37,63,59,90.1,1,TRUE,Yes,Yes,TRUE,Self-paced,Upper-Middle,Paused,1,NA,20.4
+L0208,Learner_208,norway,Europe, Clerk ,Government,Spreadsheet,4,Beginner,12-07-2025,18 Jul 2025,12,8.9,21,71,74,91.45,1,1,TRUE,FALSE,Y,Hybrid,Upper-Middle,Completed,0,Good progress,22.1
+L0209,Learner_209,UNITED KINGDOM,South America, Clerk , Healthcare ,SpreadSheet,4.6,Beginner,11/02/2025,NA,4,16.7,23,88,78,NA,TRUE,Yes,Y,FALSE,FALSE,Self-paced,High,Dropped,No,Needs support,24.9
+L0210,Learner_210,UNITED KINGDOM,North America,Clerk,Finance,spreadsheet,6.2,Beginner,13 Feb 2025,23-02-2025,11,10.5,23,96,40,60.25,No,0,FALSE,0,No,Instructor-led,Lower-Middle,Completed,1,Fast learner,24.9
+L0211,Learner_211,SWITZERLAND,South America,Analyst,Retail,Power BI,0.8,Advanced,06/19/2025,2025-06-28,4,14,31,62,71,62,No,N,N,Y,Yes,Self-paced,Low,Completed,Yes,NA,19.7
+L0212,Learner_212,denmark,North America, Consultant ,Tech,power bi,3.4,Beginner,05/24/2025,02-06-2025,2,6.8,29,56,61,76.4,FALSE,Yes,Yes,No,No,Hybrid,Lower-Middle, Completed ,N,Needs support,23.5
+L0213,Learner_213, denmark ,North America,Student,Healthcare,spreadsheet,0.2,Intermediate,12 Aug 2025,15 Aug 2025,4,14.6,36,57,46,76.3,Y,N,0,1,N,Self-paced,Low,Completed,1,NA,23.5
+L0214,Learner_214,canada,Asia,Engineer,Tech,excel,3.4,Beginner,17 Nov 2025,21-11-2025,8,13.7,11,83,21,76.85,0,N,No,No,No,Instructor-led,Lower-Middle,Completed,Yes,Needs support,17.2
+L0215,Learner_215,united states,North America,Clerk,Government, Manual Reporting ,7.8,Beginner,18 Mar 2025,24 Mar 2025,3,2.9,12,80,33,86.45,0,FALSE,Y,N,No,Instructor-led,Upper-Middle,Paused,1,NA,24.2
+L0216,Learner_216,Canada,Africa, Consultant , Tech ,Excel,7.4,Beginner,30 Jul 2025,07/30/2025,9,8.8,26,73,58,65.4,1,Yes,0,N,FALSE,Self-paced,Upper-Middle,In Progress,Yes,NA,17.2
+L0216,Learner_217, Singapore ,Africa,Analyst, Finance ,excel,8.2,Intermediate,03 Nov 2025,13-11-2025,8,7.9,27,52,53,57.95,Y,1,N,0,0,Hybrid,High,Completed,1,Struggling,20.4
+L0218,Learner_218,germany,Asia,Student,Healthcare, power bi ,0.6,Beginner,2025-08-06,10-08-2025,7,15.6,34,78,57,100,Y,Yes,No,FALSE,No,Instructor-led,Upper-Middle,Dropped,FALSE,Good progress,21.8
+L0219,Learner_219,netherlands,Asia,Consultant, Tech , SpreadSheet ,1.5,Beginner,08/02/2025,12 Aug 2025,8,14.3,27,91,74,78.15,FALSE,0,FALSE,Y,TRUE,Instructor-led,Upper-Middle,In Progress,1,NA,13.4
+L0220,Learner_220, Indonesia ,Europe, Analyst ,Education,Google Sheets,6.5,Beginner,04/08/2025,17-04-2025,4,8.8,38,75,60,80.4,1,FALSE,TRUE,Y,0,Hybrid,Lower-Middle,Completed,1,NA,6.8
+L0221,Learner_221,Norway,Europe,Student,Retail, Power BI ,3.9,Intermediate,22-06-2025,26 Jun 2025,6,11.2,11,78,42,91.6,No,TRUE,Y,TRUE,1,Hybrid,High,Dropped,No,Fast learner,22.1
+L0222,Learner_222,Mexico,Africa,Analyst,Tech, excel ,1.8,Beginner,25 Sep 2025,2025-10-03,5,15.1,45,87,73,92.55,0,TRUE,FALSE,Y,FALSE,Hybrid,Upper-Middle,In Progress,N,Fast learner,7.6
+L0223,Learner_223,FRANCE,South America,Clerk,Education,MS Excel,1.3,Intermediate,2025-10-28,NA,3,5.6,44,67,49,61.8,No,Yes,N,0,Y,Self-paced,Lower-Middle, Completed ,FALSE,Needs support,14.1
+L0224,Learner_224, CANADA ,Europe,Consultant,Finance,spreadsheet,1.3,Intermediate,08/24/2025,28 Aug 2025,8,12.1,19,70,30,80.05,FALSE,No,Y,N,Yes,Self-paced,Upper-Middle,Paused,1,NA,17.2
+L0225,Learner_225, UNITED STATES ,South America,Student,Education,MS Excel,6.2,Intermediate,2025-10-28,30 Oct 2025,9,13.1,29,NA,37,95.55,1,No,FALSE,0,Yes,Instructor-led,Lower-Middle, Completed ,Yes,Struggling,24.2
+L0226,Learner_226,singapore,Europe, Student , Government ,Power BI,5,Beginner,11 Dec 2025,12/13/2025,8,13.7,16,90,75,65.85,FALSE,Y,FALSE,0,No,Self-paced,Upper-Middle,Completed,N,Struggling,20.4
+L0227,Learner_227,SWITZERLAND,North America,Consultant,Government,SpreadSheet,4.9,Beginner,2025-01-03,2025-01-13,8,7.7,17,49,40,83.85,0,1,N,No,No,Hybrid,Lower-Middle,Completed,Y,Needs support,19.7
+L0228,Learner_228,Japan,Europe,Clerk, Healthcare ,Spreadsheet,8.7,Beginner,29-04-2025,2025-04-29,11,9.4,32,81,30,90.7,Yes,Yes,FALSE,No,0,Instructor-led,Lower-Middle, In Progress ,TRUE,NA,17.9
+L0229,Learner_229,CANADA,Asia,Student,Retail,Excel,1.9,Beginner,24 Nov 2025,12/01/2025,11,13.8,32,40,33,89.9,1,N,Y,TRUE,1,Instructor-led,Lower-Middle, Dropped ,FALSE,Struggling,17.2
+L0230,Learner_230, Indonesia ,Asia, Student , Retail ,spreadsheet,7.6,Beginner,08/17/2025,NA,11,12.7,7,70,23,67.35,No,Yes,N,FALSE,No,Hybrid,Lower-Middle, Dropped ,No,Struggling,6.8
+L0231,Learner_231,China,Oceania,Consultant,Tech, Excel ,2.2,Beginner,18 Apr 2025,04/18/2025,6,15.3,36,83,35,85.65,0,0,No,1,Y,Hybrid,High,In Progress,N,Good progress,16.5
+L0232,Learner_232,Germany,North America,Student,Government,power bi,1.6,Beginner,2025-11-09,2025-11-19,4,15.9,41,67,79,97.95,Y,Y,FALSE,FALSE,No,Instructor-led,Upper-Middle,In Progress,N,Fast learner,21.8
+L0233,Learner_233,JAPAN,Oceania,Engineer, Finance , Power BI ,1.4,Beginner,2025-05-12,2025-05-18,1,12.6,38,62,58,NA,FALSE,0,FALSE,Y,0,Self-paced,Lower-Middle, In Progress ,Yes,NA,17.9
+L0234,Learner_234,UNITED STATES,Asia, Engineer ,Retail,SpreadSheet,8.9,Beginner,20-09-2025,22 Sep 2025,3,19.2,10,46,68,100,FALSE,N,1,Yes,FALSE,Self-paced,Low, In Progress ,TRUE,Needs support,24.2
+L0235,Learner_235,denmark,Africa,Engineer,Retail,Spreadsheet,6.7,Intermediate,2025-08-20,08/28/2025,3,12.6,41,56,21,100,No,Yes,FALSE,No,N,Hybrid,Upper-Middle,Completed,FALSE,Needs support,23.5
+L0236,Learner_236, SINGAPORE ,Europe, Clerk ,Finance, MS Excel ,4.6,Beginner,2025-02-28,03/10/2025,11,13.5,28,55,67,NA,Y,TRUE,1,Y,N,Instructor-led,Upper-Middle,Completed,1,Fast learner,20.4
+L0237,Learner_237,united kingdom,Asia,Engineer,Retail, power bi ,7.2,Beginner,10/25/2025,10/31/2025,3,13.7,5,90,79,80.85,No,0,TRUE,Yes,0,Self-paced,Lower-Middle,Dropped,No,NA,24.9
+L0238,Learner_238,netherlands,Oceania,Consultant, Education ,Spreadsheet,7.1,Intermediate,06 Apr 2025,14 Apr 2025,2,7.4,23,64,64,91.7,No,FALSE,Y,1,Y,Self-paced,High,Completed,No,Fast learner,13.4
+L0239,Learner_239, UNITED KINGDOM ,North America, Engineer ,Education,MS Excel,6.5,Beginner,14-07-2025,19-07-2025,8,12.6,29,99,52,100,Yes,Yes,Y,FALSE,1,Instructor-led,Lower-Middle,In Progress,No,Needs support,24.9
+L0240,Learner_240,NETHERLANDS,Africa,Student,Tech,Excel,9.2,Beginner,24 Sep 2025,26 Sep 2025,4,10.7,10,NA,45,88.35,0,Y,0,FALSE,1,Instructor-led,Lower-Middle,In Progress,No,Fast learner,13.4
+L0241,Learner_241, JAPAN ,South America,Manager,Tech, Power BI ,2,Advanced,28 Apr 2025,2025-05-02,10,12.8,24,69,64,NA,Yes,N,TRUE,N,0,Instructor-led,Lower-Middle,Completed,TRUE,NA,17.9
+L0242,Learner_242,china,North America, Engineer ,Finance, Google Sheets ,4.3,Advanced,03-01-2025,2025-01-11,2,11.9,31,NA,71,100,N,0,No,No,0,Self-paced,High,Dropped,No,Needs support,16.5
+L0243,Learner_243, UNITED KINGDOM ,Europe, Clerk , Retail ,Excel,0.4,Intermediate,2025-05-04,2025-05-08,2,10.4,18,75,60,76.2,N,1,1,Y,0,Instructor-led,Upper-Middle, Dropped ,No,Good progress,24.9
+L0244,Learner_244,china,North America, Analyst ,Finance,Power BI,1.6,Beginner,22 Nov 2025,22-11-2025,8,7.3,15,53,75,58.65,FALSE,0,FALSE,0,Y,Instructor-led,Lower-Middle,In Progress,0,NA,16.5
+L0245,Learner_245, NORWAY ,Asia,Clerk, Education ,SpreadSheet,7,Advanced,03/22/2025,26-03-2025,10,8.1,34,88,61,98.05,0,1,N,Y,Y,Instructor-led,High, In Progress ,No,Struggling,22.1
+L0246,Learner_246, France ,Asia,Consultant, Retail ,Manual Reporting,7.4,Intermediate,10/30/2025,04-11-2025,5,3.5,34,59,24,59.75,0,1,0,FALSE,1,Hybrid,High,Dropped,Y,Fast learner,14.1
+L0247,Learner_247, singapore ,North America,Consultant,Healthcare,Power BI,4.3,Intermediate,2025-09-12,09/20/2025,10,13.1,22,97,58,100,FALSE,No,FALSE,TRUE,N,Self-paced,High,In Progress,N,Fast learner,20.4
+L0248,Learner_248,mexico,North America,Manager,Finance,excel,3.5,Beginner,04/22/2025,02 May 2025,12,11.4,5,98,28,81.7,TRUE,Y,FALSE,FALSE,N,Hybrid,Lower-Middle, Dropped ,N,Fast learner,7.6
+L0249,Learner_249, MEXICO ,Oceania,Clerk,Healthcare, SpreadSheet ,4.8,Beginner,07/13/2025,NA,1,14.6,13,76,74,69.3,FALSE,No,N,Yes,0,Instructor-led,Low,Completed,0,Good progress,7.6
+L0250,Learner_250, FRANCE ,South America,Clerk, Tech ,SpreadSheet,0.2,Intermediate,27 Nov 2025,06-12-2025,6,13.1,26,45,34,80.55,Y,Y,Yes,No,Yes,Hybrid,Upper-Middle,Completed,Yes,Needs support,14.1
+L0251,Learner_251,DENMARK,North America,Analyst,Education, Spreadsheet ,8.5,Beginner,18-02-2025,18-02-2025,5,9.3,28,68,36,72.65,TRUE,Yes,FALSE,FALSE,Yes,Instructor-led,Low, In Progress ,TRUE,Good progress,23.5
+L0252,Learner_252,Denmark,Asia,Manager,Finance,Spreadsheet,6.5,Intermediate,2025-04-22,05/02/2025,5,9.7,15,74,62,60.85,0,N,0,Y,1,Instructor-led,Upper-Middle,Dropped,Yes,Needs support,23.5
+L0253,Learner_253, SOUTH KOREA ,Africa,Engineer,Retail,Spreadsheet,1.9,Beginner,15 Aug 2025,21-08-2025,4,6.8,29,72,78,70.4,FALSE,N,0,Y,No,Hybrid,High,Completed,No,Struggling,18.6
+L0254,Learner_254,Denmark,Europe,Student,Tech,Spreadsheet,5.5,Intermediate,24 Jun 2025,28-06-2025,11,8.9,35,77,21,56.45,FALSE,N,TRUE,N,N,Self-paced,Low,In Progress,1,Good progress,23.5
+L0255,Learner_255,JAPAN,Africa,Clerk,Government, google sheets ,8.7,Intermediate,08 Apr 2025,04/11/2025,6,21.8,38,74,55,99.9,Yes,N,FALSE,Yes,0,Instructor-led,High,In Progress,Yes,Struggling,17.9
+L0256,Learner_256,AUSTRALIA,South America, Engineer , Retail ,Excel,2.3,Intermediate,2025-02-03,NA,7,14.7,13,58,46,73.35,1,Y,1,No,0,Self-paced,Upper-Middle,Completed,0,Good progress,15.9
+L0257,Learner_257, united kingdom ,Africa,Manager,Retail,google sheets,3.4,Advanced,2025-08-14,2025-08-19,10,7.1,17,78,40,89.55,1,No,Y,N,Yes,Instructor-led,High,Paused,FALSE,NA,24.9
+L0258,Learner_258,Germany,Asia,Engineer, Healthcare , Spreadsheet ,7.8,Beginner,06 Jul 2025,2025-07-12,3,3.2,39,45,24,99.6,No,Yes,FALSE,Y,N,Self-paced,High,Completed,No,NA,21.8
+L0259,Learner_259,switzerland,North America,Engineer,Finance,google sheets,2.4,Beginner,2025-10-11,2025-10-16,3,9.6,36,54,75,69.8,0,Yes,No,Yes,N,Instructor-led,Low,In Progress,Yes,Good progress,19.7
+L0260,Learner_260,BRAZIL,Europe, Manager ,Education, google sheets ,0.8,Beginner,07/03/2025,07/08/2025,9,13.9,16,61,42,100,TRUE,TRUE,Yes,Yes,Y,Hybrid,Low, In Progress ,0,Good progress,8.9
+L0261,Learner_261, INDONESIA ,Oceania,Analyst, Education ,Manual Reporting,4.2,Beginner,05/17/2025,NA,6,13.1,32,64,55,NA,No,1,TRUE,FALSE,Y,Hybrid,Lower-Middle, Dropped ,1,NA,6.8
+L0262,Learner_262, INDIA ,Oceania,Analyst,Tech,google sheets,2,Beginner,2026-01-01,2026-01-04,9,9.5,24,100,23,94.75,Yes,FALSE,0,Yes,0,Instructor-led,Upper-Middle,In Progress,FALSE,NA,9.7
+L0263,Learner_263,canada,Asia,Consultant,Education, Manual Reporting ,6.5,Intermediate,04-07-2025,11-07-2025,6,9.3,18,43,28,82.65,N,N,TRUE,Y,N,Self-paced,Lower-Middle,Completed,1,NA,17.2
+L0264,Learner_264,Mexico,Europe, Analyst , Tech , excel ,6.2,Intermediate,2025-08-17,18-08-2025,4,13.1,37,67,73,59.55,FALSE,1,FALSE,1,1,Hybrid,Upper-Middle,Completed,0,NA,7.6
+L0265,Learner_265,JAPAN,Africa,Consultant,Healthcare,SpreadSheet,4.2,Beginner,22-11-2025,30 Nov 2025,3,14.2,36,65,20,81.1,TRUE,TRUE,Y,N,1,Self-paced,Low,Paused,FALSE,Fast learner,17.9
+L0266,Learner_266, South Korea ,Africa, Engineer ,Finance, excel ,1.5,Intermediate,12 May 2025,22-05-2025,7,23.6,14,65,43,100,0,1,0,FALSE,0,Instructor-led,High,Dropped,1,Struggling,18.6
+L0267,Learner_267, norway ,North America, Analyst ,Healthcare, Manual Reporting ,1.8,Advanced,01 Dec 2025,2025-12-07,4,11.2,25,58,49,96.6,N,FALSE,0,FALSE,FALSE,Hybrid,Upper-Middle,Dropped,N,Fast learner,22.1
+L0268,Learner_268,SINGAPORE,Asia, Analyst ,Tech,excel,4.3,Beginner,11/03/2025,04 Nov 2025,6,10.9,44,74,45,70.45,FALSE,0,0,TRUE,1,Hybrid,High, Completed ,FALSE,Fast learner,20.4
+L0269,Learner_269,UNITED STATES,Europe,Clerk,Retail,power bi,3.9,Intermediate,2025-04-05,11-04-2025,12,13.7,31,88,70,60.85,TRUE,No,Yes,TRUE,N,Instructor-led,High,Completed,Y,Needs support,24.2
+L0270,Learner_270,SWITZERLAND,Europe, Consultant ,Government, spreadsheet ,0.6,Beginner,2025-05-18,27-05-2025,7,9.4,39,47,76,82.7,FALSE,Y,1,Yes,1,Hybrid,High, Paused ,Y,NA,19.7
+L0271,Learner_271,BRAZIL,North America, Consultant ,Healthcare,Spreadsheet,0.1,Beginner,24-03-2025,29-03-2025,12,15.7,41,69,28,92.85,No,1,FALSE,Y,Y,Hybrid,High,Paused,No,Fast learner,8.9
+L0272,Learner_272,United States,North America,Analyst,Retail,SpreadSheet,8.8,Beginner,2025-11-24,01 Dec 2025,12,6.8,42,86,32,NA,FALSE,1,N,0,0,Self-paced,High,Dropped,N,NA,24.2
+L0273,Learner_273,ireland,Oceania,Student,Government, spreadsheet ,3.1,Intermediate,16-02-2025,21-02-2025,11,12.6,35,50,20,98.3,N,N,No,0,0,Self-paced,High,In Progress,TRUE,Fast learner,25.8
+L0274,Learner_274,United Kingdom,Asia,Analyst,Education, Google Sheets ,9.6,Intermediate,2025-01-03,NA,7,4.3,10,86,24,100,No,1,N,N,Yes,Hybrid,Low,Paused,Y,Struggling,24.9
+L0275,Learner_275,Australia,North America,Clerk, Retail ,power bi,6.8,Beginner,24-10-2025,2025-11-01,2,14.3,39,58,70,91.15,N,FALSE,TRUE,FALSE,No,Instructor-led,Low,Paused,FALSE,Fast learner,15.9
+L0276,Learner_276,france,North America,Analyst,Government, Spreadsheet ,8.5,Intermediate,12-05-2025,NA,4,11.1,20,62,36,83.55,1,Y,Y,0,FALSE,Hybrid,Lower-Middle,Dropped,N,Needs support,14.1
+L0277,Learner_277,MEXICO,South America,Analyst,Government,Google Sheets,4.3,Beginner,28-06-2025,07/02/2025,12,18.2,10,62,39,67.1,1,FALSE,1,TRUE,N,Hybrid,High,Completed,Yes,NA,7.6
+L0278,Learner_278,Switzerland,Europe,Clerk, Education ,Google Sheets,9.3,Beginner,21 May 2025,26 May 2025,10,7.7,7,71,35,65.85,N,TRUE,No,0,Yes,Hybrid,Upper-Middle,In Progress,1,NA,19.7
+L0279,Learner_279,IRELAND,Asia,Clerk,Finance, Manual Reporting ,7.5,Beginner,25 Sep 2025,01 Oct 2025,11,7.2,7,48,23,58.6,FALSE,TRUE,0,TRUE,FALSE,Self-paced,High,Completed,TRUE,NA,25.8
+L0280,Learner_280,CHINA,North America, Student , Education ,excel,2.8,Intermediate,20 Sep 2025,2025-09-27,4,17.3,37,58,58,97.65,TRUE,0,TRUE,0,1,Self-paced,Lower-Middle,In Progress,N,NA,16.5
+L0281,Learner_281,AUSTRALIA,North America, Manager ,Tech,google sheets,6.9,Beginner,13 Jan 2025,01/21/2025,8,12.5,34,90,50,98.25,N,Y,1,1,Y,Hybrid,High,In Progress,No,NA,15.9
+L0282,Learner_282, Ireland ,Oceania,Analyst,Tech, Manual Reporting ,9.2,Beginner,05/15/2025,2025-05-19,4,5,41,85,43,92.5,TRUE,Yes,Y,1,1,Self-paced,Lower-Middle,Paused,TRUE,Needs support,25.8
+L0283,Learner_283,singapore,Oceania, Consultant ,Healthcare, Spreadsheet ,7.4,Beginner,25-06-2025,2025-06-26,3,14.8,9,76,36,100,Y,Y,Y,FALSE,1,Self-paced,Upper-Middle,In Progress,0,Fast learner,20.4
+L0284,Learner_284, Denmark ,Oceania, Engineer , Tech ,Excel,6.7,Intermediate,11-03-2025,21-03-2025,1,8.7,14,43,25,95.35,Yes,Yes,TRUE,Yes,1,Instructor-led,Upper-Middle,Dropped,0,NA,23.5
+L0285,Learner_285, UNITED STATES ,South America, Consultant ,Finance,Manual Reporting,7.4,Beginner,2025-07-19,26-07-2025,5,13.6,24,80,37,62.8,No,Y,No,TRUE,0,Self-paced,Lower-Middle,In Progress,N,NA,24.2
+L0286,Learner_286, singapore ,South America,Manager,Government,MS Excel,1.1,Beginner,2025-06-30,2025-07-10,2,16.2,21,65,46,100,Y,Yes,1,No,0,Hybrid,Low,In Progress,No,Fast learner,20.4
+L0287,Learner_287,UNITED STATES,Oceania,Consultant,Retail,spreadsheet,0.4,Intermediate,13 Oct 2025,21-10-2025,6,11.9,37,43,23,88.95,Yes,Y,No,TRUE,0,Instructor-led,Lower-Middle,Completed,TRUE,Fast learner,24.2
+L0288,Learner_288,denmark,Oceania,Analyst,Finance,Excel,3.7,Intermediate,18 Dec 2025,19-12-2025,7,14.4,7,84,63,88.2,0,No,Yes,Y,0,Hybrid,High,Paused,FALSE,NA,23.5
+L0289,Learner_289, United States ,North America,Student, Education ,Spreadsheet,5,Advanced,16-08-2025,26 Aug 2025,11,18.4,43,47,75,67.2,No,No,No,TRUE,1,Self-paced,Upper-Middle,In Progress,TRUE,NA,24.2
+L0290,Learner_290,canada,South America,Clerk, Healthcare , Power BI ,9.5,Beginner,2025-02-10,20-02-2025,4,9.7,32,97,25,NA,Y,0,N,No,Y,Instructor-led,Low,Completed,Yes,Good progress,17.2
+L0291,Learner_291,Norway,North America,Student,Government, MS Excel ,9.5,Beginner,02/19/2025,26 Feb 2025,10,8.5,34,58,40,64.25,1,TRUE,Y,N,TRUE,Hybrid,Low,Dropped,FALSE,Struggling,22.1
+L0292,Learner_292, Ireland ,North America, Analyst ,Education, Manual Reporting ,6.4,Beginner,2025-07-25,2025-08-01,5,14.5,37,51,70,85.25,Yes,N,Y,Yes,TRUE,Instructor-led,Lower-Middle, Completed ,No,NA,25.8
+L0293,Learner_293,ireland,Oceania,Student,Healthcare,MS Excel,3.2,Intermediate,14-08-2025,08/23/2025,12,12.7,25,94,61,95.35,0,N,FALSE,TRUE,Yes,Self-paced,Low,Dropped,No,NA,25.8
+L0294,Learner_294,india,Africa,Analyst,Finance, SpreadSheet ,5.3,Beginner,16-02-2025,2025-02-20,7,12.9,7,48,66,NA,Yes,Y,0,N,No,Self-paced,High,Paused,TRUE,Fast learner,9.7
+L0295,Learner_295, France ,South America,Student,Education, Spreadsheet ,6.7,Beginner,20 Sep 2025,29-09-2025,1,13.7,35,61,75,64.85,Y,1,No,TRUE,TRUE,Hybrid,Low, Completed ,TRUE,Fast learner,14.1
+L0296,Learner_296, Netherlands ,Asia,Student, Tech ,Manual Reporting,8.6,Beginner,2025-11-19,19-11-2025,12,12.9,6,67,76,100,Yes,0,0,FALSE,TRUE,Self-paced,Low, Completed ,N,Struggling,13.4
+L0297,Learner_297, Nigeria ,Asia, Consultant , Tech ,Spreadsheet,5.6,Intermediate,06/10/2025,16 Jun 2025,8,14.1,12,92,26,64.05,Y,TRUE,Yes,Y,Y,Hybrid,High,Paused,TRUE,Needs support,4.1
+L0298,Learner_298, ireland ,Africa, Manager ,Education,excel,0.9,Beginner,04/01/2025,04/04/2025,10,7.1,41,NA,42,88.55,Y,No,Y,0,1,Instructor-led,High,Paused,TRUE,NA,25.8
+L0299,Learner_299, Ireland ,North America,Analyst,Tech, Manual Reporting ,7.1,Intermediate,08-06-2025,2025-06-14,10,13.7,15,81,44,98.85,FALSE,Y,FALSE,Yes,No,Instructor-led,Low,Completed,TRUE,Good progress,25.8
+L0300,Learner_300,NETHERLANDS,North America,Manager,Finance, Power BI ,8.4,Beginner,10/27/2025,10/31/2025,9,19.9,42,87,60,97.95,No,TRUE,0,No,FALSE,Self-paced,Lower-Middle, Dropped ,0,Good progress,13.4
+L0301,Learner_301, australia ,Europe, Clerk , Finance , Manual Reporting ,3.9,Advanced,04/10/2025,04/15/2025,7,12,11,NA,71,NA,No,No,N,1,1,Instructor-led,Upper-Middle,Dropped,No,Needs support,15.9
+L0302,Learner_302, UNITED STATES ,Asia,Analyst,Government,Excel,1.9,Intermediate,2025-06-18,24 Jun 2025,5,10.3,33,67,31,83.15,1,N,1,FALSE,FALSE,Hybrid,High,Completed,FALSE,Good progress,24.2
+L0303,Learner_303, Australia ,South America,Consultant,Finance,Excel,2.6,Beginner,12-07-2025,07/12/2025,6,14.1,24,54,23,77.05,Y,Yes,N,0,N,Self-paced,Lower-Middle,Completed,Y,Fast learner,15.9
+L0304,Learner_304,FRANCE,Africa, Manager ,Finance,spreadsheet,0.4,Beginner,2025-11-02,04 Nov 2025,10,17.1,26,57,44,58.55,Yes,Y,Y,TRUE,0,Instructor-led,Upper-Middle,In Progress,No,NA,14.1
+L0305,Learner_305,China,Asia,Student,Tech,MS Excel,5.3,Intermediate,26 Jun 2025,2025-06-29,4,11.8,20,95,73,80.9,FALSE,Y,0,1,1,Self-paced,Low,In Progress,FALSE,Needs support,16.5
+L0306,Learner_306,SWITZERLAND,South America,Manager,Tech,spreadsheet,5.9,Beginner,20-07-2025,21-07-2025,6,14.1,14,98,29,71.05,FALSE,Yes,Yes,N,Y,Instructor-led,High, Completed ,Y,Good progress,19.7
+L0307,Learner_307, united kingdom ,Europe, Analyst ,Tech, excel ,5.8,Intermediate,06 Jul 2025,06-07-2025,5,10.2,10,84,63,68.1,Y,Y,1,1,FALSE,Self-paced,Upper-Middle,Completed,TRUE,Struggling,24.9
+L0308,Learner_308,united states,North America,Clerk,Retail,excel,9,Beginner,02/04/2025,2025-02-11,9,9.4,32,62,72,95.7,Yes,FALSE,1,1,1,Instructor-led,Low,In Progress,Yes,Fast learner,24.2
+L0309,Learner_309, germany ,Oceania, Analyst , Retail ,power bi,4.3,Intermediate,21-06-2025,2025-06-24,3,10.1,16,69,28,92.05,FALSE,TRUE,1,FALSE,FALSE,Hybrid,Low, Dropped ,No,Struggling,21.8
+L0310,Learner_310,Switzerland,Asia, Student ,Retail,Spreadsheet,2.4,Beginner,22 Dec 2025,2025-12-28,7,17.3,21,NA,24,78.65,1,TRUE,TRUE,TRUE,N,Self-paced,High, Completed ,1,Good progress,19.7
+L0311,Learner_311,singapore,South America,Student, Tech , power bi ,5.1,Beginner,12/02/2025,06 Dec 2025,12,18.2,21,74,20,NA,FALSE,FALSE,N,Y,Y,Self-paced,Low, Dropped ,Y,Struggling,20.4
+L0312,Learner_312,Switzerland,Africa,Student,Finance, excel ,0.7,Intermediate,2025-04-24,28-04-2025,4,7.5,39,86,64,93.75,N,No,Yes,TRUE,0,Hybrid,Lower-Middle, Completed ,Yes,Needs support,19.7
+L0313,Learner_313,France,South America, Engineer ,Healthcare,Spreadsheet,6.6,Intermediate,26 Sep 2025,10/05/2025,6,12.7,25,56,24,80.35,No,TRUE,1,Yes,No,Hybrid,Lower-Middle, Dropped ,Y,Needs support,14.1
+L0314,Learner_314, UNITED STATES ,South America,Student,Education,Power BI,7.3,Beginner,2025-02-07,2025-02-17,5,13.8,21,60,35,65.9,Yes,FALSE,FALSE,1,0,Self-paced,Lower-Middle,Dropped,0,NA,24.2
+L0315,Learner_315, singapore ,Oceania,Analyst, Education ,Google Sheets,2.2,Beginner,09/30/2025,07-10-2025,9,6.3,33,98,50,NA,TRUE,Y,Yes,No,TRUE,Self-paced,High,In Progress,FALSE,NA,20.4
+L0316,Learner_316, Netherlands ,Asia,Engineer, Tech ,MS Excel,1.9,Beginner,08-07-2025,13-07-2025,5,13,10,97,29,86.5,0,FALSE,Yes,Yes,0,Self-paced,High,Completed,Y,Needs support,13.4
+L0317,Learner_317,Netherlands,Asia,Student, Retail , SpreadSheet ,8.7,Beginner,22 Jan 2025,NA,2,10.3,18,83,49,83.15,Y,1,1,Y,FALSE,Self-paced,Upper-Middle,Completed,N,Good progress,13.4
+L0318,Learner_318, DENMARK ,North America, Manager , Tech , SpreadSheet ,2.9,Beginner,06/28/2025,2025-07-02,4,4.8,34,47,76,67.4,Yes,No,FALSE,Yes,0,Hybrid,High, In Progress ,Y,Fast learner,23.5
+L0319,Learner_319,singapore,North America, Clerk , Healthcare , spreadsheet ,9.9,Beginner,2025-02-26,2025-03-06,3,14.9,37,NA,21,91.45,Y,No,Yes,N,Y,Self-paced,Lower-Middle,Dropped,No,Fast learner,20.4
+L0320,Learner_320, BRAZIL ,North America,Student,Retail, Manual Reporting ,7.3,Beginner,05 Nov 2025,11/15/2025,6,9.9,14,50,53,67.95,1,Yes,No,TRUE,Yes,Instructor-led,Upper-Middle,Completed,FALSE,Good progress,8.9
+L0321,Learner_321,Brazil,North America,Student,Finance,power bi,9.3,Beginner,2025-08-23,02-09-2025,1,6,38,50,77,57,1,FALSE,No,1,N,Instructor-led,High,Completed,TRUE,Needs support,8.9
+L0322,Learner_322,Norway,North America, Clerk ,Healthcare,Manual Reporting,7.5,Beginner,2025-12-31,01/03/2026,6,20.5,38,NA,58,81.25,No,1,No,Y,1,Self-paced,Upper-Middle,In Progress,FALSE,Fast learner,22.1
+L0323,Learner_323,united kingdom,Asia,Consultant,Government,google sheets,3.2,Beginner,03/05/2025,13 Mar 2025,3,15.2,26,44,54,81.6,FALSE,1,Y,Yes,N,Hybrid,Lower-Middle,In Progress,FALSE,NA,24.9
+L0324,Learner_324,Canada,Africa, Analyst , Government , Power BI ,3.8,Beginner,20 Oct 2025,26 Oct 2025,6,16.7,7,44,55,100,No,No,0,0,FALSE,Instructor-led,High, Completed ,Yes,NA,17.2
+L0325,Learner_325, Ireland ,Europe, Clerk ,Retail,spreadsheet,0.3,Intermediate,2025-10-18,21-10-2025,7,12.6,30,99,25,75.3,Y,FALSE,N,1,FALSE,Instructor-led,High,Completed,1,Good progress,25.8
+L0326,Learner_326,united states,Europe, Analyst ,Finance,SpreadSheet,8.9,Beginner,2025-01-12,NA,6,2.4,24,84,65,79.2,No,TRUE,TRUE,0,N,Self-paced,Upper-Middle, In Progress ,0,Struggling,24.2
+L0327,Learner_327,Nigeria,Africa, Engineer ,Finance, google sheets ,5.2,Advanced,25 Apr 2025,25-04-2025,10,9.4,29,72,28,87.7,N,No,No,N,FALSE,Hybrid,Upper-Middle, In Progress ,1,NA,4.1
+L0328,Learner_328,United States,Europe, Student ,Tech,Google Sheets,3.4,Beginner,09 Jun 2025,2025-06-15,4,6.1,33,75,76,82.05,Yes,No,0,FALSE,TRUE,Instructor-led,Low,Completed,FALSE,Good progress,24.2
+L0329,Learner_329,norway,Europe,Student,Finance,MS Excel,8.1,Intermediate,2025-10-19,2025-10-22,5,10.1,29,58,68,83.05,TRUE,Y,Yes,Y,Yes,Self-paced,Lower-Middle,In Progress,TRUE,NA,22.1
+L0330,Learner_330,INDONESIA,Asia,Clerk, Finance , Power BI ,7.9,Beginner,2025-01-22,27-01-2025,8,13.1,25,86,51,100,N,No,0,FALSE,1,Self-paced,Low,In Progress,N,NA,6.8
+L0331,Learner_331,china,Europe, Analyst , Healthcare ,Excel,7.8,Beginner,05/29/2025,2025-06-02,8,14.1,34,68,39,84.05,Yes,FALSE,0,0,No,Instructor-led,High,Completed,Y,Fast learner,16.5
+L0332,Learner_332,Norway,North America, Clerk ,Tech, Excel ,5.3,Beginner,2025-01-10,01/18/2025,3,12.3,11,87,73,75.15,1,1,N,0,TRUE,Self-paced,High,Completed,No,NA,22.1
+L0333,Learner_333,france,Asia,Analyst,Tech, Manual Reporting ,1.1,Intermediate,2025-07-18,2025-07-22,10,6.3,45,59,75,76.15,N,N,Yes,Y,1,Instructor-led,High,Paused,N,Struggling,14.1
+L0333,Learner_334,netherlands,Oceania, Student , Education ,Spreadsheet,8.9,Beginner,2025-04-08,08 Apr 2025,2,14.3,13,55,21,NA,N,0,No,FALSE,TRUE,Self-paced,High, In Progress ,N,Fast learner,13.4
+L0335,Learner_335, Norway ,Oceania,Clerk,Government, Manual Reporting ,1.3,Beginner,18-03-2025,20 Mar 2025,4,9,21,91,30,56.5,No,TRUE,1,Y,FALSE,Hybrid,Lower-Middle,In Progress,TRUE,Struggling,22.1
+L0336,Learner_336,SWITZERLAND,Asia, Engineer ,Education,Google Sheets,8.3,Beginner,02/25/2025,03/07/2025,2,3.6,12,55,64,63.8,Y,N,Y,FALSE,N,Instructor-led,Lower-Middle,In Progress,TRUE,Needs support,19.7
+L0337,Learner_337,canada,Oceania, Analyst , Retail ,Spreadsheet,5.5,Beginner,2025-01-01,2025-01-08,10,6.4,40,86,61,92.2,TRUE,Y,Yes,FALSE,No,Self-paced,Upper-Middle,Completed,N,NA,17.2
+L0338,Learner_338, CHINA ,North America,Analyst,Finance,Spreadsheet,5.6,Beginner,02/11/2025,17 Feb 2025,5,15.2,43,88,60,97.6,0,N,N,TRUE,Yes,Hybrid,Lower-Middle, Completed ,N,Struggling,16.5
+L0339,Learner_339, CHINA ,Africa,Student, Government , google sheets ,7.3,Intermediate,2025-01-21,01/24/2025,9,13.2,9,99,72,75.6,Yes,1,Yes,TRUE,1,Instructor-led,Lower-Middle,In Progress,No,Good progress,16.5
+L0340,Learner_340,nigeria,Africa,Manager,Tech, MS Excel ,3.9,Intermediate,2025-02-13,18 Feb 2025,8,8.8,21,89,54,58.4,Yes,No,TRUE,1,TRUE,Instructor-led,Lower-Middle, Completed ,Y,Needs support,4.1
+L0341,Learner_341,GERMANY,Asia,Consultant, Government ,SpreadSheet,8.1,Beginner,21-05-2025,NA,2,-2.9,21,45,33,67.55,Y,1,0,No,Yes,Instructor-led,Low,In Progress,0,Good progress,21.8
+L0342,Learner_342, ireland ,Oceania,Manager, Healthcare ,Manual Reporting,8.5,Beginner,2025-03-03,09 Mar 2025,5,14.4,36,48,53,81.2,0,Yes,Yes,No,Y,Self-paced,Upper-Middle,In Progress,TRUE,Fast learner,25.8
+L0343,Learner_343,Japan,Asia,Consultant, Tech ,power bi,7.9,Beginner,01 Jan 2026,11-01-2026,1,14.3,9,62,58,67.15,Yes,TRUE,TRUE,Y,No,Instructor-led,Lower-Middle,Completed,N,Good progress,17.9
+L0344,Learner_344,denmark,Africa,Clerk,Retail,Excel,4.2,Beginner,2025-08-23,NA,6,11.3,25,47,39,NA,TRUE,TRUE,Yes,0,N,Hybrid,High,Completed,N,Needs support,23.5
+L0345,Learner_345,Switzerland,Oceania, Manager ,Finance,Manual Reporting,1.7,Intermediate,20 Mar 2025,03/20/2025,6,9,42,81,34,85.5,0,Y,FALSE,0,1,Self-paced,Lower-Middle,Completed,FALSE,Needs support,19.7
+L0346,Learner_346,SINGAPORE,South America,Engineer,Tech, SpreadSheet ,7.2,Beginner,06-09-2025,2025-09-13,3,6.3,16,48,36,98.15,No,No,N,TRUE,TRUE,Self-paced,Upper-Middle,In Progress,1,Needs support,20.4
+L0347,Learner_347, Nigeria ,Europe,Consultant, Government ,Spreadsheet,0.9,Beginner,27-12-2025,2026-01-06,5,9.7,21,97,76,100,Y,Yes,Y,N,Y,Hybrid,High, Completed ,TRUE,Struggling,4.1
+L0348,Learner_348, Singapore ,South America, Student , Tech ,MS Excel,0.6,Intermediate,29 Mar 2025,2025-03-30,12,10.5,35,70,72,78.25,0,N,FALSE,TRUE,Y,Instructor-led,Low, Paused ,0,NA,20.4
+L0349,Learner_349, DENMARK ,Oceania,Analyst, Healthcare ,Power BI,0.2,Beginner,16 Jan 2025,19 Jan 2025,4,8.3,17,49,62,76.15,Y,N,1,0,FALSE,Hybrid,Upper-Middle, Dropped ,No,Struggling,23.5
+L0350,Learner_350, China ,South America, Consultant ,Tech,excel,6.5,Beginner,12/12/2025,12/15/2025,10,7.8,9,NA,46,53.9,Y,TRUE,Y,0,1,Instructor-led,High,Completed,Yes,NA,16.5
+L0351,Learner_351, Ireland ,Europe,Analyst,Government, MS Excel ,6.9,Beginner,08/06/2025,08/07/2025,12,16.3,22,70,58,90.15,FALSE,N,Y,Yes,Yes,Self-paced,Upper-Middle,Completed,Y,NA,25.8
+L0352,Learner_352,Mexico,Europe,Analyst,Education, Power BI ,1.9,Advanced,31-07-2025,02 Aug 2025,5,9.9,43,99,73,100,1,0,FALSE,1,Y,Self-paced,High,In Progress,FALSE,Needs support,7.6
+L0353,Learner_353,JAPAN,Africa, Manager , Education , Manual Reporting ,8,Beginner,2025-02-24,24 Feb 2025,2,13.4,41,61,59,60.7,1,No,0,FALSE,N,Hybrid,Upper-Middle,Dropped,1,NA,17.9
+L0354,Learner_354, United Kingdom ,Europe,Manager,Tech, power bi ,7.9,Beginner,04/15/2025,25 Apr 2025,6,13,34,82,41,69.5,FALSE,0,1,FALSE,1,Hybrid,Lower-Middle,Completed,TRUE,Needs support,24.9
+L0355,Learner_355, china ,North America,Analyst,Finance, google sheets ,6.3,Intermediate,23-11-2025,NA,6,13.8,11,43,28,65.9,Yes,1,No,FALSE,Yes,Self-paced,Upper-Middle,Completed,No,Struggling,16.5
+L0356,Learner_356, NIGERIA ,North America,Clerk, Government , Spreadsheet ,9.6,Intermediate,14-08-2025,14-08-2025,6,10,32,66,29,93,0,N,FALSE,Yes,Yes,Instructor-led,Upper-Middle, Completed ,Y,Good progress,4.1
+L0357,Learner_357, CANADA ,Oceania,Analyst, Tech ,SpreadSheet,1.4,Intermediate,07 Feb 2025,09-02-2025,9,14.3,32,48,59,NA,1,Yes,TRUE,0,0,Instructor-led,Upper-Middle,Completed,TRUE,NA,17.2
+L0358,Learner_358,Germany,Europe,Manager, Government ,MS Excel,0.6,Intermediate,06/21/2025,22 Jun 2025,2,12.6,35,58,76,58.3,Y,Y,1,N,1,Hybrid,High,In Progress,Yes,NA,21.8
+L0359,Learner_359,Norway,Africa,Clerk, Finance ,spreadsheet,9.4,Beginner,2025-12-23,01/02/2026,11,16.8,17,47,78,99.4,Y,1,FALSE,No,N,Self-paced,High,In Progress,N,Struggling,22.1
+L0360,Learner_360,Netherlands,North America, Analyst ,Tech, google sheets ,8.5,Beginner,09-09-2025,15-09-2025,10,12.6,30,58,48,NA,No,Y,N,FALSE,Y,Instructor-led,High, Dropped ,0,Fast learner,13.4
+L0361,Learner_361,United Kingdom,Europe,Analyst, Tech ,Google Sheets,3.6,Intermediate,2025-03-13,2025-03-23,9,9.2,24,42,43,82.6,N,FALSE,1,FALSE,0,Self-paced,Low, Completed ,Yes,Good progress,24.9
+L0362,Learner_362,united kingdom,Asia, Student , Government , SpreadSheet ,4,Beginner,03/29/2025,2025-03-31,3,18.5,21,56,73,100,Yes,0,Yes,Yes,Y,Hybrid,High,In Progress,N,Fast learner,24.9
+L0363,Learner_363,India,Asia,Student,Healthcare,MS Excel,9.6,Advanced,2025-01-20,30 Jan 2025,12,10.9,25,NA,73,79.45,TRUE,Yes,Y,Y,0,Hybrid,High,In Progress,Yes,Fast learner,9.7
+L0363,Learner_364, Norway ,Africa, Manager ,Retail,spreadsheet,1,Beginner,09 Jan 2025,2025-01-13,6,12.7,23,NA,27,88.35,FALSE,FALSE,Yes,N,1,Self-paced,Low,In Progress,Yes,Needs support,22.1
+L0365,Learner_365,singapore,Europe,Student,Retail,Manual Reporting,7.1,Intermediate,11/17/2025,24 Nov 2025,8,18.5,40,74,33,75.25,Yes,Yes,Y,No,N,Hybrid,Low,Completed,N,NA,20.4
+L0365,Learner_366, AUSTRALIA ,Oceania,Engineer,Education, excel ,5.5,Beginner,29-05-2025,2025-05-30,5,13.3,20,74,58,88.65,TRUE,0,No,N,0,Instructor-led,Upper-Middle,Completed,Y,NA,15.9
+L0367,Learner_367, United Kingdom ,Asia,Consultant,Finance,Excel,8.8,Beginner,19 Jul 2025,22 Jul 2025,3,14.8,24,86,22,60.4,N,1,FALSE,1,N,Hybrid,Lower-Middle, In Progress ,1,Needs support,24.9
+L0368,Learner_368,UNITED STATES,Africa,Analyst,Tech,excel,7.3,Beginner,16-05-2025,17 May 2025,11,2.3,41,40,43,92.15,Y,Y,No,FALSE,No,Instructor-led,Lower-Middle,In Progress,FALSE,Fast learner,24.2
+L0369,Learner_369, GERMANY ,South America,Consultant,Healthcare,Spreadsheet,6.3,Beginner,03/12/2025,03/12/2025,4,7.1,39,94,33,86.55,Y,FALSE,1,No,No,Instructor-led,Low,Dropped,1,Needs support,21.8
+L0370,Learner_370,SWITZERLAND,North America,Manager,Finance,excel,1.6,Beginner,02/16/2025,21-02-2025,7,8,30,47,78,58,0,N,No,TRUE,TRUE,Self-paced,High,In Progress,Yes,Fast learner,19.7
+L0370,Learner_371,GERMANY,Africa, Analyst ,Retail,Manual Reporting,4.7,Intermediate,27-07-2025,06 Aug 2025,10,13.1,20,NA,22,98.55,Y,Y,0,FALSE,No,Hybrid,High,In Progress,0,Struggling,21.8
+L0372,Learner_372,Singapore,Oceania,Engineer,Finance,power bi,4.4,Beginner,2025-07-22,28 Jul 2025,10,14.5,21,90,74,83.25,1,N,No,Yes,No,Hybrid,Lower-Middle, Completed ,FALSE,Needs support,20.4
+L0373,Learner_373,BRAZIL,North America,Student,Tech,Google Sheets,1.6,Intermediate,07/12/2025,07/18/2025,6,6.4,22,60,35,73.2,TRUE,FALSE,No,N,1,Self-paced,High,Dropped,TRUE,Needs support,8.9
+L0374,Learner_374,GERMANY,Africa, Engineer , Healthcare ,Manual Reporting,8.3,Intermediate,12-07-2025,19 Jul 2025,4,15.2,9,74,63,91.6,Y,0,FALSE,Yes,1,Self-paced,Lower-Middle, Dropped ,Y,Struggling,21.8
+L0375,Learner_375,japan,North America,Clerk,Tech,google sheets,2.9,Beginner,07/24/2025,25-07-2025,3,25.8,15,48,33,77.9,No,No,FALSE,FALSE,N,Hybrid,High, In Progress ,No,Good progress,17.9
+L0376,Learner_376, Mexico ,Europe,Manager, Finance ,Excel,6.4,Beginner,04/26/2025,04/29/2025,12,16.1,27,NA,38,100,1,Yes,Yes,TRUE,FALSE,Instructor-led,Upper-Middle,In Progress,TRUE,Good progress,7.6
+L0377,Learner_377,australia,Europe,Engineer,Tech,power bi,4.8,Intermediate,16 Dec 2025,2025-12-19,11,8.4,29,74,43,66.2,1,No,Yes,Yes,1,Self-paced,Lower-Middle, Completed ,0,Needs support,15.9
+L0378,Learner_378,UNITED KINGDOM,Asia,Clerk, Tech , Power BI ,5.7,Intermediate,05/09/2025,12-05-2025,4,7.2,15,57,70,NA,0,No,Yes,Y,No,Self-paced,Low,Completed,FALSE,Struggling,24.9
+L0379,Learner_379,Norway,South America,Clerk, Government , excel ,6.1,Beginner,09/18/2025,23 Sep 2025,6,9.5,38,90,26,NA,1,0,Yes,1,Yes,Instructor-led,High,Dropped,N,Needs support,22.1
+L0380,Learner_380, Mexico ,South America,Student, Government ,MS Excel,1.1,Beginner,08/31/2025,09/05/2025,2,18.4,12,95,66,89.2,TRUE,N,0,N,TRUE,Hybrid,Low,Completed,Yes,Fast learner,7.6
+L0381,Learner_381,south korea,Europe,Manager, Finance , google sheets ,4.9,Intermediate,31-07-2025,10-08-2025,6,11.5,29,79,76,93.75,N,1,N,TRUE,1,Hybrid,Lower-Middle,Dropped,FALSE,Fast learner,18.6
+L0382,Learner_382,Australia,Oceania,Analyst,Retail,SpreadSheet,1.6,Beginner,09 May 2025,16-05-2025,9,10.7,39,63,24,92.35,Yes,1,No,Y,FALSE,Self-paced,Upper-Middle,Completed,1,Good progress,15.9
+L0383,Learner_383,Singapore,North America,Student, Government , Spreadsheet ,4.3,Beginner,08/29/2025,2025-09-08,5,16.3,20,NA,43,100,N,Y,N,1,No,Self-paced,High,Completed,FALSE,Fast learner,20.4
+L0384,Learner_384,AUSTRALIA,Asia,Student,Retail,google sheets,6.7,Beginner,2025-05-12,21 May 2025,1,18.9,8,83,73,100,1,FALSE,No,No,TRUE,Instructor-led,Lower-Middle, Completed ,N,Good progress,15.9
+L0385,Learner_385,japan,Asia,Student,Healthcare,Excel,5.7,Beginner,05 Oct 2025,10/07/2025,2,9,11,NA,36,NA,TRUE,No,N,FALSE,1,Hybrid,Upper-Middle, Paused ,0,Needs support,17.9
+L0386,Learner_386,INDONESIA,Africa,Engineer, Tech ,google sheets,2.7,Beginner,25-01-2025,30 Jan 2025,5,13.2,17,NA,68,100,FALSE,0,1,No,No,Self-paced,Low, Completed ,1,Struggling,6.8
+L0387,Learner_387,United Kingdom,North America,Consultant, Healthcare ,Spreadsheet,3,Beginner,2025-12-06,15-12-2025,1,9.6,11,71,49,97.8,FALSE,Y,TRUE,0,Yes,Self-paced,High, Paused ,Y,Struggling,24.9
+L0388,Learner_388,norway,South America, Consultant ,Retail,spreadsheet,0.1,Beginner,2025-04-28,02-05-2025,2,8,15,NA,46,54,N,Yes,FALSE,N,TRUE,Hybrid,Upper-Middle,Completed,0,Needs support,22.1
+L0389,Learner_389,ireland,Oceania,Consultant,Healthcare, excel ,3,Intermediate,10-01-2025,11-01-2025,8,16.1,18,88,76,NA,N,Yes,1,TRUE,0,Instructor-led,Lower-Middle,Completed,0,Good progress,25.8
+L0390,Learner_390,United Kingdom,Europe, Consultant ,Finance,Excel,7,Intermediate,11/02/2025,11/06/2025,11,10.7,15,60,79,80.35,0,TRUE,Y,0,Yes,Hybrid,Low, Completed ,TRUE,NA,24.9
+L0391,Learner_391,nigeria,Oceania,Student, Finance , Manual Reporting ,0.7,Intermediate,09 May 2025,2025-05-16,12,14.4,14,89,62,76.2,FALSE,TRUE,Y,Y,No,Self-paced,Lower-Middle, Completed ,FALSE,Good progress,4.1
+L0392,Learner_392,Norway,Asia,Manager,Education,Power BI,9.7,Intermediate,2025-10-04,10/09/2025,9,8,15,94,70,83,1,FALSE,1,0,Yes,Instructor-led,Lower-Middle, In Progress ,1,Struggling,22.1
+L0393,Learner_393,France,South America, Student , Healthcare ,google sheets,8,Beginner,2025-04-10,15-04-2025,4,13,41,79,61,84.5,0,TRUE,0,N,1,Instructor-led,High,In Progress,TRUE,Needs support,14.1
+L0394,Learner_394,Australia,South America,Manager,Government,Spreadsheet,8.9,Beginner,09 Jul 2025,07/10/2025,11,3.5,20,58,38,NA,No,Y,Y,N,1,Instructor-led,Upper-Middle, Completed ,0,NA,15.9
+L0395,Learner_395,Ireland,Oceania,Student,Retail,SpreadSheet,5.2,Beginner,26-01-2025,30-01-2025,6,7.5,14,92,24,76.75,TRUE,Y,Yes,No,Y,Self-paced,Upper-Middle, In Progress ,Yes,Struggling,25.8
+L0396,Learner_396,Denmark,Africa, Student ,Healthcare, Spreadsheet ,3.4,Beginner,21-03-2025,2025-03-31,12,16,10,100,69,70,No,Y,TRUE,TRUE,Y,Instructor-led,Upper-Middle, Completed ,1,Good progress,23.5
+L0397,Learner_397,denmark,South America,Consultant,Finance,spreadsheet,4.7,Beginner,07 Jul 2025,2025-07-14,5,9.3,41,71,54,78.65,0,Y,1,Yes,FALSE,Self-paced,High,Paused,FALSE,Fast learner,23.5
+L0398,Learner_398,IRELAND,Europe,Clerk, Government ,Spreadsheet,1.1,Beginner,23 Feb 2025,03/04/2025,3,11.8,37,NA,60,97.9,FALSE,FALSE,FALSE,0,N,Instructor-led,High,Paused,Yes,NA,25.8
+L0399,Learner_399, Ireland ,South America, Analyst ,Tech,Google Sheets,2.3,Beginner,09 Jul 2025,17 Jul 2025,3,7.3,34,96,25,100,0,Yes,N,No,N,Self-paced,High,In Progress,Y,NA,25.8
+L0400,Learner_400,nigeria,Oceania, Manager ,Education,spreadsheet,3.7,Beginner,10-05-2025,2025-05-14,2,5.5,24,73,46,64.75,N,1,TRUE,Y,0,Hybrid,Low,Completed,No,Needs support,4.1
+L0401,Learner_401, Nigeria ,South America,Manager,Education,MS Excel,4,Beginner,12-08-2025,12-08-2025,4,11.1,19,49,75,86.55,FALSE,Y,FALSE,Yes,0,Hybrid,Low, Dropped ,TRUE,Needs support,4.1
+L0402,Learner_402, Ireland ,South America,Consultant,Healthcare,spreadsheet,6.7,Beginner,2025-10-09,17 Oct 2025,2,14,38,56,20,80,No,Yes,Yes,FALSE,1,Self-paced,Upper-Middle,In Progress,0,Needs support,25.8
+L0403,Learner_403, India ,South America,Consultant,Tech,Power BI,1.4,Beginner,13 Aug 2025,08/14/2025,5,8.1,7,76,72,96.05,TRUE,No,TRUE,Yes,TRUE,Self-paced,Low,Paused,1,Fast learner,9.7
+L0404,Learner_404, south korea ,Asia,Analyst,Tech,Spreadsheet,4.6,Beginner,2025-11-24,11/25/2025,9,12.5,13,86,40,92.25,FALSE,Yes,N,Yes,FALSE,Instructor-led,High,Dropped,1,Struggling,18.6
+L0405,Learner_405, Singapore ,Oceania,Analyst, Retail , SpreadSheet ,1.5,Beginner,13-11-2025,2025-11-16,9,18.2,20,42,60,69.1,No,No,Yes,Yes,FALSE,Instructor-led,Upper-Middle, In Progress ,N,NA,20.4
+L0406,Learner_406, Germany ,South America,Manager,Finance,SpreadSheet,5.5,Beginner,2025-04-05,2025-04-15,1,11.1,22,74,51,69.55,0,1,Y,FALSE,TRUE,Self-paced,Lower-Middle,In Progress,Yes,NA,21.8
+L0407,Learner_407,Canada,South America,Manager,Education,Manual Reporting,0.3,Intermediate,2025-02-20,27 Feb 2025,4,11.6,40,81,63,64.8,No,1,No,1,N,Hybrid,Lower-Middle,In Progress,Y,Fast learner,17.2
+L0408,Learner_408, ireland ,Oceania, Manager ,Healthcare,MS Excel,8,Beginner,15 Nov 2025,2025-11-22,5,11.6,35,84,66,82.8,No,Yes,Y,0,TRUE,Hybrid,High,Dropped,No,NA,25.8
+L0409,Learner_409, NORWAY ,Oceania,Clerk, Education ,google sheets,8.4,Beginner,2025-08-23,25-08-2025,3,12.8,20,41,31,73.4,N,FALSE,1,N,TRUE,Hybrid,Upper-Middle,In Progress,FALSE,Fast learner,22.1
+L0410,Learner_410,canada,Africa,Student,Finance,Power BI,2,Beginner,25-08-2025,2025-08-28,4,14.5,24,86,58,100,No,No,N,No,Y,Hybrid,Lower-Middle,Dropped,Y,Needs support,17.2
+L0411,Learner_411, NORWAY ,Africa, Clerk ,Education,excel,5.5,Beginner,09/04/2025,04-09-2025,2,9.4,10,63,34,NA,Yes,1,Y,No,1,Instructor-led,Upper-Middle,Dropped,No,Struggling,22.1
+L0412,Learner_412,NETHERLANDS,Asia, Consultant ,Tech, MS Excel ,6.1,Intermediate,12 Oct 2025,13 Oct 2025,6,14.9,23,53,55,73.45,0,1,0,Y,N,Self-paced,Upper-Middle,Paused,Yes,NA,13.4
+L0413,Learner_413,Denmark,Africa, Analyst ,Healthcare,excel,1.3,Beginner,26-05-2025,04-06-2025,1,8.9,9,72,77,88.45,TRUE,N,TRUE,1,TRUE,Self-paced,Upper-Middle,In Progress,Yes,Good progress,23.5
+L0414,Learner_414,switzerland,Asia,Student,Education,Excel,7,Beginner,07-04-2025,2025-04-08,4,12.6,10,88,76,62.3,FALSE,1,1,TRUE,TRUE,Instructor-led,Upper-Middle, Dropped ,N,Struggling,19.7
+L0415,Learner_415,Denmark,Oceania,Clerk,Government,power bi,8.8,Intermediate,24-01-2025,2025-01-31,2,14.9,36,82,26,92.45,No,FALSE,TRUE,FALSE,No,Self-paced,Upper-Middle, Completed ,0,NA,23.5
+L0416,Learner_416,united kingdom,Europe, Manager ,Finance,power bi,9.5,Advanced,08/26/2025,2025-08-30,5,7.5,14,47,49,91.75,N,Yes,No,FALSE,No,Hybrid,Upper-Middle, Paused ,N,NA,24.9
+L0417,Learner_417,Mexico,Africa,Consultant,Retail,Manual Reporting,7.3,Beginner,11 Aug 2025,15-08-2025,9,13.1,36,57,56,73.55,Y,N,N,1,FALSE,Instructor-led,Low,Completed,1,Needs support,7.6
+L0418,Learner_418, norway ,Oceania,Analyst,Education,Manual Reporting,0,Intermediate,01/05/2025,2025-01-05,4,13.5,17,NA,29,67.75,FALSE,1,1,N,N,Hybrid,Lower-Middle, In Progress ,Y,Struggling,22.1
+L0419,Learner_419,SWITZERLAND,North America,Student, Healthcare ,power bi,7.7,Beginner,2025-03-03,08-03-2025,4,11.2,32,57,38,77.6,FALSE,Y,No,No,FALSE,Instructor-led,Low, In Progress ,N,Good progress,19.7
+L0420,Learner_420,United States,Africa,Clerk, Education ,google sheets,3.4,Intermediate,22 Jan 2025,01/22/2025,9,10.1,12,89,38,75.05,No,FALSE,Y,N,1,Self-paced,Upper-Middle,Completed,1,Struggling,24.2
+L0421,Learner_421,japan,North America,Manager,Tech, excel ,4.1,Beginner,01 Jun 2025,NA,9,9.2,35,71,49,83.6,FALSE,TRUE,1,TRUE,Yes,Hybrid,Lower-Middle,Paused,1,Struggling,17.9
+L0422,Learner_422,china,Oceania,Engineer,Education,MS Excel,0,Intermediate,2025-10-27,2025-10-29,8,17,37,43,46,93.5,Y,Y,Y,0,TRUE,Self-paced,Lower-Middle,Dropped,Yes,Needs support,16.5
+L0423,Learner_423,south korea,Europe,Analyst, Tech ,Manual Reporting,3.4,Beginner,02 Jun 2025,10-06-2025,12,7.1,39,57,68,56.55,No,Yes,Y,Y,1,Hybrid,Upper-Middle, Dropped ,Yes,Good progress,18.6
+L0424,Learner_424,Norway,Europe,Analyst, Retail ,Spreadsheet,3.2,Intermediate,20 Aug 2025,24-08-2025,9,14.1,44,60,37,91.05,N,TRUE,Yes,No,0,Self-paced,Low, Completed ,0,Fast learner,22.1
+L0425,Learner_425,India,Africa, Clerk ,Education,excel,4.6,Intermediate,05 Nov 2025,13-11-2025,9,11.5,26,81,60,96.75,No,0,0,0,No,Hybrid,Low,Dropped,Y,Struggling,9.7
+L0426,Learner_426,china,North America, Manager , Government , excel ,8.3,Intermediate,2025-12-24,25 Dec 2025,11,7.2,42,61,22,97.6,1,No,No,TRUE,0,Self-paced,Low,In Progress,Yes,Good progress,16.5
+L0427,Learner_427,norway,Oceania, Analyst ,Retail,SpreadSheet,6.6,Beginner,31-05-2025,07-06-2025,9,8.6,34,82,79,58.3,Yes,1,FALSE,FALSE,Y,Hybrid,High,Completed,TRUE,Fast learner,22.1
+L0428,Learner_428,Singapore,South America, Student , Government ,excel,3.7,Beginner,15-02-2025,02/16/2025,5,8.3,33,NA,63,66.15,Y,No,No,TRUE,1,Instructor-led,Upper-Middle, Paused ,FALSE,NA,20.4
+L0429,Learner_429,UNITED KINGDOM,Asia,Manager,Retail, Power BI ,7.9,Beginner,01/17/2025,18 Jan 2025,3,13.8,33,47,69,98.9,FALSE,TRUE,Y,0,1,Hybrid,High,In Progress,Yes,NA,24.9
+L0430,Learner_430,Brazil,Europe,Clerk, Tech ,google sheets,3.8,Beginner,18 Jun 2025,2025-06-25,3,10.9,26,65,67,74.45,Yes,0,N,FALSE,No,Hybrid,High, Dropped ,Y,NA,8.9
+L0431,Learner_431,mexico,Asia,Manager,Tech,MS Excel,9.4,Beginner,2025-07-19,2025-07-19,3,16.8,23,62,49,87.4,N,FALSE,Yes,TRUE,Y,Self-paced,Lower-Middle,Paused,Yes,NA,7.6
+L0432,Learner_432,Japan,Asia,Student,Healthcare,power bi,7.7,Intermediate,11 Feb 2025,17-02-2025,10,11.9,35,95,34,68.95,Y,1,Yes,No,TRUE,Self-paced,High,Completed,No,Good progress,17.9
+L0433,Learner_433,NORWAY,North America,Student, Retail ,Google Sheets,3.1,Beginner,03/24/2025,24 Mar 2025,6,10,19,94,20,56,TRUE,TRUE,TRUE,FALSE,1,Instructor-led,Lower-Middle,Completed,No,Fast learner,22.1
+L0434,Learner_434,Nigeria,Oceania,Student, Finance , power bi ,2.4,Intermediate,18-11-2025,28-11-2025,5,9.8,18,NA,60,76.9,N,FALSE,TRUE,TRUE,Yes,Self-paced,Upper-Middle,Paused,Yes,Fast learner,4.1
+L0435,Learner_435,Denmark,Europe,Engineer, Healthcare ,MS Excel,1.5,Beginner,2025-06-28,2025-07-02,9,8.5,19,58,48,99.25,FALSE,TRUE,0,No,Y,Instructor-led,Lower-Middle,In Progress,No,Struggling,23.5
+L0436,Learner_436,South Korea,Asia, Engineer ,Government,google sheets,8.9,Intermediate,17 Jul 2025,07/18/2025,3,11.8,26,48,43,100,N,N,No,FALSE,FALSE,Hybrid,Upper-Middle, Dropped ,Yes,NA,18.6
+L0437,Learner_437,IRELAND,South America,Manager, Healthcare , MS Excel ,5.4,Advanced,11 Jun 2025,2025-06-11,3,8.6,26,56,66,77.3,Y,1,Yes,N,1,Hybrid,Lower-Middle, Dropped ,Y,Good progress,25.8
+L0437,Learner_438, switzerland ,South America, Analyst , Education ,Excel,9.1,Beginner,2025-04-13,16 Apr 2025,10,11.8,25,61,43,NA,No,TRUE,0,Yes,TRUE,Self-paced,Lower-Middle,In Progress,Yes,NA,19.7
+L0439,Learner_439,ireland,South America, Manager ,Retail, Google Sheets ,10,Advanced,2025-05-09,2025-05-09,3,13.6,19,90,43,94.8,N,Y,1,1,N,Hybrid,Lower-Middle,Completed,Yes,NA,25.8
+L0440,Learner_440, united kingdom ,Africa,Clerk, Healthcare , Manual Reporting ,5.6,Beginner,08-08-2025,08/11/2025,9,4.8,5,69,64,76.4,No,0,1,0,No,Hybrid,Upper-Middle,Completed,Yes,Good progress,24.9
+L0441,Learner_441,Norway,North America,Engineer,Education,Power BI,3.3,Beginner,2025-07-21,07/22/2025,12,10.2,12,NA,75,96.1,N,FALSE,TRUE,No,Yes,Self-paced,High,Completed,FALSE,Struggling,22.1
+L0442,Learner_442,south korea,South America, Consultant ,Healthcare, power bi ,6.7,Advanced,2025-08-28,09/05/2025,7,13.2,44,73,60,91.6,Yes,FALSE,No,TRUE,0,Hybrid,Low,In Progress,0,Fast learner,18.6
+L0443,Learner_443,france,South America, Clerk ,Tech,Power BI,8.7,Beginner,09-02-2025,NA,9,11.9,30,61,57,100,FALSE,0,TRUE,Yes,No,Hybrid,Upper-Middle, In Progress ,FALSE,NA,14.1
+L0444,Learner_444,united kingdom,Europe,Clerk,Tech,Spreadsheet,9.8,Intermediate,05 May 2025,2025-05-10,6,7.2,8,74,37,59.6,FALSE,Y,0,N,0,Hybrid,High, Completed ,1,NA,24.9
+L0445,Learner_445,Brazil,South America, Manager ,Tech,power bi,4,Beginner,08/18/2025,2025-08-22,9,13.6,29,55,48,95.8,1,Yes,0,FALSE,0,Hybrid,Lower-Middle,Dropped,1,NA,8.9
+L0446,Learner_446, Canada ,Europe,Clerk,Retail, excel ,7.3,Intermediate,10 Jan 2025,17-01-2025,7,11.9,5,NA,34,96.95,Yes,N,No,N,1,Self-paced,Low, Completed ,Y,Needs support,17.2
+L0447,Learner_447,australia,North America, Engineer ,Healthcare,Google Sheets,3.2,Intermediate,2025-09-13,20-09-2025,7,16.3,14,44,29,86.15,1,FALSE,Yes,Yes,Y,Instructor-led,Low,Completed,Y,Needs support,15.9
+L0448,Learner_448,United Kingdom,Europe,Analyst,Education, Manual Reporting ,4.6,Beginner,02/12/2025,02/20/2025,9,13.5,27,99,62,80.75,N,N,No,No,TRUE,Hybrid,High, Completed ,0,Fast learner,24.9
+L0449,Learner_449,singapore,Europe,Clerk,Retail,power bi,2.4,Beginner,01-02-2025,2025-02-04,1,8.5,15,64,22,60.25,0,0,1,Y,No,Instructor-led,High, Dropped ,TRUE,NA,20.4
+L0450,Learner_450,Canada,North America,Manager,Healthcare, MS Excel ,6.9,Beginner,18 Mar 2025,2025-03-27,4,14.8,24,60,30,69.4,FALSE,N,1,FALSE,No,Self-paced,Low,In Progress,Yes,Fast learner,17.2
+L0451,Learner_451,japan,Oceania, Analyst ,Healthcare,Manual Reporting,4.2,Beginner,02-10-2025,NA,4,10.5,27,75,26,96.25,Y,TRUE,FALSE,1,Yes,Hybrid,High,Completed,Y,NA,17.9
+L0452,Learner_452,singapore,Africa,Consultant, Tech ,Manual Reporting,6.9,Beginner,2025-07-13,17 Jul 2025,3,14.3,22,45,34,89.15,No,0,Y,TRUE,FALSE,Hybrid,Upper-Middle,Completed,FALSE,Needs support,20.4
+L0453,Learner_453, DENMARK ,South America,Engineer,Retail,google sheets,9.5,Beginner,13-11-2025,23 Nov 2025,8,17.7,36,NA,73,87.85,1,FALSE,1,1,N,Instructor-led,High, In Progress ,No,Fast learner,23.5
+L0454,Learner_454,United States,North America,Student,Government, excel ,0.5,Beginner,12/09/2025,12/17/2025,3,10.8,24,44,75,76.4,Yes,0,Yes,FALSE,N,Self-paced,Low, Completed ,1,Needs support,24.2
+L0455,Learner_455,DENMARK,North America,Consultant, Tech , Spreadsheet ,6.2,Beginner,23-02-2025,28 Feb 2025,2,14.8,40,NA,69,100,0,TRUE,N,FALSE,0,Hybrid,Upper-Middle,Completed,No,Good progress,23.5
+L0456,Learner_456,India,North America, Manager , Healthcare ,SpreadSheet,7.5,Beginner,30 Jun 2025,2025-07-06,2,5.1,9,65,54,74.55,1,Y,Y,Yes,No,Self-paced,Low,Dropped,No,Struggling,9.7
+L0457,Learner_457,NETHERLANDS,Africa,Student,Education,spreadsheet,6.9,Beginner,30 Sep 2025,10/06/2025,4,1.3,39,80,65,69.65,0,Yes,TRUE,TRUE,Y,Instructor-led,Lower-Middle,Dropped,TRUE,Fast learner,13.4
+L0458,Learner_458, France ,Africa,Manager,Finance,google sheets,8.7,Beginner,12 May 2025,17 May 2025,5,4.8,30,58,40,75.4,Y,FALSE,No,Yes,1,Hybrid,Lower-Middle,Completed,TRUE,Fast learner,14.1
+L0459,Learner_459,UNITED KINGDOM,Oceania,Analyst,Education, Spreadsheet ,8,Beginner,07/07/2025,17 Jul 2025,6,12.5,39,75,35,NA,TRUE,FALSE,FALSE,Yes,No,Hybrid,Upper-Middle,Completed,FALSE,NA,24.9
+L0460,Learner_460,IRELAND,South America,Clerk,Education,excel,8.8,Advanced,03/23/2025,NA,6,1.7,42,91,27,97.85,0,N,Yes,0,TRUE,Instructor-led,High, In Progress ,Y,Fast learner,25.8
+L0461,Learner_461,NIGERIA,North America,Student, Tech ,Excel,9.8,Beginner,2025-05-22,2025-05-28,12,1.5,9,NA,59,67.75,TRUE,No,Yes,FALSE,0,Self-paced,High,In Progress,TRUE,Good progress,4.1
+L0461,Learner_462,germany,Asia,Clerk, Finance ,google sheets,5.5,Intermediate,28-11-2025,NA,1,20.9,17,66,66,75.45,Yes,No,No,TRUE,1,Hybrid,Upper-Middle,Completed,Y,NA,21.8
+L0463,Learner_463,Switzerland,Africa,Consultant,Government,MS Excel,7.8,Beginner,11/02/2025,04-11-2025,1,13.3,28,52,40,NA,0,Yes,No,0,Yes,Instructor-led,Low,In Progress,Yes,Struggling,19.7
+L0464,Learner_464, United Kingdom ,Europe,Clerk,Education,google sheets,5.8,Beginner,09/14/2025,22-09-2025,8,13.1,27,NA,37,98.55,0,FALSE,FALSE,FALSE,FALSE,Hybrid,Lower-Middle,Dropped,TRUE,Needs support,24.9
+L0465,Learner_465,SOUTH KOREA,Africa, Student ,Finance,power bi,0.8,Beginner,29 Apr 2025,2025-05-06,11,11.8,39,79,75,NA,Yes,No,Yes,Yes,Yes,Instructor-led,Upper-Middle,Completed,Y,Struggling,18.6
+L0466,Learner_466, denmark ,Oceania,Clerk, Tech , MS Excel ,4.7,Intermediate,02/16/2025,25 Feb 2025,3,17.1,19,43,52,86.55,FALSE,Y,TRUE,Y,Y,Self-paced,Upper-Middle,Completed,TRUE,NA,23.5
+L0467,Learner_467,denmark,Asia, Engineer ,Retail,SpreadSheet,1.5,Beginner,04/15/2025,2025-04-17,7,11,39,90,72,76.5,No,0,1,Yes,1,Hybrid,Lower-Middle,In Progress,N,Struggling,23.5
+L0468,Learner_468,Canada,Africa,Clerk,Retail, google sheets ,5.6,Intermediate,08 Feb 2025,02/10/2025,9,15,27,64,73,77.5,0,N,Y,Yes,FALSE,Self-paced,Low,Dropped,1,Needs support,17.2
+L0469,Learner_469,norway,Asia,Clerk,Finance,google sheets,0.6,Intermediate,11/01/2025,03-11-2025,2,12.4,21,66,45,71.2,Y,TRUE,1,1,Y,Hybrid,Lower-Middle, In Progress ,1,Fast learner,22.1
+L0470,Learner_470,netherlands,Asia, Analyst ,Tech, power bi ,7.4,Beginner,2025-03-04,12-03-2025,1,9.7,34,64,45,67.85,Y,1,FALSE,0,Y,Hybrid,Lower-Middle, In Progress ,FALSE,Needs support,13.4
+L0471,Learner_471,IRELAND,Africa, Analyst ,Finance, Excel ,0,Beginner,07-05-2025,08-05-2025,5,8.5,26,49,26,100,FALSE,Y,Y,No,Y,Hybrid,Lower-Middle,In Progress,TRUE,NA,25.8
+L0472,Learner_472, NETHERLANDS ,North America,Engineer,Education,MS Excel,0.9,Beginner,09/20/2025,23-09-2025,1,4.9,31,45,71,70.45,No,Y,TRUE,0,FALSE,Hybrid,Lower-Middle,In Progress,N,Fast learner,13.4
+L0472,Learner_473,germany,Oceania,Engineer,Education,Power BI,9,Beginner,02/20/2025,02/21/2025,10,11.7,27,41,80,60.85,0,1,No,0,TRUE,Self-paced,Lower-Middle,Completed,1,Good progress,21.8
+L0474,Learner_474, Australia ,Oceania,Student, Retail ,Google Sheets,9.7,Beginner,2025-02-17,2025-02-17,6,5.7,39,51,28,72.85,Yes,Y,N,FALSE,FALSE,Instructor-led,High,In Progress,0,Fast learner,15.9
+L0475,Learner_475, CHINA ,North America,Consultant,Retail,excel,3.1,Beginner,10/16/2025,17 Oct 2025,10,10.1,23,48,58,77.05,TRUE,FALSE,N,TRUE,Yes,Instructor-led,Upper-Middle,In Progress,Yes,Needs support,16.5
+L0476,Learner_476,germany,Asia,Engineer,Education, Excel ,6.4,Advanced,11/02/2025,09 Nov 2025,11,7.3,18,51,22,96.65,No,Yes,Yes,FALSE,No,Self-paced,Lower-Middle,In Progress,1,Struggling,21.8
+L0477,Learner_477,China,Europe,Analyst,Education, Excel ,6.5,Beginner,23-03-2025,01-04-2025,7,12.4,11,55,62,81.2,0,TRUE,0,FALSE,No,Instructor-led,High,In Progress,1,NA,16.5
+L0478,Learner_478, united states ,Oceania, Clerk ,Healthcare,spreadsheet,6.1,Intermediate,2025-11-22,NA,6,17.2,43,88,58,69.6,Yes,Y,1,No,TRUE,Hybrid,Low,Dropped,Yes,NA,24.2
+L0479,Learner_479, denmark ,Europe,Clerk, Education ,SpreadSheet,8.8,Beginner,2025-04-11,16-04-2025,10,15.9,17,93,42,76.95,Y,FALSE,FALSE,TRUE,N,Hybrid,Upper-Middle,Dropped,Y,Struggling,23.5
+L0480,Learner_480,canada,Europe,Student, Tech ,Excel,7.8,Beginner,2025-04-29,30 Apr 2025,5,8.5,16,NA,73,100,FALSE,No,Y,TRUE,TRUE,Hybrid,Lower-Middle,Paused,Y,Good progress,17.2
+L0481,Learner_481, DENMARK ,Oceania,Consultant, Finance ,Power BI,3,Beginner,04/29/2025,05/04/2025,7,3.5,36,74,65,61.75,Y,1,No,TRUE,Yes,Instructor-led,Low,Completed,No,NA,23.5
+L0482,Learner_482,NETHERLANDS,Asia,Analyst,Government,power bi,0.5,Intermediate,05/29/2025,06/05/2025,11,11.2,24,85,38,77.6,0,0,No,TRUE,Y,Self-paced,Low,In Progress,FALSE,NA,13.4
+L0483,Learner_483,NORWAY,South America, Clerk ,Tech,power bi,4.5,Beginner,12/04/2025,09 Dec 2025,10,7.6,39,77,62,80.8,FALSE,1,0,1,Yes,Instructor-led,Upper-Middle, Completed ,FALSE,Good progress,22.1
+L0484,Learner_484, canada ,North America, Analyst , Education ,Power BI,4.3,Beginner,01 Aug 2025,08/04/2025,12,9.8,23,95,44,67.9,TRUE,0,FALSE,FALSE,Yes,Hybrid,Lower-Middle,In Progress,No,NA,17.2
+L0485,Learner_485,indonesia,South America, Student , Healthcare ,Google Sheets,6.4,Beginner,04 May 2025,09 May 2025,7,13.3,32,71,65,79.65,1,FALSE,N,TRUE,1,Self-paced,Lower-Middle,In Progress,1,Struggling,6.8
+L0486,Learner_486,Ireland,Africa, Clerk ,Tech,power bi,7.4,Beginner,01-03-2025,10-03-2025,3,11.7,31,62,69,67.85,No,FALSE,0,N,N,Instructor-led,Upper-Middle, In Progress ,No,Fast learner,25.8
+L0487,Learner_487,IRELAND,Africa,Engineer,Education,google sheets,5.9,Intermediate,15-02-2025,17-02-2025,11,21.1,14,53,54,88.55,No,No,0,N,N,Hybrid,Upper-Middle, Completed ,0,Struggling,25.8
+L0488,Learner_488, Canada ,North America,Student,Tech, spreadsheet ,4.6,Intermediate,04 Jul 2025,13-07-2025,3,12.1,34,93,39,85.05,FALSE,No,FALSE,FALSE,FALSE,Self-paced,Upper-Middle, Completed ,Y,Needs support,17.2
+L0489,Learner_489,Germany,Oceania,Consultant,Finance,MS Excel,2.2,Advanced,2025-03-19,NA,6,16.3,5,NA,29,99.15,Yes,Yes,Yes,FALSE,1,Self-paced,Upper-Middle,Dropped,Yes,Fast learner,21.8
+L0490,Learner_490,NETHERLANDS,North America, Manager ,Retail,Excel,4.5,Intermediate,2025-02-28,03/08/2025,9,7.9,30,64,28,100,N,TRUE,Yes,Y,No,Self-paced,High,In Progress,TRUE,Fast learner,13.4
+L0491,Learner_491, Mexico ,North America, Student ,Retail, MS Excel ,7.7,Intermediate,2025-11-10,11/14/2025,2,11.1,29,52,21,99.55,Y,Yes,TRUE,TRUE,No,Hybrid,Low, Completed ,1,NA,7.6
+L0492,Learner_492,united states,Oceania,Consultant,Education,MS Excel,2.6,Intermediate,2025-05-28,NA,11,15.2,35,93,32,78.6,0,N,FALSE,1,FALSE,Hybrid,High,Completed,TRUE,NA,24.2
+L0493,Learner_493,Switzerland,Oceania, Consultant ,Healthcare,SpreadSheet,7.1,Advanced,2025-03-31,03/31/2025,11,14.7,17,85,62,94.35,No,TRUE,No,FALSE,Y,Hybrid,High,In Progress,Y,NA,19.7
+L0494,Learner_494, Canada ,Europe,Engineer,Retail,Excel,7.8,Advanced,18-01-2025,19 Jan 2025,11,6.6,18,NA,46,76.3,TRUE,Y,0,Y,TRUE,Hybrid,Low, Completed ,Y,Needs support,17.2
+L0495,Learner_495, ireland ,Asia,Clerk,Finance,Manual Reporting,3.9,Beginner,08/18/2025,NA,11,9.5,17,50,28,89.75,Y,TRUE,1,No,Y,Instructor-led,Low, In Progress ,Y,Fast learner,25.8
+L0496,Learner_496, nigeria ,Europe,Engineer, Retail ,excel,3.1,Beginner,31 Aug 2025,07-09-2025,4,12,19,56,24,85,Yes,0,FALSE,0,No,Instructor-led,Lower-Middle,Paused,1,Good progress,4.1
+L0497,Learner_497,denmark,Asia,Manager, Education ,Spreadsheet,1.1,Advanced,27 Oct 2025,27 Oct 2025,3,11.3,12,87,72,78.65,1,TRUE,Y,TRUE,Yes,Instructor-led,Low,Paused,FALSE,Fast learner,23.5
+L0498,Learner_498,UNITED STATES,Asia,Consultant, Healthcare ,Manual Reporting,4.8,Beginner,05-10-2025,07 Oct 2025,10,9.8,31,89,67,80.9,1,1,FALSE,FALSE,No,Self-paced,Upper-Middle,Completed,1,NA,24.2
+L0499,Learner_499,CANADA,Africa,Engineer,Retail,MS Excel,7.4,Intermediate,15-11-2025,11/24/2025,2,7.2,42,96,32,66.6,Y,Y,N,0,FALSE,Self-paced,Upper-Middle, In Progress ,FALSE,Good progress,17.2
+L0500,Learner_500,australia,Asia, Engineer , Tech , Google Sheets ,5.2,Intermediate,06 Mar 2025,NA,1,17.9,35,97,63,69.95,Yes,FALSE,1,No,0,Self-paced,Low,Paused,No,Fast learner,15.9
+L0501,Learner_501,singapore,Africa, Consultant ,Healthcare, Google Sheets ,9.2,Beginner,06-03-2025,03/10/2025,2,15.1,20,47,24,88.55,FALSE,FALSE,1,1,1,Instructor-led,Lower-Middle,In Progress,TRUE,Needs support,20.4
+L0502,Learner_502,SINGAPORE,South America,Engineer, Education ,power bi,0.1,Intermediate,17 Sep 2025,2025-09-24,3,16.4,27,69,68,100,TRUE,0,Yes,N,No,Self-paced,High,Dropped,Y,Fast learner,20.4
+L0503,Learner_503,Norway,North America,Clerk,Government,Spreadsheet,9.2,Intermediate,2025-09-24,09/24/2025,3,12.1,16,49,49,65.05,1,FALSE,Y,TRUE,Yes,Hybrid,Low,Completed,Y,Fast learner,22.1
+L0504,Learner_504, IRELAND ,Africa, Analyst ,Education, google sheets ,5.8,Beginner,11/10/2025,15-11-2025,11,16.3,32,62,76,63.15,Y,No,1,FALSE,TRUE,Self-paced,High, Paused ,TRUE,Fast learner,25.8
+L0505,Learner_505,singapore,Europe,Engineer,Tech, Manual Reporting ,8.1,Beginner,09/26/2025,NA,7,13.7,39,89,63,75.85,0,Y,N,N,No,Instructor-led,Upper-Middle, Completed ,Y,Fast learner,20.4
+L0506,Learner_506,united kingdom,South America,Manager, Tech ,Manual Reporting,4.3,Beginner,03 Feb 2025,2025-02-10,11,11.6,38,84,70,63.8,1,Yes,No,1,Yes,Self-paced,High,In Progress,N,NA,24.9
+L0507,Learner_507, japan ,Asia, Consultant ,Retail,google sheets,3.1,Intermediate,2025-06-25,2025-07-05,2,9.2,32,NA,68,NA,0,1,1,1,Y,Self-paced,Lower-Middle, Completed ,1,Good progress,17.9
+L0508,Learner_508,Switzerland,Asia,Clerk,Government,Google Sheets,4.1,Beginner,31 Jan 2025,10-02-2025,4,7,36,67,76,70.5,1,No,TRUE,0,No,Hybrid,Lower-Middle, In Progress ,N,NA,19.7
+L0509,Learner_509,Mexico,Africa,Consultant, Healthcare ,power bi,3,Beginner,2025-06-21,06/30/2025,1,13.2,27,58,60,80.6,1,1,FALSE,Yes,TRUE,Self-paced,Upper-Middle,In Progress,No,Struggling,7.6
+L0509,Learner_510, Singapore ,Asia,Student, Finance ,Power BI,1.2,Advanced,11/15/2025,11/18/2025,12,15.9,24,70,42,77.95,No,1,N,TRUE,0,Self-paced,Upper-Middle,Paused,TRUE,Good progress,20.4
+L0511,Learner_511, SWITZERLAND ,Asia, Consultant ,Finance,spreadsheet,2.8,Beginner,03/11/2025,03/18/2025,2,11,19,50,54,69.5,1,N,Yes,Y,1,Hybrid,Lower-Middle,Completed,FALSE,NA,19.7
+L0511,Learner_512,Ireland,Africa, Engineer ,Tech,SpreadSheet,2.8,Beginner,12/23/2025,2025-12-26,7,8.4,25,76,73,97.2,N,Y,Y,FALSE,0,Instructor-led,Lower-Middle,In Progress,TRUE,Good progress,25.8
+L0513,Learner_513,brazil,Europe, Clerk ,Retail,excel,3.4,Beginner,15 Jul 2025,24-07-2025,8,15.4,19,81,46,71.7,TRUE,TRUE,Yes,Y,N,Self-paced,Low,Dropped,No,Needs support,8.9
+L0514,Learner_514,singapore,Asia, Clerk ,Retail, spreadsheet ,0.2,Beginner,21 Mar 2025,22-03-2025,1,7.7,31,92,25,NA,FALSE,Y,N,N,0,Instructor-led,Lower-Middle,Completed,N,Needs support,20.4
+L0515,Learner_515, france ,Asia,Student,Retail,excel,7.6,Beginner,04 Oct 2025,10/14/2025,6,11.2,32,95,41,91.6,Y,No,FALSE,No,TRUE,Self-paced,Lower-Middle,In Progress,FALSE,Fast learner,14.1
+L0516,Learner_516, united kingdom ,Africa, Manager , Finance ,MS Excel,4.5,Beginner,24-02-2025,2025-02-25,12,11.7,21,49,64,76.85,No,Yes,No,TRUE,0,Self-paced,Lower-Middle,Completed,0,NA,24.9
+L0517,Learner_517,Germany,North America,Engineer, Finance ,excel,6,Advanced,2025-03-03,03/05/2025,6,15.6,17,NA,78,100,1,1,0,Yes,Yes,Self-paced,Upper-Middle, In Progress ,No,Struggling,21.8
+L0518,Learner_518,AUSTRALIA,South America,Consultant,Government,excel,1,Beginner,28 Aug 2025,2025-08-28,9,5,26,60,77,70.5,Yes,No,1,FALSE,No,Hybrid,High, Completed ,1,NA,15.9
+L0519,Learner_519, UNITED STATES ,South America,Student,Healthcare, MS Excel ,0.3,Intermediate,2025-02-24,NA,3,14.3,20,73,45,91.15,No,No,1,FALSE,No,Self-paced,Low,Completed,1,NA,24.2
+L0520,Learner_520, netherlands ,North America, Manager ,Education,Power BI,1.8,Beginner,2025-06-03,06/10/2025,6,8.1,21,84,79,100,N,Yes,Yes,FALSE,FALSE,Instructor-led,High,In Progress,0,Needs support,13.4
+L0521,Learner_521, NORWAY ,South America,Manager, Finance , SpreadSheet ,0.3,Intermediate,28-09-2025,02-10-2025,12,10.6,43,60,40,97.3,0,TRUE,0,N,No,Self-paced,High,In Progress,1,NA,22.1
+L0522,Learner_522, SINGAPORE ,North America, Student ,Retail,Excel,9.4,Beginner,22-05-2025,NA,12,12.1,7,NA,57,100,No,No,Yes,TRUE,Yes,Instructor-led,Low, In Progress ,N,Good progress,20.4
+L0523,Learner_523,NORWAY,Asia,Clerk,Retail, excel ,4.9,Beginner,29 Jan 2025,02 Feb 2025,2,12,10,87,54,93,No,FALSE,No,N,FALSE,Instructor-led,Lower-Middle,Completed,0,Fast learner,22.1
+L0524,Learner_524, united states ,Europe, Clerk , Healthcare ,SpreadSheet,8,Beginner,29 Jul 2025,07/31/2025,5,11.4,32,94,67,62.7,0,N,0,TRUE,No,Instructor-led,Upper-Middle,In Progress,1,Fast learner,24.2
+L0525,Learner_525,JAPAN,Asia,Consultant,Education,Power BI,5.6,Intermediate,03/18/2025,NA,12,8.1,16,72,30,77.05,1,FALSE,TRUE,0,No,Self-paced,Lower-Middle,Completed,Yes,Struggling,17.9
+L0526,Learner_526,CANADA,Africa, Student , Finance ,Manual Reporting,1.1,Advanced,2025-01-16,2025-01-19,3,13.4,35,55,28,NA,TRUE,No,No,No,N,Self-paced,High, Completed ,1,Needs support,17.2
+L0526,Learner_527,INDIA,Africa,Analyst,Education,google sheets,0.1,Intermediate,2025-09-09,12 Sep 2025,12,13.3,10,88,34,79.65,Yes,TRUE,FALSE,Yes,0,Self-paced,Upper-Middle,Completed,FALSE,NA,9.7
+L0528,Learner_528, united states ,Asia,Student,Education,Google Sheets,4.3,Beginner,06/25/2025,27-06-2025,7,10,22,49,24,NA,N,0,Yes,Y,N,Self-paced,Low,Completed,No,Struggling,24.2
+L0529,Learner_529,NIGERIA,South America, Consultant , Finance , Spreadsheet ,2.1,Advanced,15-06-2025,06/18/2025,7,14.3,20,70,64,73.15,Y,Yes,N,No,1,Hybrid,Lower-Middle,Paused,No,Struggling,4.1
+L0530,Learner_530,NORWAY,South America,Manager, Retail ,SpreadSheet,8.1,Beginner,2025-05-22,30 May 2025,12,18,39,74,50,69,TRUE,FALSE,N,N,Yes,Instructor-led,Lower-Middle,Completed,No,Needs support,22.1
+L0530,Learner_531, INDONESIA ,North America,Clerk,Education, Spreadsheet ,5.1,Intermediate,2025-04-06,10-04-2025,7,13.3,30,75,26,100,N,Yes,1,0,FALSE,Instructor-led,High,Completed,1,Good progress,6.8
+L0532,Learner_532,CANADA,Oceania,Clerk, Finance , power bi ,5.4,Intermediate,03/04/2025,NA,6,15.3,25,99,57,71.65,FALSE,Y,No,Y,No,Hybrid,Low, Completed ,TRUE,NA,17.2
+L0532,Learner_533,GERMANY,Asia,Engineer,Retail, Excel ,9.3,Beginner,2025-12-30,2025-12-30,9,13.8,18,89,28,63.9,Yes,1,Yes,0,0,Self-paced,Lower-Middle, Paused ,FALSE,NA,21.8
+L0534,Learner_534,netherlands,South America,Consultant,Retail,Excel,0.8,Intermediate,05/10/2025,11-05-2025,10,15.3,35,55,47,67.65,FALSE,0,No,FALSE,FALSE,Hybrid,Low,Paused,FALSE,Good progress,13.4
+L0535,Learner_535, United States ,Europe, Analyst , Finance ,Manual Reporting,0.2,Beginner,29 Aug 2025,29-08-2025,11,13.9,19,54,67,92.95,Y,FALSE,No,1,Yes,Instructor-led,Lower-Middle,Completed,No,Struggling,24.2
+L0536,Learner_536, France ,Europe,Student,Tech,MS Excel,5.6,Beginner,02/18/2025,27 Feb 2025,5,11,30,44,33,85.5,Yes,Yes,Yes,Yes,0,Instructor-led,Low,Paused,TRUE,Fast learner,14.1
+L0537,Learner_537,singapore,South America,Consultant,Education, Power BI ,1,Beginner,04/02/2025,2025-04-05,10,13.4,18,85,74,88.7,1,Yes,1,TRUE,Y,Self-paced,Low, Dropped ,Y,Fast learner,20.4
+L0538,Learner_538, netherlands ,Asia,Manager,Finance,Spreadsheet,2.6,Intermediate,27 Jun 2025,06 Jul 2025,7,14.9,37,67,27,76.45,TRUE,FALSE,N,N,FALSE,Hybrid,Upper-Middle, Completed ,N,Good progress,13.4
+L0538,Learner_539,Japan,North America,Manager,Government,spreadsheet,1.4,Beginner,2025-07-30,30-07-2025,2,8.7,29,43,24,72.35,TRUE,Yes,0,No,Y,Hybrid,Low,Completed,Y,Fast learner,17.9
+L0540,Learner_540,DENMARK,Africa,Analyst,Tech,google sheets,1.5,Intermediate,28 Apr 2025,08 May 2025,5,12.9,28,93,70,87.45,Yes,0,N,Yes,1,Self-paced,High, Dropped ,1,Struggling,23.5
+L0541,Learner_541,netherlands,South America, Consultant ,Finance,SpreadSheet,5.7,Beginner,27 Sep 2025,10/06/2025,9,16.8,15,NA,65,96.4,0,No,No,1,1,Hybrid,Upper-Middle,In Progress,Y,Needs support,13.4
+L0542,Learner_542, IRELAND ,Africa,Consultant,Finance,Google Sheets,0.6,Beginner,02/03/2025,02/07/2025,4,9.4,25,63,71,99.7,Y,No,No,No,Y,Hybrid,Low,In Progress,Y,Needs support,25.8
+L0543,Learner_543, NETHERLANDS ,Oceania,Clerk,Retail,Excel,6.3,Intermediate,06/19/2025,06/21/2025,9,11.9,40,88,63,75.95,No,N,No,FALSE,No,Self-paced,Low, In Progress ,0,Needs support,13.4
+L0544,Learner_544,Norway,Europe,Consultant,Education,Power BI,7.4,Intermediate,03 Jun 2025,06/12/2025,11,11.5,35,84,46,99.75,0,Yes,0,FALSE,FALSE,Hybrid,High, In Progress ,1,Fast learner,22.1
+L0545,Learner_545,France,South America, Clerk ,Retail,Power BI,3.7,Beginner,22 Sep 2025,09/27/2025,3,17.3,16,70,49,95.65,Yes,No,No,Y,Yes,Hybrid,Upper-Middle,Dropped,No,Struggling,14.1
+L0546,Learner_546,MEXICO,South America,Analyst, Government ,spreadsheet,7.1,Intermediate,30-01-2025,08 Feb 2025,12,8.7,26,93,77,55.35,N,Y,FALSE,FALSE,Yes,Self-paced,Lower-Middle,Dropped,N,Struggling,7.6
+L0547,Learner_547,Ireland,Europe, Engineer ,Retail,google sheets,0.5,Beginner,2025-08-07,08/11/2025,1,12.5,18,83,44,84.25,0,Yes,1,Y,Yes,Self-paced,High,Dropped,TRUE,Struggling,25.8
+L0548,Learner_548,brazil,Europe,Manager,Tech,Manual Reporting,5.8,Advanced,12 Nov 2025,12-11-2025,9,11,31,43,50,75.5,Yes,FALSE,Y,Y,N,Self-paced,Low, In Progress ,TRUE,Struggling,8.9
+L0549,Learner_549,Netherlands,South America,Engineer, Government ,Power BI,2.6,Beginner,18 Mar 2025,19 Mar 2025,9,9.5,32,83,41,79.75,Yes,0,1,Y,0,Instructor-led,High,In Progress,N,Struggling,13.4
+L0550,Learner_550,Singapore,Africa,Engineer,Government, Spreadsheet ,1.8,Intermediate,19 Aug 2025,08/20/2025,10,20.7,37,84,70,94.35,FALSE,No,0,Y,TRUE,Hybrid,Upper-Middle,Dropped,Y,Fast learner,20.4
+L0551,Learner_551, NORWAY ,Africa,Consultant, Education , Manual Reporting ,2.9,Beginner,12-07-2025,2025-07-21,9,13.3,17,45,78,88.65,1,Yes,N,No,Yes,Instructor-led,Lower-Middle,Completed,TRUE,Fast learner,22.1
+L0552,Learner_552,UNITED KINGDOM,Africa,Student,Healthcare, Spreadsheet ,6,Beginner,03/04/2025,2025-03-04,12,16.3,32,58,35,NA,Yes,N,Y,FALSE,1,Instructor-led,Upper-Middle, In Progress ,0,Good progress,24.9
+L0553,Learner_553,South Korea,Oceania,Analyst,Education, Excel ,4.2,Advanced,24 Jan 2025,27 Jan 2025,10,14.2,18,73,70,97.1,Yes,Yes,Yes,Y,Yes,Hybrid,Upper-Middle,In Progress,Y,Needs support,18.6
+L0554,Learner_554, India ,Africa, Engineer ,Tech,spreadsheet,6.4,Beginner,22 Oct 2025,NA,1,15.7,22,69,64,71.85,N,1,TRUE,Yes,Yes,Self-paced,Lower-Middle, Completed ,N,NA,9.7
+L0555,Learner_555,Japan,Africa,Manager,Retail,SpreadSheet,9.5,Beginner,04/30/2025,06 May 2025,5,20.2,34,85,67,87.1,FALSE,FALSE,1,Yes,N,Hybrid,High,Dropped,No,Good progress,17.9
+L0556,Learner_556,SOUTH KOREA,Africa,Student,Retail, Spreadsheet ,5.3,Beginner,10 Apr 2025,16 Apr 2025,2,12.2,17,NA,65,84.1,N,No,No,Y,0,Instructor-led,Low,In Progress,No,NA,18.6
+L0557,Learner_557,Canada,South America,Engineer, Education ,MS Excel,2.5,Beginner,19 Nov 2025,2025-11-20,11,15.7,6,85,49,67.85,0,1,TRUE,Y,Yes,Self-paced,Upper-Middle, Completed ,0,Good progress,17.2
+L0557,Learner_558,japan,Africa,Engineer,Tech,Spreadsheet,7.4,Beginner,10/07/2025,2025-10-11,4,17.3,42,76,57,100,0,Y,N,Y,TRUE,Self-paced,Lower-Middle, In Progress ,No,NA,17.9
+L0559,Learner_559,Switzerland,Oceania, Clerk ,Retail,Power BI,5.3,Beginner,2025-02-27,2025-03-09,3,17.4,8,63,66,66.7,0,1,TRUE,FALSE,Yes,Instructor-led,High,In Progress,0,Needs support,19.7
+L0560,Learner_560, United States ,South America,Student,Healthcare,Spreadsheet,1.4,Beginner,08-01-2025,08 Jan 2025,6,23.2,28,87,72,90.6,Y,No,Y,No,No,Hybrid,High,Completed,No,Needs support,24.2
+L0561,Learner_561,united states,South America, Clerk , Retail , google sheets ,2.4,Intermediate,2025-01-18,2025-01-18,11,13.1,34,58,66,66.55,FALSE,N,FALSE,Y,TRUE,Self-paced,Lower-Middle,Dropped,0,Fast learner,24.2
+L0562,Learner_562,INDONESIA,Africa,Student,Finance,MS Excel,1.2,Intermediate,11/11/2025,2025-11-20,2,12.2,22,50,47,100,TRUE,Yes,FALSE,Y,TRUE,Self-paced,Lower-Middle, In Progress ,TRUE,Needs support,6.8
+L0563,Learner_563,australia,Europe, Analyst ,Healthcare, MS Excel ,1.1,Advanced,04/27/2025,03 May 2025,2,13,24,55,63,94.5,No,Y,0,FALSE,TRUE,Self-paced,Lower-Middle,Completed,0,Needs support,15.9
+L0564,Learner_564,UNITED KINGDOM,North America, Manager ,Finance, Manual Reporting ,6.5,Beginner,2025-03-11,21 Mar 2025,8,16.3,11,80,21,NA,TRUE,TRUE,0,No,1,Hybrid,Low,In Progress,No,Good progress,24.9
+L0565,Learner_565,China,Africa,Manager,Finance, Excel ,7.4,Beginner,06 Aug 2025,10-08-2025,2,15.9,14,45,32,90.95,FALSE,Y,0,No,TRUE,Hybrid,Lower-Middle, Paused ,No,Needs support,16.5
+L0566,Learner_566, China ,South America,Student, Tech ,SpreadSheet,4.5,Beginner,17-12-2025,27 Dec 2025,4,13.2,26,67,42,100,FALSE,N,0,1,TRUE,Self-paced,High, Dropped ,Y,Needs support,16.5
+L0567,Learner_567,Singapore,Europe,Engineer,Tech, google sheets ,1.5,Beginner,06 Mar 2025,03/10/2025,11,13.9,27,NA,38,64.95,0,N,No,FALSE,Y,Hybrid,Low,In Progress,FALSE,Struggling,20.4
+L0568,Learner_568, Netherlands ,South America,Student,Education,MS Excel,8.4,Beginner,05/21/2025,05/23/2025,7,15.9,28,64,67,57.95,TRUE,N,Yes,N,1,Instructor-led,High,In Progress,Yes,NA,13.4
+L0569,Learner_569,japan,Oceania,Manager, Tech ,excel,10,Beginner,2025-09-19,2025-09-20,2,5.8,37,82,22,68.9,No,N,TRUE,Y,Yes,Hybrid,Upper-Middle,Dropped,Yes,Good progress,17.9
+L0570,Learner_570,INDIA,Africa,Clerk,Government,Spreadsheet,0.2,Intermediate,23-09-2025,26-09-2025,3,17.2,14,83,22,100,No,0,Y,No,Yes,Self-paced,Low,In Progress,0,Struggling,9.7
+L0571,Learner_571,Japan,Asia, Engineer , Tech , Power BI ,5.4,Advanced,2025-08-25,09/04/2025,10,8.3,33,99,26,77.15,FALSE,No,FALSE,N,No,Hybrid,Upper-Middle,Dropped,Y,Needs support,17.9
+L0572,Learner_572, INDIA ,Oceania,Student, Education ,Excel,8,Beginner,13 Jun 2025,06/20/2025,4,12.9,13,44,23,99.45,TRUE,1,N,N,0,Instructor-led,Upper-Middle,Completed,TRUE,Good progress,9.7
+L0573,Learner_573, South Korea ,Asia, Clerk ,Tech,Google Sheets,5.2,Intermediate,11/05/2025,11/10/2025,8,19,31,53,80,100,N,FALSE,No,0,No,Instructor-led,High,Completed,Y,NA,18.6
+L0574,Learner_574,germany,Europe,Analyst, Government , SpreadSheet ,2.5,Advanced,05-02-2025,02/11/2025,2,12.9,30,95,51,74.45,N,Yes,1,Yes,TRUE,Self-paced,Upper-Middle,In Progress,Y,NA,21.8
+L0574,Learner_575,Mexico,Europe,Engineer, Finance ,Power BI,4.7,Beginner,2025-07-07,NA,3,9.3,32,45,55,100,No,1,1,TRUE,Yes,Instructor-led,High, Paused ,0,NA,7.6
+L0576,Learner_576,Canada,Europe, Engineer ,Government,Google Sheets,2.9,Beginner,2025-06-04,07-06-2025,12,10.4,17,99,53,74.2,TRUE,0,Yes,FALSE,TRUE,Self-paced,Low, In Progress ,1,Good progress,17.2
+L0577,Learner_577,GERMANY,South America, Consultant ,Healthcare, MS Excel ,9.7,Beginner,01/24/2025,02/02/2025,5,11.8,27,99,43,100,FALSE,No,No,No,Y,Instructor-led,Low,In Progress,Yes,Good progress,21.8
+L0578,Learner_578,united states,Africa,Analyst,Retail, power bi ,7,Beginner,2025-03-31,10-04-2025,3,7.9,42,60,73,85.95,1,TRUE,N,1,No,Instructor-led,Upper-Middle, Completed ,1,NA,24.2
+L0579,Learner_579,South Korea,Africa, Clerk ,Education, excel ,7.5,Beginner,2025-05-09,17-05-2025,11,11.9,11,92,57,88.95,Yes,1,Y,1,Yes,Hybrid,Lower-Middle,In Progress,TRUE,Struggling,18.6
+L0580,Learner_580,Switzerland,Africa,Manager,Government,spreadsheet,0.1,Intermediate,05 Jan 2025,12 Jan 2025,9,11.7,15,NA,49,83.85,Yes,0,No,1,0,Hybrid,Low,Completed,FALSE,NA,19.7
+L0581,Learner_581,india,Europe,Manager,Tech,SpreadSheet,4,Beginner,2025-12-03,11-12-2025,11,11.1,31,68,23,100,FALSE,N,FALSE,0,Yes,Instructor-led,High,Dropped,FALSE,NA,9.7
+L0582,Learner_582,NETHERLANDS,Oceania, Engineer , Education , Spreadsheet ,4.5,Intermediate,2025-07-04,NA,7,13.6,7,99,62,86.8,TRUE,N,No,FALSE,FALSE,Instructor-led,Low, In Progress ,1,Struggling,13.4
+L0583,Learner_583, brazil ,South America, Engineer ,Tech, MS Excel ,1.2,Beginner,02/28/2025,09 Mar 2025,10,11.7,26,86,31,66.85,Yes,N,Y,FALSE,N,Instructor-led,Lower-Middle,Completed,FALSE,NA,8.9
+L0584,Learner_584, Singapore ,North America, Manager ,Education,google sheets,2.6,Intermediate,08-04-2025,04/14/2025,10,10.1,27,51,56,100,Y,TRUE,0,0,No,Hybrid,High, In Progress ,FALSE,Struggling,20.4
+L0585,Learner_585,india,Europe, Consultant ,Retail,Google Sheets,1.5,Beginner,01/20/2025,27 Jan 2025,4,10.1,8,85,79,NA,FALSE,1,N,Y,1,Instructor-led,Lower-Middle,In Progress,Y,Struggling,9.7
+L0586,Learner_586,UNITED KINGDOM,Oceania,Consultant, Finance ,Excel,4.2,Intermediate,23 Dec 2025,29-12-2025,2,9.8,29,71,66,84.9,0,1,0,No,Y,Instructor-led,Upper-Middle,In Progress,Y,Good progress,24.9
+L0587,Learner_587, norway ,South America,Analyst,Healthcare,Power BI,2.2,Intermediate,22 Mar 2025,27 Mar 2025,2,9.8,15,75,53,76.9,1,FALSE,No,TRUE,FALSE,Instructor-led,High, Paused ,Y,Needs support,22.1
+L0588,Learner_588, Canada ,Africa,Student,Retail, google sheets ,5.2,Beginner,04 Dec 2025,12/09/2025,2,9.9,25,99,69,55.95,1,FALSE,TRUE,FALSE,No,Hybrid,Upper-Middle,Paused,1,Struggling,17.2
+L0589,Learner_589, Nigeria ,Asia,Analyst,Healthcare, excel ,8.9,Intermediate,03 Jul 2025,07 Jul 2025,6,9.3,22,93,53,62.65,0,N,N,N,N,Instructor-led,Low, Dropped ,TRUE,NA,4.1
+L0590,Learner_590,south korea,Europe,Consultant,Retail,google sheets,5.2,Advanced,25 Apr 2025,04/27/2025,10,8.4,26,51,25,87.2,1,Yes,FALSE,Yes,0,Self-paced,Upper-Middle,In Progress,TRUE,NA,18.6
+L0591,Learner_591, JAPAN ,Africa,Clerk, Retail ,Power BI,4.3,Intermediate,13-01-2025,01/19/2025,6,13.1,32,68,73,57.55,FALSE,0,Y,N,Y,Self-paced,Low,Completed,0,Struggling,17.9
+L0592,Learner_592,united states,Oceania,Student,Healthcare,SpreadSheet,3,Advanced,26 Feb 2025,NA,9,12.3,28,90,35,75.15,Y,N,FALSE,Y,TRUE,Hybrid,Upper-Middle,Completed,Y,Struggling,24.2
+L0593,Learner_593, MEXICO ,Oceania,Analyst,Government,Google Sheets,2.2,Intermediate,08/09/2025,08/11/2025,3,17.4,40,80,23,97.7,1,FALSE,FALSE,Yes,FALSE,Hybrid,High, Completed ,Y,NA,7.6
+L0594,Learner_594,ireland,Europe,Clerk,Government,Power BI,0.5,Beginner,13-06-2025,06/17/2025,12,8,18,81,69,94,No,0,Y,N,N,Instructor-led,Upper-Middle,Paused,N,Good progress,25.8
+L0595,Learner_595, ireland ,Africa,Clerk,Education,Google Sheets,7.9,Advanced,23 Jan 2025,NA,5,14.7,10,95,69,62.35,FALSE,Y,0,Yes,0,Hybrid,Upper-Middle, Dropped ,0,Needs support,25.8
+L0596,Learner_596, INDIA ,Africa, Clerk , Retail , spreadsheet ,9.6,Intermediate,06-08-2025,14-08-2025,9,9.4,31,61,21,64.7,Y,0,TRUE,Y,0,Hybrid,High,Completed,Yes,Struggling,9.7
+L0596,Learner_597,SWITZERLAND,Europe,Engineer,Healthcare, Manual Reporting ,9.1,Beginner,17 Apr 2025,04/20/2025,8,13.4,35,44,58,70.7,N,0,1,Y,0,Hybrid,Upper-Middle,Completed,Y,Struggling,19.7
+L0598,Learner_598,Norway,Asia,Analyst,Government,Spreadsheet,2.9,Beginner,2025-09-25,10/02/2025,10,4.6,12,78,20,72.3,No,1,Yes,No,No,Hybrid,Upper-Middle,Completed,FALSE,Needs support,22.1
+L0599,Learner_599,INDIA,Oceania, Student ,Retail, google sheets ,2.4,Beginner,2025-03-11,03/19/2025,3,8.7,26,43,25,81.35,No,1,TRUE,Yes,FALSE,Instructor-led,Lower-Middle,Completed,No,Fast learner,9.7
+L0600,Learner_600, UNITED STATES ,South America,Consultant,Education,google sheets,3.1,Beginner,12 Jul 2025,07/19/2025,8,17.1,17,62,53,61.55,0,Yes,No,Yes,N,Self-paced,High,In Progress,Yes,Good progress,24.2
+L0601,Learner_601,denmark,Africa,Clerk,Government,Google Sheets,3.3,Beginner,26 Aug 2025,2025-09-01,5,15.5,19,94,30,94.75,1,Yes,FALSE,FALSE,0,Hybrid,Lower-Middle,Completed,FALSE,Good progress,23.5
+L0602,Learner_602,Canada,Europe,Consultant,Tech, Spreadsheet ,6.1,Beginner,02/09/2025,10 Feb 2025,2,12.3,29,87,51,NA,No,0,Yes,0,0,Hybrid,Upper-Middle, In Progress ,Y,Struggling,17.2
+L0603,Learner_603,DENMARK,Europe,Engineer, Healthcare , MS Excel ,6.4,Intermediate,29-08-2025,NA,12,11.6,18,90,26,93.8,0,1,0,Yes,No,Hybrid,Upper-Middle,Completed,FALSE,Needs support,23.5
+L0604,Learner_604,norway,South America,Analyst,Government,spreadsheet,1.1,Beginner,06/26/2025,07/05/2025,1,9.9,33,58,42,56.95,N,No,TRUE,TRUE,0,Instructor-led,Low,In Progress,TRUE,Needs support,22.1
+L0605,Learner_605,United Kingdom,Asia, Consultant ,Government,Spreadsheet,5,Beginner,11 Apr 2025,2025-04-21,1,11.6,9,77,38,72.8,No,0,Yes,TRUE,No,Self-paced,Low,In Progress,0,NA,24.9
+L0606,Learner_606,Netherlands,Oceania,Engineer, Retail ,SpreadSheet,0.5,Beginner,13 Jun 2025,06/18/2025,3,9.2,17,42,68,79.6,0,1,1,Yes,0,Hybrid,Upper-Middle,Dropped,No,Struggling,13.4
+L0607,Learner_607,UNITED KINGDOM,Asia,Student,Finance,MS Excel,6.6,Advanced,23 May 2025,02 Jun 2025,12,9.6,38,64,65,76.8,N,No,1,No,0,Instructor-led,Low,Completed,Yes,Struggling,24.9
+L0608,Learner_608,NETHERLANDS,Africa,Analyst, Retail ,Power BI,9.5,Intermediate,2025-06-13,06/21/2025,3,19,7,88,73,59.5,0,TRUE,TRUE,1,0,Self-paced,Low,Paused,Y,Struggling,13.4
+L0609,Learner_609,NORWAY,North America,Engineer, Tech ,excel,9.6,Intermediate,06/28/2025,NA,7,15.3,29,86,53,70.65,Y,Yes,0,N,TRUE,Instructor-led,Lower-Middle,Completed,FALSE,Fast learner,22.1
+L0610,Learner_610, singapore ,North America, Analyst ,Retail,Google Sheets,9.1,Beginner,08-10-2025,NA,10,22.5,15,92,70,100,TRUE,1,Y,FALSE,FALSE,Hybrid,Upper-Middle, Dropped ,No,NA,20.4
+L0611,Learner_611,China,Oceania,Analyst, Education ,Excel,4.8,Intermediate,19 Feb 2025,02/20/2025,11,15.6,15,43,22,88.8,1,No,0,Yes,FALSE,Instructor-led,High, In Progress ,Y,Struggling,16.5
+L0612,Learner_612,ireland,Asia,Engineer, Finance ,Spreadsheet,3.7,Beginner,15-04-2025,2025-04-20,8,11.2,11,73,46,68.6,TRUE,Yes,Y,0,Yes,Self-paced,Low,Dropped,FALSE,Good progress,25.8
+L0613,Learner_613,United States,North America,Clerk, Healthcare , Google Sheets ,3.9,Beginner,15-12-2025,NA,4,13.5,18,NA,77,NA,FALSE,FALSE,FALSE,Yes,Yes,Instructor-led,Low, Paused ,No,Needs support,24.2
+L0614,Learner_614,nigeria,Oceania, Analyst ,Tech,Google Sheets,9.4,Intermediate,03/20/2025,2025-03-28,1,12.9,29,52,49,81.45,FALSE,No,0,N,TRUE,Self-paced,Lower-Middle,In Progress,No,Struggling,4.1
+L0615,Learner_615, south korea ,Oceania,Manager,Tech,Google Sheets,6.9,Beginner,10-10-2025,2025-10-15,1,17.1,10,51,41,97.55,No,FALSE,0,Yes,N,Hybrid,Upper-Middle,Dropped,Yes,Good progress,18.6
+L0616,Learner_616,Australia,South America, Consultant ,Tech,Excel,4.2,Beginner,19-05-2025,25 May 2025,8,10.7,35,59,57,NA,FALSE,0,0,Y,Yes,Hybrid,Low, Completed ,FALSE,Needs support,15.9
+L0617,Learner_617,india,South America, Analyst ,Tech,Excel,4.8,Beginner,2025-05-31,2025-05-31,4,19.9,29,99,38,69.95,No,Yes,N,TRUE,N,Self-paced,Low,Paused,Y,NA,9.7
+L0618,Learner_618, FRANCE ,Europe,Engineer,Government,Spreadsheet,7.5,Intermediate,2025-07-04,04 Jul 2025,9,9.1,39,46,21,85.55,No,No,No,1,FALSE,Self-paced,High,In Progress,FALSE,Good progress,14.1
+L0619,Learner_619,NIGERIA,South America, Student ,Retail, Manual Reporting ,7.3,Intermediate,11/14/2025,23-11-2025,3,11.4,38,48,41,58.7,Y,Yes,0,No,No,Instructor-led,Lower-Middle,In Progress,TRUE,Fast learner,4.1
+L0620,Learner_620,UNITED STATES,Asia,Manager,Government, power bi ,4.7,Beginner,02 Dec 2025,09-12-2025,10,11.5,16,45,29,88.75,N,TRUE,FALSE,FALSE,N,Instructor-led,High, Completed ,Y,Good progress,24.2
+L0621,Learner_621,INDIA,Africa,Manager,Education,power bi,4.1,Intermediate,24-02-2025,NA,2,11.1,27,NA,76,100,Y,N,TRUE,1,No,Instructor-led,Lower-Middle, In Progress ,Yes,Fast learner,9.7
+L0622,Learner_622,BRAZIL,North America,Manager, Retail ,Excel,4,Beginner,2025-11-06,2025-11-12,10,19.1,16,92,67,72.55,N,1,No,Y,Y,Hybrid,High,Dropped,N,NA,8.9
+L0623,Learner_623, Australia ,Europe, Clerk ,Education,Google Sheets,6.7,Beginner,2025-07-22,01 Aug 2025,9,9.4,34,48,52,NA,No,FALSE,Y,Yes,1,Hybrid,Upper-Middle, Completed ,FALSE,Struggling,15.9
+L0624,Learner_624, SINGAPORE ,Europe,Manager, Government ,Google Sheets,6.9,Beginner,13 Jan 2025,15-01-2025,5,14.3,21,41,56,62.15,1,0,Yes,Yes,FALSE,Instructor-led,Lower-Middle,Dropped,No,Struggling,20.4
+L0625,Learner_625,UNITED STATES,Asia, Consultant ,Finance,Manual Reporting,0.6,Beginner,20 Jan 2025,NA,8,5.4,44,NA,23,NA,TRUE,N,TRUE,Yes,Y,Instructor-led,High,Dropped,TRUE,NA,24.2
+L0626,Learner_626,SINGAPORE,North America, Analyst ,Retail,spreadsheet,4.6,Intermediate,27-05-2025,01 Jun 2025,5,7.6,26,83,26,90.8,Yes,N,N,FALSE,FALSE,Self-paced,Low,Paused,N,Good progress,20.4
+L0627,Learner_627,Denmark,North America,Analyst,Retail, Power BI ,5.1,Advanced,2025-08-04,04-08-2025,10,15.3,40,NA,54,60.65,No,1,No,TRUE,TRUE,Self-paced,Low,In Progress,TRUE,NA,23.5
+L0628,Learner_628, Brazil ,Africa,Manager,Retail,Manual Reporting,1.6,Intermediate,2025-04-14,2025-04-14,11,7.9,12,61,74,74.95,1,No,Yes,Yes,N,Instructor-led,Upper-Middle,Completed,1,Good progress,8.9
+L0629,Learner_629,singapore,Asia,Clerk,Government,Power BI,3,Intermediate,10 Sep 2025,19 Sep 2025,2,12.1,13,88,80,86.05,N,N,Y,Y,TRUE,Self-paced,Upper-Middle,In Progress,TRUE,Good progress,20.4
+L0630,Learner_630, NORWAY ,South America, Engineer ,Retail, excel ,2,Beginner,2025-10-16,25 Oct 2025,3,8.5,39,46,61,79.25,Yes,Yes,FALSE,FALSE,Yes,Self-paced,Upper-Middle,Completed,1,Needs support,22.1
+L0631,Learner_631, australia ,South America,Manager,Education,spreadsheet,1.2,Beginner,12/19/2025,2025-12-21,3,10.5,20,67,74,73.25,TRUE,Yes,No,Yes,TRUE,Instructor-led,Lower-Middle,Completed,FALSE,Needs support,15.9
+L0632,Learner_632,BRAZIL,South America,Student,Government,MS Excel,8.5,Advanced,09-09-2025,19 Sep 2025,8,7.9,22,64,36,63.95,FALSE,N,1,TRUE,No,Self-paced,Low,Completed,1,NA,8.9
+L0633,Learner_633,GERMANY,Africa,Student, Government ,MS Excel,3.4,Intermediate,2025-06-18,26-06-2025,7,11.8,28,NA,40,NA,1,1,N,TRUE,No,Hybrid,High,Dropped,FALSE,Good progress,21.8
+L0634,Learner_634,france,Oceania, Engineer ,Healthcare,spreadsheet,0.6,Advanced,30-09-2025,2025-10-10,8,12.4,34,NA,50,70.2,No,1,TRUE,No,TRUE,Self-paced,High,In Progress,FALSE,NA,14.1
+L0635,Learner_635,Ireland,Europe,Engineer,Healthcare,SpreadSheet,6.5,Beginner,18-05-2025,22 May 2025,11,10.5,29,NA,35,60.25,N,TRUE,Yes,1,Y,Self-paced,Upper-Middle,In Progress,TRUE,NA,25.8
+L0636,Learner_636,Denmark,Africa,Analyst,Government, SpreadSheet ,7.6,Intermediate,2025-03-29,2025-04-04,11,4.1,7,93,52,53.05,Y,Y,No,TRUE,Y,Instructor-led,High,In Progress,Y,Fast learner,23.5
+L0637,Learner_637,MEXICO,Africa,Clerk, Education , Spreadsheet ,5.4,Intermediate,30-10-2025,08-11-2025,4,10.3,27,74,58,68.15,FALSE,No,Yes,No,Y,Self-paced,High,Completed,FALSE,NA,7.6
+L0638,Learner_638, France ,North America, Clerk ,Government,Manual Reporting,5,Beginner,2025-06-15,06/23/2025,5,3.7,25,100,43,NA,FALSE,1,1,Y,No,Hybrid,Upper-Middle,Dropped,Y,Good progress,14.1
+L0639,Learner_639,Netherlands,Oceania,Engineer,Education,SpreadSheet,7.6,Beginner,2025-06-23,24-06-2025,1,8.9,37,66,49,83.45,N,No,N,FALSE,FALSE,Hybrid,High,Paused,N,Needs support,13.4
+L0639,Learner_640,germany,South America, Manager ,Tech,spreadsheet,8.9,Intermediate,2025-02-24,25 Feb 2025,5,13.6,32,98,46,59.8,N,Yes,No,N,Yes,Hybrid,Lower-Middle, In Progress ,Y,Struggling,21.8
+L0641,Learner_641,south korea,North America,Manager,Finance,SpreadSheet,8.3,Beginner,2025-05-04,2025-05-06,9,9.7,19,96,46,74.85,1,Y,N,FALSE,Y,Self-paced,Upper-Middle,Dropped,1,Good progress,18.6
+L0642,Learner_642,Netherlands,Oceania, Analyst ,Government, Google Sheets ,5,Beginner,06/17/2025,06/27/2025,7,7.3,21,97,46,74.65,N,FALSE,Y,FALSE,No,Instructor-led,High,Completed,Y,Fast learner,13.4
+L0643,Learner_643,india,Europe,Manager,Finance,google sheets,8,Beginner,05/26/2025,NA,6,15,26,73,21,66.5,0,1,Y,N,Y,Hybrid,Upper-Middle,Completed,No,Struggling,9.7
+L0644,Learner_644, SINGAPORE ,South America,Analyst,Retail, Manual Reporting ,1.9,Beginner,02-12-2025,12/11/2025,1,6.2,16,97,65,60.1,No,FALSE,FALSE,TRUE,Y,Instructor-led,Low,In Progress,N,NA,20.4
+L0644,Learner_645, Ireland ,Africa,Clerk,Education,spreadsheet,3.7,Intermediate,11-08-2025,08/18/2025,10,8,31,NA,67,76,1,1,Y,TRUE,N,Instructor-led,Low,Completed,N,Needs support,25.8
+L0646,Learner_646,China,Oceania,Manager,Healthcare,MS Excel,4.1,Advanced,17-05-2025,23-05-2025,1,13.4,14,89,70,89.7,Y,TRUE,Yes,0,0,Instructor-led,High,Completed,Yes,Good progress,16.5
+L0647,Learner_647,France,South America,Clerk, Retail , power bi ,0.9,Beginner,14 May 2025,19-05-2025,8,4.5,38,77,53,60.25,0,Yes,N,No,1,Hybrid,Upper-Middle,Completed,TRUE,NA,14.1
+L0648,Learner_648,IRELAND,North America,Student,Tech,Excel,0,Beginner,03/21/2025,03/26/2025,10,14.4,29,59,63,83.2,1,Y,1,Yes,1,Instructor-led,Lower-Middle,In Progress,TRUE,Fast learner,25.8
+L0649,Learner_649,Norway,Africa, Analyst ,Healthcare, Power BI ,3.9,Beginner,2025-04-29,2025-05-06,5,13.2,44,67,64,68.6,1,1,FALSE,0,1,Instructor-led,High,Dropped,1,Good progress,22.1
+L0650,Learner_650,SOUTH KOREA,South America, Analyst ,Healthcare,MS Excel,1.6,Beginner,24 Oct 2025,30-10-2025,8,15,41,74,78,72.5,Yes,1,TRUE,No,Yes,Instructor-led,Low, Dropped ,No,Needs support,18.6

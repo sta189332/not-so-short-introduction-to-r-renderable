@@ -76,6 +76,7 @@ book:
         - chapters/24-performance-and-scale.qmd
         - chapters/25-final-integration-project.qmd
 
+    - author-note.qmd
     - references.qmd
 
 bibliography: references.bib
