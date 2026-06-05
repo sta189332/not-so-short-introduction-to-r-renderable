@@ -1,0 +1,1065 @@
+---
+title: "Selecting, Filtering, and Transforming Data: Shaping Evidence for Analysis"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{14.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{14.\arabic{table}}
+\setcounter{table}{0}
+```
+
+## Opening Scene: When Prepared Data Still Needs Shape
+
+Leo now has something better than a raw import.
+
+Chapter 12 taught him how to bring the official CSV file into R without confusing a file, a path, and an object. Chapter 13 taught him that imported data must be inspected, cleaned, prepared, and protected before analysis begins.
+
+The raw import remained as:
+
+```r
+raw_migration
+```
+
+The working copy became:
+
+```r
+df_r_migration
+```
+
+After cleaning and preparation, the object passed forward is:
+
+```r
+df_r_migration_prepared
+```
+
+That object matters. It tells Leo that he is no longer working directly with the untouched raw evidence, and he is not inventing a new dataset. He is continuing the same evidence trail.
+
+But prepared data do not answer a question by themselves.
+
+A table can be clean enough to work with and still be too wide, too long, or too general for the task in front of Leo. The prepared dataset may contain variables about learner identity, country, region, background, R experience, weekly study behaviour, tool use, project scores, completion status, and payment probability. Not every question needs every column. Not every analysis needs every row. Not every useful variable already exists in the exact form Leo needs.
+
+This is where Chapter 14 begins.
+
+Selection decides which variables matter. Filtering decides which observations matter. Transformation creates clearer variables for analysis.
+
+These are not random commands. They are deliberate data-shaping moves.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+In this chapter, Leo learns how to shape prepared data for an analytical question. He will select variables, filter observations, rename carefully, arrange rows for inspection, create new variables, and check the result after every move.
+
+This chapter continues from `df_r_migration_prepared`. It does not re-import the raw file and it does not repeat Chapter 13 cleaning. Chapter 15 will handle grouping and summarising.
+:::
+
+## What Changed After Chapter 13
+
+Chapter 13 asked a trust question:
+
+> What condition is this evidence in?
+
+Chapter 14 asks a sharper analytical question:
+
+> Which parts of this prepared evidence are needed for the question Leo wants to answer?
+
+The difference is important.
+
+Cleaning prepares the evidence so it can be used more safely. Data shaping prepares a focused version of that evidence for a specific analytical task.
+
+In this chapter, Leo will create a shaped object called:
+
+```r
+df_analysis
+```
+
+That name does not mean the analysis is finished. It means the object has been selected, filtered, and transformed into a form that Chapter 15 can summarise.
+
+The relationship is:
+
+```text
+raw_migration -> df_r_migration -> df_r_migration_prepared -> df_analysis
+```
+
+Each step should remain traceable. Leo should always be able to explain where an object came from and why it exists.
+
+If this chapter is run after Chapter 13, `df_r_migration_prepared` should already exist. If Leo is reading the chapter on its own, this bridge shows the expected continuity:
+
+```{r}
+#| eval: false
+# Chapter 14 continues from Chapter 13.
+# The prepared object should already exist at this point.
+df_r_migration_prepared
+```
+
+This is not a new dataset. It is the prepared working data from the previous stage.
+
+## The Part 3 Workflow So Far
+
+Part 3 is moving through a workflow:
+
+```text
+Packages -> Import -> Inspect -> Clean -> Transform -> Summarise
+```
+
+Chapter 11 prepared the tools. Chapter 12 imported the data. Chapter 13 cleaned and prepared the working copy. Chapter 14 now shapes the prepared data by choosing variables, choosing rows, and creating clearer analytical variables.
+
+The work is still not summary.
+
+Leo is not yet calculating group means, counts by category, or country-level summaries. That belongs to Chapter 15. Here, he is preparing the table that Chapter 15 can summarise.
+
+## From Prepared Evidence to Analytical Shape
+
+A prepared dataset is like a well-organised evidence file. It may be trustworthy enough to work with, but it still needs direction.
+
+Suppose Leo wants to study how learner effort and tool use relate to project performance. He may not need every field in the prepared object. He may need a focused set such as:
+
+```text
+learner_id
+country
+region
+job_role
+industry
+background
+r_experience_level
+week
+study_hours
+lessons_completed
+confidence_score
+pre_assessment_score
+project_score
+completion_status
+first_script_completed
+used_rstudio
+used_quarto
+used_git
+used_renv
+preferred_learning_mode
+monthly_income_band
+manager_support
+payment_probability_score
+```
+
+He may also want to create a few derived variables:
+
+```text
+high_project_score
+score_gap
+study_band
+tool_readiness
+```
+
+Those variables do not replace the original evidence. They organise it for a question.
+
+A data-shaping step is not complete when the code runs. It is complete only when Leo checks what changed and can explain why the change helps the analysis.
+
+## A Small Visual Map of Data Shaping
+
+The movement from prepared data to analysis-ready data is easier to see as a simple chain.
+
+```{r}
+#| label: fig-prepared-to-analysis-ready
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4.4
+#| fig-align: center
+#| fig-cap: "From Prepared Data to Analysis-Ready Data"
+
+old_par <- par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i", lend = "round")
+plot.new()
+plot.window(xlim = c(0, 14), ylim = c(0, 7.2), asp = 1)
+
+draw_box <- function(x, y, w, h, label, fill_col = "#c9c8ff",
+                     cex = 0.68, font = 2, lwd = 1.2,
+                     border_col = "#222222") {
+  fill <- adjustcolor(fill_col, alpha.f = 0.28)
+
+  rect(
+    xleft = x,
+    ybottom = y,
+    xright = x + w,
+    ytop = y + h,
+    col = fill,
+    border = border_col,
+    lwd = lwd
+  )
+
+  text(
+    x = x + w / 2,
+    y = y + h / 2,
+    labels = label,
+    cex = cex,
+    font = font
+  )
+}
+
+draw_arrow <- function(x0, y0, x1, y1, lwd = 1.3) {
+  arrows(
+    x0 = x0,
+    y0 = y0,
+    x1 = x1,
+    y1 = y1,
+    length = 0.08,
+    lwd = lwd
+  )
+}
+
+text(
+  x = 7,
+  y = 6.75,
+  labels = "Chapter 14 shapes prepared evidence for an analytical question",
+  cex = 1.0,
+  font = 2
+)
+
+# Main workflow boxes
+draw_box(
+  x = 0.65,
+  y = 4.65,
+  w = 2.55,
+  h = 0.82,
+  label = "Prepared data\ndf_r_migration_prepared",
+  fill_col = "#c8efd2",
+  cex = 0.54
+)
+
+draw_box(
+  x = 3.65,
+  y = 4.65,
+  w = 2.10,
+  h = 0.82,
+  label = "Select\nchoose columns",
+  fill_col = "#c9c8ff",
+  cex = 0.60
+)
+
+draw_box(
+  x = 6.20,
+  y = 4.65,
+  w = 2.10,
+  h = 0.82,
+  label = "Filter\nchoose rows",
+  fill_col = "#ffd6b5",
+  cex = 0.60
+)
+
+draw_box(
+  x = 8.75,
+  y = 4.65,
+  w = 2.30,
+  h = 0.82,
+  label = "Transform\ncreate variables",
+  fill_col = "#eeeeee",
+  cex = 0.58
+)
+
+draw_box(
+  x = 11.50,
+  y = 4.65,
+  w = 1.95,
+  h = 0.82,
+  label = "Analysis-ready\ndf_analysis",
+  fill_col = "#c8efd2",
+  cex = 0.56
+)
+
+draw_arrow(3.28, 5.06, 3.57, 5.06)
+draw_arrow(5.83, 5.06, 6.12, 5.06)
+draw_arrow(8.38, 5.06, 8.67, 5.06)
+draw_arrow(11.13, 5.06, 11.42, 5.06)
+
+# Lower explanatory boxes
+draw_box(
+  x = 1.25,
+  y = 2.35,
+  w = 3.20,
+  h = 0.70,
+  label = "Selection is not deletion.\nIt focuses the variables.",
+  fill_col = "#eeeeee",
+  cex = 0.56
+)
+
+draw_box(
+  x = 5.25,
+  y = 2.35,
+  w = 3.20,
+  h = 0.70,
+  label = "Filtering is applied logic.\nTRUE keeps, FALSE removes.",
+  fill_col = "#eeeeee",
+  cex = 0.56
+)
+
+draw_box(
+  x = 9.25,
+  y = 2.35,
+  w = 3.20,
+  h = 0.70,
+  label = "Transformation creates meaning.\nNew variables need reasons.",
+  fill_col = "#eeeeee",
+  cex = 0.55
+)
+
+draw_box(
+  x = 3.10,
+  y = 0.85,
+  w = 7.80,
+  h = 0.62,
+  label = "Shape the data. Inspect the result. Summarise only after the table is ready.",
+  fill_col = "#c8efd2",
+  cex = 0.62,
+  font = 2
+)
+
+par(old_par)
+```
+
+As shown in @fig-prepared-to-analysis-ready, Chapter 14 has a narrower job than Chapter 13 and Chapter 15. It does not clean the raw evidence, and it does not yet reduce many rows into summaries. It shapes prepared evidence into a focused object that can support summary work later.
+
+That focus protects the workflow.
+
+## Selection, Filtering, and Transformation Are Different Moves
+
+Data shaping becomes easier when Leo can name the move he is making. @tbl-data-shaping-moves summarises the core moves in this chapter.
+
+| Move | Main question | Base R pattern | Tidyverse pattern |
+|---|---|---|---|
+| Select | Which variables matter? | `df[c("x", "y")]` | `select(x, y)` |
+| Filter | Which rows matter? | `df[df$x > 5, ]` | `filter(x > 5)` |
+| Rename | Would clearer names help? | `names(df)[...] <- ...` | `rename(new = old)` |
+| Arrange | What order helps inspection? | `df[order(df$x), ]` | `arrange(x)` |
+| Transform | What new variable is needed? | `df$new <- ...` | `mutate(new = ...)` |
+
+: Core data-shaping moves in Chapter 14 {#tbl-data-shaping-moves}
+
+The table is not a memorisation list. It is a map.
+
+Selection is about variables. Filtering is about observations. Transformation is about meaning. Arrangement is about inspection. Renaming is about clarity.
+
+The same prepared data can be shaped in many ways depending on the question. That is why Leo should not shape data blindly. He should first ask what question the table needs to help answer.
+
+::: {.callout-tip appearance="simple" title="Core Mental Model"}
+Selection asks which columns matter. Filtering asks which rows matter. Transformation asks what new analytical meaning should be created.
+:::
+
+## Base R and Tidyverse: Two Ways to Express the Same Move
+
+Chapter 11 gave Leo a practical rule:
+
+> Base R teaches the structure of the language. Tidyverse teaches workflow fluency. Serious R users eventually understand both.
+
+That rule matters here.
+
+Base R often shows what is happening underneath. Tidyverse code often reads like a workflow. Leo does not need to choose a camp. He needs to understand the move.
+
+In this chapter, some examples show both forms. The purpose is not to double the burden. The purpose is to help Leo recognise that the same data-shaping idea can be expressed in more than one R grammar.
+
+## Selecting Variables: Which Columns Matter?
+
+A prepared dataset may contain more variables than Leo needs for a specific question. Selection lets him choose the columns that matter for the current task.
+
+Suppose Leo wants a focused learner-performance table. He may begin with these variables:
+
+```text
+learner_id
+country
+background
+r_experience_level
+study_hours
+lessons_completed
+pre_assessment_score
+project_score
+completion_status
+first_script_completed
+used_quarto
+used_git
+```
+
+In Base R, he can select columns by name:
+
+```{r}
+#| eval: false
+performance_columns <- c(
+  "learner_id",
+  "country",
+  "background",
+  "r_experience_level",
+  "study_hours",
+  "lessons_completed",
+  "pre_assessment_score",
+  "project_score",
+  "completion_status",
+  "first_script_completed",
+  "used_quarto",
+  "used_git"
+)
+
+df_selected <- df_r_migration_prepared[performance_columns]
+```
+
+In tidyverse style, he can express the same choice with `dplyr::select()`:
+
+```{r}
+#| eval: false
+df_selected <- df_r_migration_prepared |>
+  dplyr::select(
+    learner_id,
+    country,
+    background,
+    r_experience_level,
+    study_hours,
+    lessons_completed,
+    pre_assessment_score,
+    project_score,
+    completion_status,
+    first_script_completed,
+    used_quarto,
+    used_git
+  )
+```
+
+Both examples answer the same question:
+
+> Which variables does this analysis need right now?
+
+Selection is not deletion. The original prepared object remains available. Leo is creating a focused view for a purpose.
+
+After selecting, he should inspect:
+
+```{r}
+#| eval: false
+names(df_selected)
+dim(df_selected)
+head(df_selected)
+```
+
+A shaping move without inspection is only a guess.
+
+## Renaming for Clarity
+
+Renaming is useful when a name is technically valid but could be clearer in a specific analysis object.
+
+For example, `project_score` is already clear. Leo does not need to rename it. But in a focused analysis table, he might decide that `pre_assessment_score` is too long for repeated work and prefer `pre_score`.
+
+In Base R:
+
+```{r}
+#| eval: false
+names(df_selected)[names(df_selected) == "pre_assessment_score"] <- "pre_score"
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_selected <- df_selected |>
+  dplyr::rename(pre_score = pre_assessment_score)
+```
+
+Renaming should be done sparingly. A clearer name helps the reader. Too many unnecessary renamings make the evidence harder to trace.
+
+A useful rule is:
+
+> Rename only when clarity improves enough to justify the extra translation.
+
+## Filtering Observations: Which Rows Answer the Question?
+
+Selection chooses columns. Filtering chooses rows.
+
+Filtering is where Part 2 logic becomes practical. A filter is not magic. It is a logical judgment applied to every row. If the condition returns `TRUE` for a row, the row remains. If it returns `FALSE`, the row is removed from the result.
+
+Suppose Leo wants records with more than five study hours.
+
+In Base R:
+
+```{r}
+#| eval: false
+df_more_study <- df_r_migration_prepared[
+  !is.na(df_r_migration_prepared$study_hours) &
+    df_r_migration_prepared$study_hours > 5,
+]
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_more_study <- df_r_migration_prepared |>
+  dplyr::filter(
+    !is.na(study_hours),
+    study_hours > 5
+  )
+```
+
+Both versions rely on the same logical idea:
+
+```r
+study_hours > 5
+```
+
+That condition produces a row-by-row judgment. Chapter 7 prepared Leo for this. Filtering is logical judgment turned into row selection.
+
+## Filtering with Missing Values
+
+Filtering becomes more delicate when a variable may contain missing values.
+
+Suppose Leo wants records where `project_score` is at least 80. If some project scores are missing, he should be explicit about what he wants.
+
+In Base R:
+
+```{r}
+#| eval: false
+df_high_scores <- df_r_migration_prepared[
+  !is.na(df_r_migration_prepared$project_score) &
+    df_r_migration_prepared$project_score >= 80,
+]
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_high_scores <- df_r_migration_prepared |>
+  dplyr::filter(
+    !is.na(project_score),
+    project_score >= 80
+  )
+```
+
+The `!is.na(project_score)` condition says: keep only rows where the project score is known.
+
+This is not just technical tidiness. It is analytical honesty. Leo should know whether a row is excluded because it failed a condition or because the value needed for judgment was missing.
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+A filter is a judgment. If a value is missing, the judgment may be uncertain. Use `is.na()` or `!is.na()` deliberately rather than pretending missingness has no effect.
+:::
+
+## Combining Conditions
+
+Real questions often need more than one condition.
+
+Suppose Leo wants learners who studied more than five hours and scored at least 80 on the project.
+
+In Base R:
+
+```{r}
+#| eval: false
+df_focused <- df_r_migration_prepared[
+  !is.na(df_r_migration_prepared$study_hours) &
+    !is.na(df_r_migration_prepared$project_score) &
+    df_r_migration_prepared$study_hours > 5 &
+    df_r_migration_prepared$project_score >= 80,
+]
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_focused <- df_r_migration_prepared |>
+  dplyr::filter(
+    !is.na(study_hours),
+    !is.na(project_score),
+    study_hours > 5,
+    project_score >= 80
+  )
+```
+
+The `&` operator is doing vectorised logic. It checks conditions row by row.
+
+This matters. Leo should use `&` for row-wise filtering. He should not use `&&` here. The double form, `&&`, is mainly for single control-flow decisions, not filtering many rows in a data frame.
+
+::: {.callout-warning appearance="simple" title="Common Beginner Trap"}
+For data-frame filtering, use `&` and `|` for row-by-row logic. Do not use `&&` and `||` to filter many rows.
+:::
+
+## Filtering with a Set of Values
+
+Sometimes Leo does not want one category. He wants any value from a small set.
+
+For example, he may want records from selected countries:
+
+```{r}
+#| eval: false
+target_countries <- c("nigeria", "kenya", "south africa")
+```
+
+In Base R:
+
+```{r}
+#| eval: false
+df_countries <- df_r_migration_prepared[
+  df_r_migration_prepared$country %in% target_countries,
+]
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_countries <- df_r_migration_prepared |>
+  dplyr::filter(country %in% target_countries)
+```
+
+The `%in%` operator asks:
+
+> Is this value one of the values in the set?
+
+It is often clearer than writing several `|` conditions.
+
+## Arranging Rows for Inspection
+
+Arranging rows changes order. It does not remove observations and it does not create new variables.
+
+Leo may arrange project scores from highest to lowest so strong records are easier to inspect.
+
+In Base R:
+
+```{r}
+#| eval: false
+df_arranged <- df_r_migration_prepared[
+  order(df_r_migration_prepared$project_score, decreasing = TRUE),
+]
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_arranged <- df_r_migration_prepared |>
+  dplyr::arrange(dplyr::desc(project_score))
+```
+
+Arrangement is useful for inspection. It is not a summary. If Leo wants the average score by country, that is Chapter 15.
+
+## Transforming Variables: Creating Clearer Evidence
+
+Transformation creates or modifies variables so that the data can answer a question more clearly.
+
+This is different from cleaning.
+
+Cleaning standardises evidence so it can be trusted. Transformation creates analytical meaning from prepared evidence.
+
+A simple transformation is a logical flag:
+
+```{r}
+#| eval: false
+df_r_migration_prepared$high_project_score <-
+  df_r_migration_prepared$project_score >= 80
+```
+
+The tidyverse version is:
+
+```{r}
+#| eval: false
+df_r_migration_prepared <- df_r_migration_prepared |>
+  dplyr::mutate(
+    high_project_score = project_score >= 80
+  )
+```
+
+This new variable asks a clear question:
+
+> Did this record reach a project score of 80 or above?
+
+The answer is a logical value: `TRUE`, `FALSE`, or possibly `NA` if the score is missing.
+
+Leo has already met this idea in Chapter 7. Logical values are not decorations. They can guide later selection and summary.
+
+## Creating a Score Gap
+
+Leo may want to compare project performance with the earlier pre-assessment score.
+
+A simple derived variable is:
+
+```text
+score_gap = project_score - pre_assessment_score
+```
+
+In Base R:
+
+```{r}
+#| eval: false
+df_r_migration_prepared$score_gap <-
+  df_r_migration_prepared$project_score -
+  df_r_migration_prepared$pre_assessment_score
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_r_migration_prepared <- df_r_migration_prepared |>
+  dplyr::mutate(
+    score_gap = project_score - pre_assessment_score
+  )
+```
+
+This transformation has a reason. It gives Leo a way to ask whether learners improved from pre-assessment to project performance.
+
+He should inspect it:
+
+```{r}
+#| eval: false
+summary(df_r_migration_prepared$score_gap)
+```
+
+If the summary shows strange values, he should not ignore them. A new variable deserves the same inspection as an imported one.
+
+## Creating Study Bands
+
+A continuous numeric variable can sometimes be turned into a broad category for easier interpretation.
+
+For example, Leo may want a simple study-time band.
+
+In Base R:
+
+```{r}
+#| eval: false
+df_r_migration_prepared$study_band <- ifelse(
+  is.na(df_r_migration_prepared$study_hours),
+  NA,
+  ifelse(
+    df_r_migration_prepared$study_hours >= 7,
+    "higher study time",
+    "lower study time"
+  )
+)
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_r_migration_prepared <- df_r_migration_prepared |>
+  dplyr::mutate(
+    study_band = dplyr::case_when(
+      is.na(study_hours) ~ NA_character_,
+      study_hours >= 7 ~ "higher study time",
+      study_hours < 7 ~ "lower study time"
+    )
+  )
+```
+
+This example introduces a useful pattern. `ifelse()` is a Base R function for conditional values. `case_when()` is a tidyverse function for writing several conditional rules more readably.
+
+Do not make categories just because categories are convenient. A category should help the analysis communicate a meaningful distinction.
+
+## Creating Tool Readiness
+
+The prepared dataset includes tool-use fields:
+
+```text
+used_rstudio
+used_quarto
+used_git
+used_renv
+```
+
+After Chapter 13, these fields should be prepared as logical values. Leo can use them to create a simple readiness indicator.
+
+For example:
+
+```{r}
+#| eval: false
+df_r_migration_prepared <- df_r_migration_prepared |>
+  dplyr::mutate(
+    tool_readiness = dplyr::case_when(
+      dplyr::if_any(
+        c(used_rstudio, used_quarto, used_git, used_renv),
+        is.na
+      ) ~ "unknown tool readiness",
+      used_rstudio & used_quarto & used_git & used_renv ~ "full tool readiness",
+      used_rstudio & used_quarto ~ "reporting readiness",
+      used_rstudio ~ "basic RStudio readiness",
+      TRUE ~ "needs tool support"
+    )
+  )
+```
+
+This is a transformation because Leo is creating a new analytical label from existing variables.
+
+It is not a cleaning step. The logical fields should already have been prepared in Chapter 13. Chapter 14 uses them to express a new idea.
+
+If this rule appears repeatedly in later work, Chapter 9’s lesson returns: repeated logic can become a small named helper function. That does not need to happen here, but Leo should recognise the pattern.
+
+## Transformation Is Not Cleaning
+
+It is easy to confuse cleaning and transformation because both can change columns.
+
+The difference is purpose.
+
+Cleaning asks:
+
+> Is this evidence consistent enough to work with?
+
+Transformation asks:
+
+> What new analytical meaning should this prepared evidence express?
+
+For example, standardising `country` from `" Nigeria "` and `"NIGERIA"` into `"nigeria"` is cleaning. Creating `high_project_score` from `project_score >= 80` is transformation. Turning `study_hours` into `study_band` is transformation. Creating `score_gap` from `project_score - pre_assessment_score` is transformation.
+
+::: {.callout-note appearance="simple" title="Boundary Note"}
+Chapter 13 made the evidence more consistent. Chapter 14 shapes that evidence for a question. Chapter 15 will summarise and group the shaped data.
+:::
+
+## Building a Small Analysis-Ready Dataset
+
+Now Leo can combine the moves.
+
+He begins with the prepared object:
+
+```r
+df_r_migration_prepared
+```
+
+Then he creates a focused analysis object:
+
+```r
+df_analysis
+```
+
+Here is one tidyverse workflow:
+
+```{r}
+#| eval: false
+df_analysis <- df_r_migration_prepared |>
+  dplyr::select(
+    learner_id,
+    country,
+    region,
+    job_role,
+    industry,
+    background,
+    r_experience_level,
+    week,
+    study_hours,
+    lessons_completed,
+    confidence_score,
+    pre_assessment_score,
+    project_score,
+    completion_status,
+    first_script_completed,
+    used_rstudio,
+    used_quarto,
+    used_git,
+    used_renv,
+    preferred_learning_mode,
+    monthly_income_band,
+    manager_support,
+    payment_probability_score
+  ) |>
+  dplyr::filter(
+    !is.na(study_hours),
+    !is.na(pre_assessment_score),
+    !is.na(project_score),
+    study_hours >= 0,
+    project_score >= 0,
+    project_score <= 100
+  ) |>
+  dplyr::mutate(
+    high_project_score = project_score >= 80,
+    score_gap = project_score - pre_assessment_score,
+    study_band = dplyr::case_when(
+      is.na(study_hours) ~ NA_character_,
+      study_hours < 4 ~ "Low study time",
+      study_hours < 8 ~ "Moderate study time",
+      TRUE ~ "High study time"
+    )
+  )
+```
+
+This code has structure. Chapter 6 helps Leo read it.
+
+The pipe sends the result of one step into the next. `select()` narrows the variables to the analysis-ready fields needed for Chapters 15 to 18. `filter()` keeps records with known study hours and project scores and removes values that would distort early visualisation. `mutate()` creates variables for later summary and plotting work.
+
+Here is a Base R version of the same general movement:
+
+```{r}
+#| eval: false
+analysis_columns <- c(
+  "learner_id",
+  "country",
+  "region",
+  "job_role",
+  "industry",
+  "background",
+  "r_experience_level",
+  "week",
+  "study_hours",
+  "lessons_completed",
+  "confidence_score",
+  "pre_assessment_score",
+  "project_score",
+  "completion_status",
+  "first_script_completed",
+  "used_rstudio",
+  "used_quarto",
+  "used_git",
+  "used_renv",
+  "preferred_learning_mode",
+  "monthly_income_band",
+  "manager_support",
+  "payment_probability_score"
+)
+
+df_analysis_base <- df_r_migration_prepared[analysis_columns]
+
+df_analysis_base <- df_analysis_base[
+  !is.na(df_analysis_base$study_hours) &
+    !is.na(df_analysis_base$pre_assessment_score) &
+    !is.na(df_analysis_base$project_score) &
+    df_analysis_base$study_hours >= 0 &
+    df_analysis_base$project_score >= 0 &
+    df_analysis_base$project_score <= 100,
+]
+
+df_analysis_base$high_project_score <- df_analysis_base$project_score >= 80
+
+df_analysis_base$score_gap <-
+  df_analysis_base$project_score -
+  df_analysis_base$pre_assessment_score
+
+df_analysis_base$study_band <- ifelse(
+  is.na(df_analysis_base$study_hours),
+  NA,
+  ifelse(
+    df_analysis_base$study_hours < 4,
+    "Low study time",
+    ifelse(
+      df_analysis_base$study_hours < 8,
+      "Moderate study time",
+      "High study time"
+    )
+  )
+)
+```
+
+The tidyverse version reads as one workflow. The Base R version makes the indexing and assignment explicit. Both are valuable.
+
+The important point is that Leo can explain the movement.
+
+## Checking After Every Move
+
+A shaped dataset must be inspected.
+
+After creating `df_analysis`, Leo should ask:
+
+```{r}
+#| eval: false
+names(df_analysis)
+dim(df_analysis)
+str(df_analysis)
+head(df_analysis)
+summary(df_analysis$score_gap)
+table(df_analysis$high_project_score, useNA = "ifany")
+```
+
+These checks are not optional decorations. They protect analysis from silent mistakes.
+
+If `df_analysis` has fewer rows than expected, Leo should ask which filter removed them. If `score_gap` contains unexpected values, he should inspect the source variables. If `high_project_score` has many missing values, he should check whether `project_score` was missing.
+
+This is Part 2 returning inside Part 3.
+
+Syntax gives the workflow its structure. Logic powers the filters. Built-in functions perform the checks. Repeated transformation rules can later become named helper functions.
+
+## Common Beginner Mistakes
+
+### Mistake 1: Selecting columns before understanding the question
+
+Selection should follow purpose. Choosing fewer columns can make a dataset easier to work with, but only if Leo knows why those columns matter.
+
+### Mistake 2: Treating selection as deletion
+
+`select()` creates a focused result. It does not need to destroy the prepared dataset. Keep `df_r_migration_prepared` available.
+
+### Mistake 3: Filtering before checking missing values
+
+A filter may remove rows because the condition is false or because the condition cannot be judged. Missingness should be handled deliberately.
+
+### Mistake 4: Using `&&` instead of `&` for row-wise filtering
+
+For data-frame filtering, Leo usually needs row-by-row logic. That means `&` and `|`, not `&&` and `||`.
+
+### Mistake 5: Confusing assignment with comparison
+
+This creates a new object or changes a value:
+
+```r
+x <- 10
+```
+
+This asks a question:
+
+```r
+x == 10
+```
+
+That difference matters when filtering and transforming.
+
+### Mistake 6: Creating new variables without checking them
+
+A new variable is a claim. Leo should inspect it before using it.
+
+### Mistake 7: Overwriting the prepared dataset too early
+
+It is safer to create `df_analysis` from `df_r_migration_prepared` than to keep changing the prepared object without a clear trail.
+
+### Mistake 8: Summarising too early
+
+If Leo tries to summarise before shaping the data, the summary may answer the wrong question. Chapter 14 shapes. Chapter 15 summarises.
+
+## What Leo Is Expected to Know at This Point
+
+By the end of this chapter, Leo should be able to explain the difference between selecting variables, filtering observations, arranging rows, renaming columns, and transforming variables.
+
+He should know that filtering is applied logic. He should know that transformation creates analytical meaning and is not the same as cleaning. He should be able to create a focused object such as `df_analysis` from `df_r_migration_prepared`, using either Base R or tidyverse patterns.
+
+Most importantly, he should know that every data-shaping move should be inspected.
+
+::: {.callout-note appearance="simple" title="Not Yet"}
+Leo is not expected to produce grouped summaries yet. He is not expected to calculate means by country, counts by background, or performance summaries across learner groups.
+
+Those tasks belong to Chapter 15. Chapter 14 ends when Leo knows how to shape the prepared dataset into an analysis-ready object.
+:::
+
+## Chapter Outcome
+
+Chapter 14 has moved Leo from prepared evidence to shaped evidence.
+
+The workflow now looks like this:
+
+```text
+raw_migration -> df_r_migration -> df_r_migration_prepared -> df_analysis
+```
+
+Leo can select columns for a purpose, filter rows with logical conditions, arrange observations for inspection, rename carefully, and create new variables that express analytical meaning.
+
+The larger lesson is this:
+
+```text
+shape -> inspect -> explain -> continue
+```
+
+A shaped dataset is not valuable because it is smaller or more convenient. It is valuable because it fits the question and remains traceable to the prepared evidence.
+
+## Transition to Chapter 15
+
+Leo now knows how to create an analysis-ready object:
+
+```r
+df_analysis
+```
+
+It contains selected variables, filtered observations, and derived variables such as `high_project_score`, `score_gap`, and `study_band`.
+
+But the object may still contain many rows.
+
+The next question is no longer:
+
+> Which columns and rows matter?
+
+It is:
+
+> What do these rows say together?
+
+::: {.callout-tip appearance="simple" title="Ready for Summaries"}
+Chapter 14 shows Leo how to shape the prepared data into `df_analysis`. Chapter 15 teaches him how to summarise and group that shaped data so many rows can speak clearly.
+:::

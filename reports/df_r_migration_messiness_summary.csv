@@ -1,0 +1,4 @@
+issue,count
+Duplicate IDs,30
+Missing values (confidence_score),65
+Character numeric fields,650

@@ -1,0 +1,1652 @@
+---
+title: "Clarity and Control: Designing Visualisations People Can Understand"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{17.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{17.\arabic{table}}
+\setcounter{table}{0}
+```
+
+```{r}
+#| label: setup-chapter-17
+#| include: false
+
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(ggplot2)
+  library(tibble)
+  library(knitr)
+})
+
+chapter17_find_first_existing <- function(paths) {
+  existing <- paths[file.exists(paths)]
+  if (length(existing) == 0) {
+    return(NA_character_)
+  }
+  existing[[1]]
+}
+
+chapter17_standardise_text <- function(x) {
+  x <- as.character(x)
+  x <- trimws(x)
+  x[x %in% c("", "NA", "N/A", "missing", "not available")] <- NA_character_
+  x
+}
+
+chapter17_to_logical <- function(x) {
+  x <- tolower(trimws(as.character(x)))
+  dplyr::case_when(
+    x %in% c("true", "yes", "y", "1", "completed") ~ TRUE,
+    x %in% c("false", "no", "n", "0", "not completed", "incomplete") ~ FALSE,
+    TRUE ~ NA
+  )
+}
+
+if (!exists("df_analysis")) {
+  rds_path <- chapter17_find_first_existing(c(
+    "data/processed/df_analysis.rds",
+    "data/processed/df_r_migration_prepared.rds",
+    "data/processed/df_r_migration_clean.rds"
+  ))
+
+  csv_path <- chapter17_find_first_existing(c(
+    "data/processed/df_analysis.csv",
+    "data/processed/df_r_migration_prepared.csv",
+    "data/processed/df_r_migration_clean.csv",
+    "data/raw/df_r_migration_messy.csv",
+    "datasets/raw/df_r_migration_messy.csv",
+    "../datasets/raw/df_r_migration_messy.csv"
+  ))
+
+  if (!is.na(rds_path)) {
+    df_analysis <- readRDS(rds_path)
+  } else if (!is.na(csv_path)) {
+    df_analysis <- read.csv(
+      csv_path,
+      stringsAsFactors = FALSE,
+      na.strings = c("", "NA", "N/A", "missing", "not available")
+    )
+  } else {
+    stop(
+      "Chapter 17 uses the same df_r_migration_messy.csv dataset introduced in Part 3. ",
+      "Download or copy the file to data/raw/df_r_migration_messy.csv, ",
+      "or keep the book copy at datasets/raw/df_r_migration_messy.csv before rendering this chapter."
+    )
+  }
+}
+
+text_columns <- intersect(
+  c(
+    "country", "region", "job_role", "industry", "background",
+    "completion_status", "preferred_learning_mode", "manager_support"
+  ),
+  names(df_analysis)
+)
+
+for (col in text_columns) {
+  df_analysis[[col]] <- chapter17_standardise_text(df_analysis[[col]])
+}
+
+logical_columns <- intersect(
+  c("first_script_completed", "used_rstudio", "used_quarto", "used_git", "used_renv"),
+  names(df_analysis)
+)
+
+for (col in logical_columns) {
+  if (!is.logical(df_analysis[[col]])) {
+    df_analysis[[col]] <- chapter17_to_logical(df_analysis[[col]])
+  }
+}
+
+numeric_columns <- intersect(
+  c(
+    "study_hours", "lessons_completed", "confidence_score",
+    "pre_assessment_score", "project_score", "week"
+  ),
+  names(df_analysis)
+)
+
+for (col in numeric_columns) {
+  df_analysis[[col]] <- suppressWarnings(as.numeric(df_analysis[[col]]))
+}
+
+if (!"study_band" %in% names(df_analysis) && "study_hours" %in% names(df_analysis)) {
+  df_analysis <- df_analysis |>
+    mutate(
+      study_band = case_when(
+        is.na(study_hours) ~ NA_character_,
+        study_hours < 4 ~ "Low study time",
+        study_hours < 8 ~ "Moderate study time",
+        TRUE ~ "High study time"
+      )
+    )
+}
+
+if (!"score_gap" %in% names(df_analysis) &&
+    all(c("project_score", "pre_assessment_score") %in% names(df_analysis))) {
+  df_analysis <- df_analysis |>
+    mutate(score_gap = project_score - pre_assessment_score)
+}
+
+chapter17_theme <- theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(margin = margin(b = 8)),
+    plot.caption = element_text(size = 8, hjust = 0),
+    panel.grid.minor = element_blank()
+  )
+```
+
+
+::: {.callout-note appearance="simple"}
+## Data used in this chapter
+
+This chapter continues with the same `df_r_migration_messy.csv` teaching dataset introduced in Part 3 and reused at the start of Part 4. If you are reading this chapter directly, first make sure the file is available at `data/raw/df_r_migration_messy.csv` or `datasets/raw/df_r_migration_messy.csv`.
+:::
+
+## Opening Scene: When a Correct Plot Still Fails
+
+Leo has reached the point many new R users are desperate to reach.
+
+He can import data. He can clean it. He can select variables, filter rows, create new columns, summarise groups, and build plots with `ggplot2`. After the long climb through Part 3 and the opening chapter of Part 4, he finally has something that looks like analytical output.
+
+One afternoon, he prepares a plot for a short team meeting. The code runs. No error appears. The plot shows the relationship between weekly study hours and project scores in the learner dataset. Leo feels ready.
+
+Then the questions begin.
+
+One colleague asks, "Which group am I supposed to look at first?"
+
+Another says, "The legend is confusing. Are these colours important?"
+
+Someone else points at the scatter plot and says, "There are too many points. I cannot see the pattern."
+
+A fourth person notices that the labels overlap so badly that the most important countries are almost unreadable.
+
+Leo looks again. The plot is not wrong. The data are there. The code is valid. The chart appears on the screen exactly as R was asked to draw it.
+
+But the plot has failed its reader.
+
+That failure matters. In real analytical work, correctness is not enough. A chart can be technically correct and still hide the pattern, distract the eye, exaggerate a difference, bury the comparison, or make the reader work too hard.
+
+This chapter begins from that uncomfortable but liberating truth:
+
+> A chart is not finished when the data appears.  
+> A chart is finished when the intended pattern becomes easy to see.
+
+Chapter 16 taught Leo how to turn data into pictures. Chapter 17 teaches him how to take control of those pictures so they become readable, honest, and useful.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+In this chapter, Leo learns how to refine visualisations with purpose. He will control scales, colours, themes, text, legends, labels, annotations, aspect ratios, zooming, overplotting, multi-panel layouts, and simple interactivity. The goal is not decoration. The goal is visual control: making the intended comparison easier to see without damaging the evidence.
+
+Chapter 18 will move from clear plots to visual storytelling. This chapter stays with the plot itself: what is visible, what is cluttered, what is emphasized, and what the reader can understand without struggling.
+:::
+
+## What Changed After Chapter 16
+
+Chapter 16 gave Leo the grammar of basic visualisation in R. He learned that a `ggplot2` chart is built from data, aesthetics, geometric layers, and supporting choices such as labels and themes. He also learned a crucial principle: plot type follows analytical question.
+
+Chapter 17 assumes that foundation. It does not restart the lesson on what `ggplot()` means. It does not reintroduce every geom. It does not ask Leo to memorize a gallery of chart types.
+
+Instead, it asks a more professional question:
+
+> Once the plot exists, what must be controlled so the evidence becomes easier to read?
+
+That question changes Leo's relationship with visualisation. He is no longer asking only, "How do I make a scatter plot?" He is asking:
+
+- Is the pattern visible?
+- Are the labels meaningful?
+- Are the scales honest?
+- Does colour carry information or merely decorate?
+- Is the legend helping or creating extra work?
+- Are labels colliding?
+- Is the plot too crowded?
+- Does the layout guide the eye?
+- Would interactivity help the reader explore details that cannot fit cleanly in a static figure?
+
+These are clarity-and-control questions. They are also analytical questions.
+
+A plot is a claim about what matters in the data. If the design makes that claim hard to see, the analysis loses force.
+
+## Why Good Charts Fail
+
+Good charts usually fail for ordinary reasons. They fail because the default settings were treated as final. They fail because too much information was pushed into one panel. They fail because colours were added before the purpose of colour was clear. They fail because labels were placed where R could fit them, not where readers could understand them.
+
+The first step toward control is recognizing the failure pattern.
+
+```{r}
+#| label: tbl-17-1
+#| lst-label: lst-tbl-17-1
+#| lst-cap: "Code for 17 1"
+#| tbl-cap: "Common Causes of Poor Visual Communication in R"
+
+clarity_failures <- tibble::tribble(
+  ~Problem, ~`How it appears`, ~`Practical way out`,
+  "Unclear visual question", "The chart shows data but does not guide interpretation", "Write the plot question before refining the design",
+  "Overplotting", "Points sit on top of one another and hide density", "Use alpha blending, jittering, binning, or hexagonal bins",
+  "Confusing legend", "The reader must constantly move between plot and legend", "Simplify the legend, move it, rename it, or use direct labels",
+  "Weak scale control", "Axis breaks, limits, or labels make comparison difficult", "Use scale_x_*(), scale_y_*(), breaks, labels, or coord_cartesian()",
+  "Poor colour choice", "Colour distracts, excludes, or implies false meaning", "Use colour only for meaning and prefer accessible palettes",
+  "Label collision", "Important labels overlap and become unreadable", "Use ggrepel or reduce the number of labels",
+  "Crowded facets", "Small panels become too cramped to read", "Reduce groups, adjust spacing, or use patchwork for controlled layouts",
+  "Rigid text formatting", "Titles, subtitles, annotations, or equations look awkward", "Use element_text(), expression(), annotate(), or ggtext",
+  "Distorted aspect ratio", "The same pattern looks steeper, flatter, or more dramatic than it is", "Control aspect ratio with theme(aspect.ratio = ) or coord_fixed()",
+  "Static plot doing interactive work", "Too many details are forced into labels or notes", "Use plotly or ggiraph when hover-based exploration is appropriate"
+)
+
+knitr::kable(clarity_failures)
+```
+
+The code in @lst-tbl-17-1 produces @tbl-17-1.
+
+
+Table 17.1 gives Leo a diagnostic map. It is deliberately practical. When a plot fails, the question is not, "How do I make it beautiful?" The better question is, "What is preventing the reader from seeing the intended pattern?"
+
+That question leads to the framework for this chapter.
+
+## The Clarity-Control Framework
+
+Clarity and control are connected, but they are not the same thing.
+
+**Clarity** is what the reader experiences. A clear plot makes the intended pattern easy to see.
+
+**Control** is what the analyst does. A controlled plot uses scales, labels, colour, layout, and supporting elements deliberately.
+
+Leo can think of visual refinement through five linked dimensions:
+
+1. **Visibility:** Can the reader see the pattern?
+2. **Emphasis:** Does the plot guide attention to what matters?
+3. **Structure:** Are comparisons arranged in a sensible order?
+4. **Guidance:** Do labels, captions, legends, and annotations help interpretation?
+5. **Consistency:** Do design choices behave predictably across related plots?
+
+```{r}
+#| label: fig-17-1
+#| lst-label: lst-fig-17-1
+#| lst-cap: "Code for 17 1"
+#| fig-cap: "The Clarity-Control Framework"
+#| fig-alt: "A framework diagram showing how clarity and control connect question, evidence, visual decision, and reader interpretation."
+#| fig-width: 7
+#| fig-height: 4.5
+
+framework <- tibble::tribble(
+  ~dimension, ~x, ~y, ~short_label,
+  "Visibility", 1, 3, "Can readers\nsee it?",
+  "Emphasis", 3, 3, "Do they know\nwhere to look?",
+  "Structure", 5, 3, "Are comparisons\norganized?",
+  "Guidance", 2, 1, "Do labels\nhelp?",
+  "Consistency", 4, 1, "Do choices\nrepeat logically?"
+)
+
+connections <- tibble::tribble(
+  ~x, ~y, ~xend, ~yend,
+  1, 3, 3, 3,
+  3, 3, 5, 3,
+  3, 3, 2, 1,
+  3, 3, 4, 1,
+  2, 1, 4, 1
+)
+
+ggplot() +
+  geom_segment(
+    data = connections,
+    aes(x = x, y = y, xend = xend, yend = yend),
+    linewidth = 0.5,
+    arrow = arrow(length = unit(0.12, "inches"))
+  ) +
+  geom_label(
+    data = framework,
+    aes(x = x, y = y, label = short_label),
+    label.size = 0.2,
+    size = 3.7,
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = 3,
+    y = 4,
+    label = "A chart is finished when the intended pattern becomes easy to see.",
+    fontface = "bold",
+    size = 4
+  ) +
+  coord_cartesian(xlim = c(0.4, 5.6), ylim = c(0.3, 4.4)) +
+  theme_void()
+```
+
+The code in @lst-fig-17-1 produces @fig-17-1.
+
+
+Figure 17.1 is not a theory to memorize. It is a working lens. When a plot feels weak, Leo can ask which part of the framework is failing. If the problem is visibility, he may need transparency, binning, or zooming. If the problem is guidance, he may need better labels or annotations. If the problem is structure, he may need ordering, faceting, or a better layout.
+
+::: {.callout-tip appearance="simple" title="A practical rule"}
+Do not refine everything at once. Fix the first reader problem first. Then read the plot again. Visual control improves when each change has a reason.
+:::
+
+## Scales: Directing the Reader's Eye
+
+Scales connect data values to visual positions, colours, fills, sizes, and labels. In Chapter 16, Leo met scales mostly as part of the background machinery of `ggplot2`. In Chapter 17, scales become one of his main instruments of control.
+
+The most common scale controls for position are:
+
+- `scale_x_*()` for the horizontal axis;
+- `scale_y_*()` for the vertical axis;
+- `breaks` to decide which values appear;
+- `labels` to decide how values are printed;
+- `limits` to restrict the displayed scale.
+
+The star in `scale_x_*()` and `scale_y_*()` is not literal code. It reminds Leo that the exact function depends on the kind of variable. For continuous numeric axes, he might use `scale_x_continuous()` or `scale_y_continuous()`. For date axes, he might use `scale_x_date()`. For discrete categories, he might use `scale_x_discrete()`.
+
+The goal is not to control scales because the default is bad. The goal is to control scales because readers should not have to decode avoidable confusion.
+
+```{r}
+#| label: fig-17-scale-default
+#| lst-label: lst-fig-17-scale-default
+#| lst-cap: "Code for 17 scale default"
+#| fig-cap: "A Default Scale Can Be Correct but Harder to Read"
+#| fig-alt: "A default bar chart where the scale and ordering are correct but not optimised for easy comparison."
+#| fig-width: 7
+#| fig-height: 4.5
+
+score_by_country <- df_analysis |>
+  filter(!is.na(country), !is.na(project_score)) |>
+  group_by(country) |>
+  summarise(
+    mean_project_score = mean(project_score, na.rm = TRUE),
+    learners = n(),
+    .groups = "drop"
+  ) |>
+  arrange(mean_project_score)
+
+ggplot(score_by_country, aes(x = country, y = mean_project_score)) +
+  geom_col() +
+  labs(
+    title = "Average project score by country",
+    x = "Country",
+    y = "Average project score"
+  )
+```
+
+The code in @lst-fig-17-scale-default produces @fig-17-scale-default.
+
+
+Figure 17.2 is not wrong. It shows countries and average project scores. But the reader may work harder than necessary. The country labels may be cramped. The order may not guide comparison. The y-axis may show more precision than the question needs.
+
+A refined version controls the reading path.
+
+```{r}
+#| label: fig-17-scale-improved
+#| lst-label: lst-fig-17-scale-improved
+#| lst-cap: "Code for 17 scale improved"
+#| fig-cap: "Controlled Scales and Ordering Make the Comparison Easier to Read"
+#| fig-alt: "An improved bar chart with controlled scales and ordering that make the comparison easier to read."
+#| fig-width: 7
+#| fig-height: 4.5
+
+score_by_country <- score_by_country |>
+  mutate(country = reorder(country, mean_project_score))
+
+ggplot(score_by_country, aes(x = country, y = mean_project_score)) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 20),
+    labels = function(x) paste0(x, "%")
+  ) +
+  labs(
+    title = "Average project scores are easier to compare when the scale is controlled",
+    subtitle = "Countries are ordered by mean project score rather than alphabetically.",
+    x = NULL,
+    y = "Average project score",
+    caption = "Source: df_analysis. Scores are shown on a 0 to 100 scale."
+  ) +
+  chapter17_theme
+```
+
+The code in @lst-fig-17-scale-improved produces @fig-17-scale-improved.
+
+
+Figure 17.3 does not change the underlying summaries. It changes the reader's access to them. Ordering, axis breaks, labels, and orientation help the comparison become visible.
+
+::: {.callout-warning appearance="simple" title="Be careful with scale limits"}
+Scale limits can remove data from the plot before the statistical layer is calculated. When Leo wants to zoom into a region without dropping observations, `coord_cartesian()` is usually safer. This distinction becomes important later in the chapter.
+:::
+
+## Colour as Information
+
+Colour is powerful because the eye notices it quickly. That is also why colour can become dangerous. If colour is used without purpose, it creates noise. If too many colours appear at once, the reader starts decoding the palette instead of reading the pattern.
+
+A professional plot uses colour to carry meaning. It may distinguish groups, show intensity, mark a warning, or highlight one comparison. It should not be added merely because a plot looks plain.
+
+In `ggplot2`, colour and fill are related but not identical:
+
+- `colour` usually controls lines, points, and outlines;
+- `fill` usually controls the inside of bars, boxes, areas, and shapes that have an interior.
+
+Useful scale functions include:
+
+- `scale_colour_manual()` and `scale_fill_manual()` when Leo wants exact colours for exact categories;
+- `scale_colour_brewer()` and `scale_fill_brewer()` when he wants a named palette from ColorBrewer-style options;
+- `scale_colour_viridis_d()` and `scale_fill_viridis_d()` when he wants a discrete palette designed for perceptual clarity and accessibility;
+- `scale_colour_viridis_c()` and `scale_fill_viridis_c()` when he is mapping continuous values.
+
+Viridis palettes are often a good default when the plot needs a colour scale that remains readable across different displays and is friendlier to readers with common forms of colour-vision deficiency. The point is not that viridis is always beautiful. The point is that it is dependable.
+
+```{r}
+#| label: fig-17-colour-palettes
+#| lst-label: lst-fig-17-colour-palettes
+#| lst-cap: "Code for 17 colour palettes"
+#| fig-cap: "Comparison of Colour Palette Choices"
+#| fig-alt: "A comparison of colour palette choices showing how colour can support or distract from interpretation."
+#| fig-width: 7
+#| fig-height: 4.8
+
+palette_data <- df_analysis |>
+  filter(!is.na(study_band), !is.na(completion_status), !is.na(project_score)) |>
+  group_by(study_band, completion_status) |>
+  summarise(mean_project_score = mean(project_score, na.rm = TRUE), .groups = "drop")
+
+ggplot(palette_data, aes(x = study_band, y = mean_project_score, fill = completion_status)) +
+  geom_col(position = "dodge") +
+  scale_fill_viridis_d(option = "D", end = 0.85) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "Colour should separate meaning, not decorate the chart",
+    subtitle = "Here fill colour distinguishes completion status across study bands.",
+    x = NULL,
+    y = "Average project score",
+    fill = "Completion status",
+    caption = "Figure uses scale_fill_viridis_d() for an accessible discrete palette."
+  ) +
+  chapter17_theme +
+  theme(axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+The code in @lst-fig-17-colour-palettes produces @fig-17-colour-palettes.
+
+
+Figure 17.4 uses colour to distinguish completion status. Colour is not doing everything. Position, grouping, title, subtitle, axis labels, and legend also contribute to clarity.
+
+::: {.callout-important appearance="simple" title="Colour rule"}
+Before adding colour, Leo should complete this sentence: "Colour is used here to show ________." If the sentence has no clear answer, the plot probably does not need colour.
+:::
+
+## Themes: Taking Control of Appearance
+
+A theme controls the non-data parts of a plot: background, gridlines, text, legend placement, panel spacing, axis ticks, and more. Themes matter because visual noise often comes from non-data elements.
+
+The theme is not the evidence. It is the room in which the evidence is placed.
+
+`ggplot2` includes several ready-made themes. The most common are not better or worse in general. They are useful in different situations.
+
+```{r}
+#| label: tbl-17-2
+#| lst-label: lst-tbl-17-2
+#| lst-cap: "Code for 17 2"
+#| tbl-cap: "Comparison of Common ggplot2 Themes"
+
+theme_table <- tibble::tribble(
+  ~Theme, ~`Best used when`, ~Strength, ~Caution,
+  "theme_minimal()", "You want a clean analytical chart with light visual structure", "Reduces clutter while keeping grid guidance", "Can look too plain if labels and hierarchy are weak",
+  "theme_classic()", "You want a traditional publication-style plot", "Strong axes and low background noise", "Gridlines are absent, so comparisons may be harder in some plots",
+  "theme_void()", "You want maps, diagrams, or plots where axes are irrelevant", "Removes nearly all non-data elements", "Dangerous for ordinary analytical charts that need scales",
+  "theme_bw()", "You want a clear white-background plot with visible panel structure", "Works well in print and reports", "Can feel heavier than necessary for simple plots",
+  "theme_light()", "You want a gentle grid and light background", "Readable for exploratory plots", "May still need text and legend refinement"
+)
+
+knitr::kable(theme_table)
+```
+
+The code in @lst-tbl-17-2 produces @tbl-17-2.
+
+
+Table 17.2 gives Leo a practical comparison. The larger lesson is simple: a theme is a starting point, not a substitute for design judgment.
+
+The most useful theme function is often `theme()` itself, because it lets Leo control specific parts of the plot.
+
+```{r}
+#| label: fig-17-theme-control
+#| lst-label: lst-fig-17-theme-control
+#| lst-cap: "Code for 17 theme control"
+#| fig-cap: "theme() Gives Direct Control Over Non-Data Elements"
+#| fig-alt: "A plot demonstrating how theme settings control non-data elements such as gridlines, text, and background."
+#| fig-width: 7
+#| fig-height: 4.5
+
+ggplot(score_by_country, aes(x = country, y = mean_project_score)) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "Theme control helps the reader focus on the comparison",
+    subtitle = "The background is reduced, the title is emphasized, and minor gridlines are removed.",
+    x = NULL,
+    y = "Average project score"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", size = 13),
+    plot.subtitle = element_text(size = 10, margin = margin(b = 8)),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+The code in @lst-fig-17-theme-control produces @fig-17-theme-control.
+
+
+Figure 17.5 shows a disciplined use of `theme()`. Leo is not changing the plot because he wants variety. He is changing the plot because each non-data element either helps or distracts.
+
+## Controlling Text
+
+Text is one of the most neglected parts of beginner plots. Many learners spend energy choosing colours and geoms but leave the title vague, the subtitle absent, the axis labels mechanical, and the caption unused.
+
+That is a mistake. Text is not decoration. Text guides interpretation.
+
+The most important text controls are:
+
+- `labs()` for title, subtitle, caption, axes, and legend titles;
+- `element_text()` inside `theme()` for size, face, colour, angle, and alignment;
+- `annotate()` for direct notes inside the plotting area;
+- `geom_text()` or `geom_label()` for labels attached to data;
+- `ggrepel` when labels may collide;
+- `ggtext` when markdown or HTML styling is needed.
+
+A plain title says what the plot is. A useful title says what comparison the reader should examine.
+
+```{r}
+#| label: fig-17-text-control
+#| lst-label: lst-fig-17-text-control
+#| lst-cap: "Code for 17 text control"
+#| fig-cap: "Text Control Turns a Plot from Output into Guidance"
+#| fig-alt: "A plot showing how title, subtitle, axis labels, and caption guide reader interpretation."
+#| fig-width: 7
+#| fig-height: 4.5
+
+weekly_scores <- df_analysis |>
+  filter(!is.na(week), !is.na(project_score)) |>
+  group_by(week) |>
+  summarise(mean_project_score = mean(project_score, na.rm = TRUE), .groups = "drop") |>
+  arrange(week)
+
+ggplot(weekly_scores, aes(x = week, y = mean_project_score)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_x_continuous(breaks = sort(unique(weekly_scores$week))) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "Project scores become easier to read when text gives direction",
+    subtitle = "The chart tracks average project score across learning weeks.",
+    x = "Learning week",
+    y = "Average project score",
+    caption = "Source: df_analysis. Weekly values are group means."
+  ) +
+  chapter17_theme +
+  theme(
+    plot.title = element_text(size = 13, face = "bold"),
+    axis.title.x = element_text(margin = margin(t = 8)),
+    axis.title.y = element_text(margin = margin(r = 8))
+  )
+```
+
+The code in @lst-fig-17-text-control produces @fig-17-text-control.
+
+
+Figure 17.6 demonstrates an important shift. The plot does not merely announce a variable. It tells the reader what kind of movement to inspect.
+
+::: {.callout-tip appearance="simple" title="Text test"}
+After writing a title, Leo should ask: could this title fit almost any plot? If yes, it is probably too generic. A useful title belongs to this plot.
+:::
+
+## Controlling Backgrounds, Borders and Gridlines
+
+Gridlines, backgrounds, and borders are controlled with theme elements:
+
+- `element_rect()` controls rectangular areas such as plot backgrounds, panel backgrounds, and legend boxes;
+- `element_line()` controls lines such as gridlines, axis lines, and ticks;
+- `element_blank()` removes an element completely.
+
+These controls matter because the eye has limited attention. Heavy gridlines, dark backgrounds, thick borders, and unnecessary ticks can compete with the data.
+
+```{r}
+#| label: fig-17-lines-rectangles
+#| lst-label: lst-fig-17-lines-rectangles
+#| lst-cap: "Code for 17 lines rectangles"
+#| fig-cap: "Rectangular and Line Elements Can Reduce or Increase Visual Clutter"
+#| fig-alt: "A plot demonstrating how rectangular and line elements can either reduce clutter or add unnecessary visual noise."
+#| fig-width: 7
+#| fig-height: 4.5
+
+ggplot(weekly_scores, aes(x = week, y = mean_project_score)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_x_continuous(breaks = sort(unique(weekly_scores$week))) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "Gridlines should support reading, not compete with the data",
+    x = "Learning week",
+    y = "Average project score"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.background = element_rect(fill = "white", colour = NA),
+    plot.background = element_rect(fill = "white", colour = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(linewidth = 0.25),
+    axis.ticks.x = element_line(linewidth = 0.25)
+  )
+```
+
+The code in @lst-fig-17-lines-rectangles produces @fig-17-lines-rectangles.
+
+
+Figure 17.7 keeps only the gridlines that help the reader estimate values. This is a quiet form of design. Nothing flashy happens, but the chart becomes calmer.
+
+## Legends That Help Instead of Confuse
+
+A legend is a guide. It should reduce the reader's work. If the reader must constantly move from the plot to the legend and back again, the legend may be doing too much.
+
+Common legend controls include:
+
+- `legend.position` to place the legend;
+- `legend.title` to control the legend title;
+- `legend.text` for legend labels;
+- `guides()` when Leo needs more specific legend control;
+- direct labels when a legend is unnecessary.
+
+The first question is not, "Where should the legend go?" The first question is, "Does this plot need a legend at all?"
+
+```{r}
+#| label: fig-17-legend-design
+#| lst-label: lst-fig-17-legend-design
+#| lst-cap: "Code for 17 legend design"
+#| fig-cap: "Poor versus Effective Legend Design"
+#| fig-alt: "A comparison showing how a poorly designed legend increases effort and an improved legend supports interpretation."
+#| fig-width: 7
+#| fig-height: 4.8
+
+mode_scores <- df_analysis |>
+  filter(!is.na(preferred_learning_mode), !is.na(week), !is.na(project_score)) |>
+  group_by(preferred_learning_mode, week) |>
+  summarise(mean_project_score = mean(project_score, na.rm = TRUE), .groups = "drop")
+
+ggplot(mode_scores, aes(x = week, y = mean_project_score, colour = preferred_learning_mode)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 1.8) +
+  scale_x_continuous(breaks = sort(unique(mode_scores$week))) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  scale_colour_viridis_d(end = 0.85) +
+  labs(
+    title = "A useful legend explains the mapping without interrupting the reading path",
+    subtitle = "Legend title and placement are part of the design, not an afterthought.",
+    x = "Learning week",
+    y = "Average project score",
+    colour = "Learning mode"
+  ) +
+  chapter17_theme +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold")
+  )
+```
+
+The code in @lst-fig-17-legend-design produces @fig-17-legend-design.
+
+
+Figure 17.8 places the legend below the plot and gives it a meaningful title. This is a small change, but it reduces friction. The reader can identify the groups without fighting the chart.
+
+::: {.callout-important appearance="simple" title="Legend rule"}
+Use a legend when the mapping is necessary and compact. Use direct labels when the reader would otherwise move back and forth too often. Remove the legend when the meaning is already obvious from the plot or text.
+:::
+
+## Overplotting: When Too Much Data Hides Patterns
+
+Overplotting happens when many observations occupy the same or similar positions. The chart may contain thousands of points, but the reader sees a dark cloud. This is common with large datasets, repeated values, rounded scores, limited scales, and dense scatter plots.
+
+Overplotting is not a cosmetic problem. It is an evidence problem. If points hide one another, the chart may understate density, conceal clusters, or make outliers look more important than they are.
+
+Leo should diagnose overplotting by asking three questions:
+
+1. How many rows are being plotted?
+2. Are the x and y values continuous, discrete, rounded, or repeated?
+3. Does the chart need individual points, density, or grouped summaries?
+
+The fix depends on the answer.
+
+```{r}
+#| label: tbl-17-3
+#| lst-label: lst-tbl-17-3
+#| lst-cap: "Code for 17 3"
+#| tbl-cap: "Choosing the Right Overplotting Solution"
+
+overplotting_solutions <- tibble::tribble(
+  ~Dataset_size, ~Chart_type, ~Problem, ~Recommended_fix, ~Package_or_function,
+  "Up to about 10,000 rows", "Scatter plot with many overlapping points", "Individual points matter but overlap hides density", "Use transparency", "geom_point(alpha = 0.2)",
+  "Up to about 10,000 rows", "Scatter or strip plot with repeated values", "Points sit exactly on top of one another", "Use jittering", "geom_jitter(width = ..., height = ...)",
+  "About 50,000 rows or more", "Dense two-variable scatter plot", "The point cloud becomes unreadable", "Use rectangular bins", "geom_bin2d()",
+  "About 50,000 rows or more", "Dense two-variable scatter plot", "Density pattern matters more than individual points", "Use hexagonal bins", "geom_hex() from ggplot2 with hexbin installed",
+  "About 100,000 rows or more", "Exploratory scatter plot", "Static points no longer communicate density", "Aggregate before plotting or use interactive/density tools", "summarise(), geom_bin2d(), plotly, ggiraph"
+)
+
+knitr::kable(overplotting_solutions)
+```
+
+The code in @lst-tbl-17-3 produces @tbl-17-3.
+
+
+Table 17.3 is a practical guide, not a rigid law. Dataset size matters, but so does the nature of the variables. A 5,000-row plot can overplot badly if values are rounded. A 50,000-row plot can still work if the pattern is sparse.
+
+### Problem scenario: 10,000, 50,000, and 100,000 rows
+
+The following code creates larger versions of the learner pattern so Leo can see why scale matters. It is marked as non-evaluated because it is a teaching demonstration and may be heavier than needed during a normal book render.
+
+```{r}
+#| eval: false
+#| label: code-overplotting-simulation
+#| lst-label: lst-code-overplotting-simulation
+#| lst-cap: "Code for Overplotting simulation"
+
+set.seed(1702)
+
+large_10k <- df_analysis |> slice_sample(n = 10000, replace = TRUE)
+large_50k <- df_analysis |> slice_sample(n = 50000, replace = TRUE)
+large_100k <- df_analysis |> slice_sample(n = 100000, replace = TRUE)
+
+# 10,000 rows: try transparency.
+ggplot(large_10k, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.15)
+
+# 50,000 rows: try rectangular bins.
+ggplot(large_50k, aes(x = study_hours, y = project_score)) +
+  geom_bin2d(bins = 35)
+
+# 100,000 rows: binning or aggregation is usually clearer than raw points.
+ggplot(large_100k, aes(x = study_hours, y = project_score)) +
+  geom_bin2d(bins = 45)
+```
+
+The code in @lst-code-overplotting-simulation shows the code pattern being discussed here.
+
+
+For the actual working dataset, transparency is enough to demonstrate the principle.
+
+```{r}
+#| label: fig-17-overplotting-alpha
+#| lst-label: lst-fig-17-overplotting-alpha
+#| lst-cap: "Code for 17 overplotting alpha"
+#| fig-cap: "Alpha Blending Helps Reveal Density in an Overplotted Scatter Plot"
+#| fig-alt: "A scatter plot using transparency to make dense overlapping points easier to inspect."
+#| fig-width: 7
+#| fig-height: 4.6
+
+ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.35) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "Transparency lets dense regions become visible",
+    subtitle = "Overlapping points appear darker, giving the reader a better sense of concentration.",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  chapter17_theme
+```
+
+The code in @lst-fig-17-overplotting-alpha produces @fig-17-overplotting-alpha.
+
+
+Figure 17.9 keeps individual points visible while reducing the false impression that every point is equally isolated. When the dataset grows much larger, Leo should consider binning.
+
+```{r}
+#| label: fig-17-overplotting-bin2d
+#| lst-label: lst-fig-17-overplotting-bin2d
+#| lst-cap: "Code for 17 overplotting bin2d"
+#| fig-cap: "Binning Converts Heavy Overplotting into a Density Pattern"
+#| fig-alt: "A binned two-dimensional plot showing point density where many observations overlap."
+#| fig-width: 7
+#| fig-height: 4.6
+
+ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_bin2d(bins = 25) +
+  scale_fill_viridis_c(option = "C", end = 0.9) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "Binning is useful when density matters more than individual points",
+    subtitle = "Each rectangle counts how many observations fall into that region of the plot.",
+    x = "Weekly study hours",
+    y = "Project score",
+    fill = "Learners"
+  ) +
+  chapter17_theme +
+  theme(legend.position = "right")
+```
+
+The code in @lst-fig-17-overplotting-bin2d produces @fig-17-overplotting-bin2d.
+
+
+Figure 17.10 changes the question slightly. It no longer asks the reader to inspect each point. It asks where observations are concentrated. That is often the right question when the dataset is large.
+
+## Label Collisions and Dense Annotations
+
+Labels are useful only when they can be read. When labels overlap, the plot becomes a puzzle.
+
+The basic tools are:
+
+- `geom_text()` for text labels;
+- `geom_label()` for text labels inside boxes;
+- `ggrepel::geom_text_repel()` and `ggrepel::geom_label_repel()` for automatic collision avoidance.
+
+For crowded plots, Leo should treat `ggrepel` as the default choice when label collisions are likely.
+
+A simple example uses country-level summaries. The goal is to label the groups without making the labels fight each other.
+
+```{r}
+#| label: fig-17-label-collision-problem
+#| lst-label: lst-fig-17-label-collision-problem
+#| lst-cap: "Code for 17 label collision problem"
+#| fig-cap: "Label Collision Makes a Plot Harder to Read"
+#| fig-alt: "A plot with overlapping text labels that makes key information difficult to read."
+#| fig-width: 7
+#| fig-height: 4.6
+
+country_summary <- df_analysis |>
+  filter(!is.na(country), !is.na(study_hours), !is.na(project_score)) |>
+  group_by(country) |>
+  summarise(
+    mean_study_hours = mean(study_hours, na.rm = TRUE),
+    mean_project_score = mean(project_score, na.rm = TRUE),
+    learners = n(),
+    .groups = "drop"
+  )
+
+ggplot(country_summary, aes(x = mean_study_hours, y = mean_project_score, label = country)) +
+  geom_point(aes(size = learners), alpha = 0.7) +
+  geom_text(nudge_y = 2) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "Ordinary text labels can collide",
+    subtitle = "When labels compete for the same space, the reader loses the comparison.",
+    x = "Average weekly study hours",
+    y = "Average project score",
+    size = "Learners"
+  ) +
+  chapter17_theme
+```
+
+The code in @lst-fig-17-label-collision-problem produces @fig-17-label-collision-problem.
+
+
+@fig-17-label-collision-problem shows the problem. The code is simple, but simple is not always readable.
+
+The better version uses `ggrepel`. Because `ggrepel` is an additional package. It should run after the package is installed and loaded.
+
+```{r}
+#| label: fig-17-label-collision-ggrepel
+#| lst-label: lst-fig-17-label-collision-ggrepel
+#| lst-cap: "Code for 17 label collision ggrepel"
+#| fig-cap: "Automatic Label Collision Avoidance Using ggrepel"
+#| fig-alt: "A plot using ggrepel to place labels with less overlap and better readability."
+#| fig-width: 7
+#| fig-height: 4.6
+
+library(ggrepel)
+
+ggplot(country_summary, aes(x = mean_study_hours, y = mean_project_score, label = country)) +
+  geom_point(aes(size = learners), alpha = 0.7) +
+  ggrepel::geom_text_repel(max.overlaps = Inf, seed = 1703) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "ggrepel moves labels away from collisions",
+    subtitle = "Labels remain attached to data points while avoiding unnecessary overlap.",
+    x = "Average weekly study hours",
+    y = "Average project score",
+    size = "Learners"
+  ) +
+  chapter17_theme
+```
+
+The code in @lst-fig-17-label-collision-ggrepel produces @fig-17-label-collision-ggrepel and shows the optional `ggrepel` version Leo can use when labels are likely to collide.
+
+
+This optional listing is the version Leo should prefer when labels are likely to collide. `ggrepel` does not remove the need for judgment. Too many labels can still overload a plot. But when a plot genuinely needs labels, automatic repulsion is cleaner than hand-tuning every label position.
+
+::: {.callout-warning appearance="simple" title="Do not label everything"}
+A label is a request for attention. If every point is labelled, no point is emphasized. Label the values that help the reader understand the main comparison.
+:::
+
+## Mathematical Annotation and Rich Text
+
+Some plots need more than ordinary labels. A model line may need an equation. A scientific chart may need notation. A report figure may need a title with emphasis inside the text.
+
+Useful tools include:
+
+- `annotate()` for adding text or shapes at specific plot locations;
+- `expression()` and plotmath syntax for mathematical notation;
+- `ggtext::element_markdown()` when titles, subtitles, or axis labels need markdown or simple HTML styling.
+
+For ordinary annotation, `annotate()` is often enough.
+
+```{r}
+#| label: fig-17-annotation
+#| lst-label: lst-fig-17-annotation
+#| lst-cap: "Code for 17 annotation"
+#| fig-cap: "Direct Annotation Can Explain the Pattern Without Overloading the Legend"
+#| fig-alt: "A plot with direct annotation explaining an important pattern without requiring the reader to rely only on the legend."
+#| fig-width: 7
+#| fig-height: 4.6
+
+ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.30) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.8) +
+  annotate(
+    "label",
+    x = 2,
+    y = 95,
+    hjust = 0,
+    label = "The fitted line summarizes the general direction,\nnot the performance of every learner.",
+    size = 3.2,
+    label.size = 0.2
+  ) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "Annotation can guide interpretation inside the plot",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  chapter17_theme
+```
+
+The code in @lst-fig-17-annotation produces @fig-17-annotation.
+
+
+Figure 17.13 uses annotation to prevent overinterpretation. The note explains what the smooth line does and does not mean.
+
+For mathematical notation, plotmath can be useful.
+
+```{r}
+#| label: fig-17-math-annotation
+#| lst-label: lst-fig-17-math-annotation
+#| lst-cap: "Code for 17 math annotation"
+#| fig-cap: "Enhanced Scientific Annotation in ggplot2"
+#| fig-alt: "A plot showing enhanced scientific or mathematical annotation inside a ggplot2 figure."
+#| fig-width: 7
+#| fig-height: 4.6
+
+ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.30) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.8) +
+  annotate(
+    "text",
+    x = 2,
+    y = 90,
+    hjust = 0,
+    label = "italic(y) == beta[0] + beta[1] * italic(x) + epsilon",
+    parse = TRUE,
+    size = 4
+  ) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "Mathematical annotation is useful when notation clarifies the model",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  chapter17_theme
+```
+
+The code in @lst-fig-17-math-annotation produces @fig-17-math-annotation.
+
+
+Figure 17.14 shows a compact model notation. The point is not to make the plot look advanced. The point is to help readers connect the visual line with the idea of a model.
+
+When Leo needs markdown styling in titles or labels, `ggtext` can help. The following example is non-evaluated because it requires the additional package.
+
+```{r}
+#| eval: false
+#| label: code-ggtext-example
+#| lst-label: lst-code-ggtext-example
+#| lst-cap: "Code for Ggtext example"
+
+library(ggtext)
+
+ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.30) +
+  labs(
+    title = "Project score rises with <b>study time</b>, but variation remains",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  theme_minimal() +
+  theme(plot.title = ggtext::element_markdown())
+```
+
+The code in @lst-code-ggtext-example shows the code pattern being discussed here.
+
+
+`ggtext` is helpful when ordinary text controls are too rigid. It should not be used to turn titles into decorative banners. It is a tool for controlled emphasis.
+
+## Aspect Ratios and Plot Geometry
+
+The same data can feel different when the plot is stretched, squeezed, widened, or narrowed. This is especially important for line charts, maps, spatial plots, and any chart where slope or shape affects interpretation.
+
+Aspect ratio is the relationship between the height and width of the plotting panel. In `ggplot2`, Leo can control it with:
+
+- `theme(aspect.ratio = ...)` for general panel proportions;
+- `coord_fixed()` when one unit on the x-axis should have the same physical length as one unit on the y-axis.
+
+```{r}
+#| label: fig-17-aspect-ratio
+#| lst-label: lst-fig-17-aspect-ratio
+#| lst-cap: "Code for 17 aspect ratio"
+#| fig-cap: "How Aspect Ratio Changes Interpretation"
+#| fig-alt: "Two visual presentations showing how aspect ratio can change how steep or flat a pattern appears."
+#| fig-width: 7
+#| fig-height: 4.8
+
+weekly_scores |>
+  ggplot(aes(x = week, y = mean_project_score)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_x_continuous(breaks = sort(unique(weekly_scores$week))) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  labs(
+    title = "Aspect ratio can change how steep a pattern feels",
+    subtitle = "The data are unchanged, but panel shape affects visual judgment.",
+    x = "Learning week",
+    y = "Average project score"
+  ) +
+  chapter17_theme +
+  theme(aspect.ratio = 0.55)
+```
+
+The code in @lst-fig-17-aspect-ratio produces @fig-17-aspect-ratio.
+
+
+Figure 17.15 uses `theme(aspect.ratio = 0.55)` to set the panel relationship deliberately. The key lesson is not the exact number. The lesson is that plot dimensions are part of interpretation.
+
+::: {.callout-note appearance="simple" title="When aspect ratio matters most"}
+Aspect ratio deserves special attention when readers may judge slope, distance, shape, or spatial relationship. For ordinary bar charts, it may matter less. For line charts, maps, and coordinate comparisons, it can matter a great deal.
+:::
+
+## Zooming Without Lying
+
+Sometimes Leo needs to look closely at a region of a plot. That is reasonable. But there are different ways to narrow attention, and they do not behave the same way.
+
+He must distinguish among:
+
+- **filtering data**, which removes observations before plotting;
+- **scale limits**, which may remove observations before some calculations are drawn;
+- **coordinate zooming**, which changes the visible window without dropping data from the underlying plot calculation.
+
+When the goal is to zoom without clipping the data used by layers, `coord_cartesian()` is often safer.
+
+```{r}
+#| label: fig-17-coord-cartesian
+#| lst-label: lst-fig-17-coord-cartesian
+#| lst-cap: "Code for 17 coord cartesian"
+#| fig-cap: "coord_cartesian() Zooms the View Without Removing Data from the Plot Calculation"
+#| fig-alt: "A zoomed plot view created with coord_cartesian, preserving the data used in the plot calculation."
+#| fig-width: 7
+#| fig-height: 4.6
+
+ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.30) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.8) +
+  coord_cartesian(ylim = c(40, 100)) +
+  labs(
+    title = "coord_cartesian() changes the viewing window",
+    subtitle = "The plot zooms into the upper score range without filtering rows first.",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  chapter17_theme
+```
+
+The code in @lst-fig-17-coord-cartesian produces @fig-17-coord-cartesian.
+
+
+Figure 17.16 does not claim that low scores do not exist. It zooms the view so a particular region can be examined. The caption and subtitle make that clear.
+
+::: {.callout-warning appearance="simple" title="Zoom honestly"}
+If Leo zooms into a plot, he should make that choice visible in the title, subtitle, caption, or axis labels. A zoomed chart should not pretend to show the full range when it does not.
+:::
+
+## Building Multi-Panel Visualisations
+
+Faceting is the first multi-panel tool Leo met in Chapter 16. It remains useful when the same plot should be repeated across groups. But sometimes he needs more control than facets provide.
+
+For publication layouts, he may need to combine different plot types, align axes, control relative widths, or arrange panels in a precise order. Two useful packages are:
+
+- `patchwork`, which combines ggplot objects with a simple layout syntax;
+- `cowplot`, which provides careful alignment and plot assembly tools.
+
+Use faceting when the panels share the same structure. Use `patchwork` or `cowplot` when the panels are different plots that need to appear together.
+
+```{r}
+#| label: fig-17-patchwork-layout
+#| lst-label: lst-fig-17-patchwork-layout
+#| lst-cap: "Code for 17 patchwork layout"
+#| fig-cap: "Multi-Plot Layout Using patchwork"
+#| fig-alt: "A multi-panel layout created with patchwork to organise related plots into one visual arrangement."
+#| fig-width: 8
+#| fig-height: 5.5
+
+library(patchwork)
+
+p1 <- ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.30) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Study time and project score",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  chapter17_theme
+
+p2 <- df_analysis |>
+  filter(!is.na(study_band), !is.na(project_score)) |>
+  group_by(study_band) |>
+  summarise(mean_project_score = mean(project_score, na.rm = TRUE), .groups = "drop") |>
+  ggplot(aes(x = study_band, y = mean_project_score)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Average score by study band",
+    x = NULL,
+    y = "Average project score"
+  ) +
+  chapter17_theme
+
+p1 + p2 + plot_layout(widths = c(2, 1))
+```
+
+The code in @lst-fig-17-patchwork-layout produces @fig-17-patchwork-layout and shows the `patchwork` version Leo can use for multi-plot layout.
+
+
+This optional listing shows the kind of layout problem `patchwork` solves. Leo is not using it because faceting failed. He is using it because the two panels answer related but different visual questions.
+
+For highly controlled alignment, `cowplot` is another option.
+
+```{r}
+#| eval: false
+#| label: code-cowplot-layout
+#| lst-label: lst-code-cowplot-layout
+#| lst-cap: "Code for Cowplot layout"
+
+library(cowplot)
+
+cowplot::plot_grid(
+  p1,
+  p2,
+  labels = c("A", "B"),
+  ncol = 2,
+  rel_widths = c(2, 1),
+  align = "h"
+)
+```
+
+The code in @lst-code-cowplot-layout shows the code pattern being discussed here.
+
+
+The professional decision is not which package is fashionable. The decision is what layout problem Leo is solving.
+
+## Introducing Interactivity
+
+Static graphics are still central to reports, articles, books, and printed outputs. A static plot must stand on its own. It should not require hovering, clicking, or zooming to make the central point visible.
+
+But some tasks are exploratory. Leo may want the reader to hover over a point, inspect an individual learner, zoom into a dense region, or compare details that would clutter a static chart.
+
+That is where interactivity can help.
+
+Two common tools are:
+
+- `plotly`, often used through `ggplotly()` to convert a ggplot object into an interactive plot;
+- `ggiraph`, which provides interactive geoms with tooltips and hover effects.
+
+```{r}
+#| label: tbl-17-4
+#| lst-label: lst-tbl-17-4
+#| lst-cap: "Code for 17 4"
+#| tbl-cap: "Static versus Interactive Graphics"
+
+interactive_table <- tibble::tribble(
+  ~Need, ~Static_graphic, ~Interactive_graphic, ~Useful_tool,
+  "Printed report or journal figure", "Usually best", "Usually not available", "ggplot2",
+  "Reader must see the main pattern immediately", "Best choice", "Can support but should not replace clarity", "ggplot2",
+  "Reader needs point-level details", "May become cluttered", "Hover text can help", "plotly or ggiraph",
+  "Dense exploratory data", "May need binning or summaries", "Zooming and hover can support exploration", "plotly",
+  "Teaching or dashboard-like exploration", "Useful for fixed explanation", "Useful for guided exploration", "ggiraph or plotly"
+)
+
+knitr::kable(interactive_table)
+```
+
+The code in @lst-tbl-17-4 produces @tbl-17-4.
+
+
+Table 17.4 makes the boundary clear. Interactivity is not a rescue for unclear thinking. It is useful when the task genuinely requires exploration.
+
+```{r}
+#| eval: false
+#| label: code-plotly-example
+#| lst-label: lst-code-plotly-example
+#| lst-cap: "Code for Plotly example"
+
+library(plotly)
+
+p <- ggplot(
+  df_analysis,
+  aes(
+    x = study_hours,
+    y = project_score,
+    text = paste(
+      "Learner:", learner_id,
+      "<br>Country:", country,
+      "<br>Study hours:", study_hours,
+      "<br>Project score:", project_score
+    )
+  )
+) +
+  geom_point(alpha = 0.35) +
+  labs(
+    title = "Interactive exploration of study hours and project score",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  chapter17_theme
+
+plotly::ggplotly(p, tooltip = "text")
+```
+
+The code in @lst-code-plotly-example shows the code pattern being discussed here.
+
+
+```{r}
+#| eval: false
+#| label: code-ggiraph-example
+#| lst-label: lst-code-ggiraph-example
+#| lst-cap: "Code for Ggiraph example"
+
+library(ggiraph)
+
+interactive_plot <- ggplot(
+  df_analysis,
+  aes(x = study_hours, y = project_score)
+) +
+  ggiraph::geom_point_interactive(
+    aes(tooltip = paste(learner_id, project_score, sep = ": ")),
+    alpha = 0.35
+  ) +
+  labs(
+    title = "Hover labels can reveal details without crowding the static plot",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  chapter17_theme
+
+ggiraph::girafe(ggobj = interactive_plot)
+```
+
+The code in @lst-code-ggiraph-example shows the code pattern being discussed here.
+
+
+Leo should use interactivity when details matter but would damage the static view. If the main message cannot be seen without hovering, the plot still needs clarity work.
+
+## Practical Diagnostic Guide
+
+By this point, Leo has many tools. The danger is tool overload. The solution is diagnosis.
+
+Before changing code, name the visual problem.
+
+```{r}
+#| label: tbl-17-5
+#| lst-label: lst-tbl-17-5
+#| lst-cap: "Code for 17 5"
+#| tbl-cap: "If Your Plot Looks Like This, Do This"
+
+diagnostic_table <- tibble::tribble(
+  ~Symptom, ~Likely_cause, ~Recommended_fix, ~Package_or_function,
+  "Points form a dark unreadable cloud", "Overplotting", "Use transparency or binning", "geom_point(alpha = ), geom_bin2d(), geom_hex()",
+  "Points are stacked on identical values", "Repeated or rounded values", "Add small random movement", "geom_jitter()",
+  "Labels overlap", "Too many labels or dense positions", "Repel labels automatically or label fewer points", "ggrepel::geom_text_repel()",
+  "Legend makes reader work too hard", "Too many groups or poor placement", "Move, rename, simplify, or replace with direct labels", "theme(legend.position = ), labs(), guides()",
+  "Colours are hard to distinguish", "Palette is not accessible or has too many categories", "Use a perceptually consistent palette", "scale_colour_viridis_d(), scale_fill_viridis_d()",
+  "Axis labels are cramped", "Long category names or poor orientation", "Flip coordinates or rotate text carefully", "coord_flip(), element_text(angle = )",
+  "Differences look exaggerated", "Axis range or aspect ratio is misleading", "Check limits and aspect ratio", "scale_y_continuous(), coord_cartesian(), theme(aspect.ratio = )",
+  "Facets are crowded", "Too many panels or labels", "Reduce groups, wrap facets, or build a custom layout", "facet_wrap(), patchwork, cowplot",
+  "Text looks too rigid", "Default text settings are not enough", "Control text or use markdown styling", "element_text(), ggtext::element_markdown()",
+  "Reader needs details for individual points", "Static plot is carrying too much information", "Use hover-based interactivity", "plotly::ggplotly(), ggiraph"
+)
+
+knitr::kable(diagnostic_table)
+```
+
+The code in @lst-tbl-17-5 produces @tbl-17-5.
+
+
+Table 17.5 gives Leo the kind of practical tool map professionals build through experience. The important phrase is "likely cause." A symptom may have more than one cause. Diagnosis comes before code.
+
+## Clarity and Control Checklist
+
+The final step is a checklist Leo can use before any plot enters a report, slide deck, article, or Quarto chapter.
+
+```{r}
+#| label: tbl-17-6
+#| lst-label: lst-tbl-17-6
+#| lst-cap: "Code for 17 6"
+#| tbl-cap: "The Clarity and Control Review Checklist"
+
+checklist <- tibble::tribble(
+  ~Check, ~Question_to_ask, ~Ready_when,
+  "Purpose", "What question does this plot answer?", "The answer can be stated in one sentence",
+  "Visibility", "Can the main pattern be seen immediately?", "The reader does not need to hunt for the pattern",
+  "Scale", "Are axis breaks, labels, and limits appropriate?", "The scale clarifies without exaggerating",
+  "Colour", "Does colour represent meaning?", "Every colour has a job",
+  "Text", "Do title, subtitle, labels, and caption guide interpretation?", "Text explains the chart without overcrowding it",
+  "Legend", "Does the legend reduce reader effort?", "The legend is clear, compact, and well placed",
+  "Labels", "Are labels readable and selective?", "Important labels are visible and nonessential labels are omitted",
+  "Overplotting", "Are observations hiding one another?", "Density or individual points are shown using the right method",
+  "Layout", "Does panel arrangement help comparison?", "The eye moves through the plot in a sensible order",
+  "Honesty", "Does the design preserve what the data can support?", "The plot clarifies evidence without overstating it"
+)
+
+knitr::kable(checklist)
+```
+
+The code in @lst-tbl-17-6 produces @tbl-17-6.
+
+
+Table 17.6 is Leo's final review before publishing a chart. It turns visual refinement into a repeatable practice rather than a matter of taste.
+
+::: {.callout-important appearance="simple" title="The professional standard"}
+A publish-ready plot is not the most decorated plot. It is the plot in which every visible decision helps the reader see the evidence more clearly and honestly.
+:::
+
+## What Not to Do
+
+Clarity and control can be misused. The goal is not to make every chart sleek. The goal is to make every chart responsible.
+
+### Do not polish a weak question
+
+If the analytical question is vague, design cannot save it. A beautiful plot of an unclear question is still unclear.
+
+### Do not use colour as decoration
+
+Colour attracts attention. Use it only when attention is earned.
+
+### Do not hide inconvenient values
+
+Zooming, filtering, and scale control must be transparent. A plot should not make the evidence look cleaner by silently excluding what complicates the story.
+
+### Do not label everything
+
+Too many labels reduce the value of all labels. Selective labelling is not withholding information. It is guiding attention.
+
+### Do not confuse interactivity with clarity
+
+Hover effects can reveal details. They cannot replace a visible central pattern.
+
+## Try It Yourself
+
+### Practice 1: Fix a crowded scatter plot
+
+Create a scatter plot of `study_hours` and `project_score`. First use ordinary points. Then use `alpha`. Then try `geom_bin2d()`. Write one sentence explaining which version best answers the question.
+
+```{r}
+#| label: chapter17-practice-1-crowded-scatter
+#| lst-label: lst-chapter17-practice-1-crowded-scatter
+#| lst-cap: "Code for Practice 1 crowded scatter plot"
+#| eval: false
+
+ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point()
+
+ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.25)
+
+ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_bin2d(bins = 25)
+```
+
+The code in @lst-chapter17-practice-1-crowded-scatter shows the code pattern being discussed here.
+
+
+### Practice 2: Improve scale labels
+
+Build a bar chart of average project score by `study_band`. Control the y-axis so it runs from 0 to 100. Use breaks at 20-point intervals.
+
+```{r}
+#| label: chapter17-practice-2-scale-labels
+#| lst-label: lst-chapter17-practice-2-scale-labels
+#| lst-cap: "Code for Practice 2 scale labels"
+#| eval: false
+
+df_analysis |>
+  filter(!is.na(study_band), !is.na(project_score)) |>
+  group_by(study_band) |>
+  summarise(mean_project_score = mean(project_score, na.rm = TRUE), .groups = "drop") |>
+  ggplot(aes(x = study_band, y = mean_project_score)) +
+  geom_col() +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20))
+```
+
+The code in @lst-chapter17-practice-2-scale-labels shows the code pattern being discussed here.
+
+
+### Practice 3: Repair a legend
+
+Create a line chart of average project score by week and `preferred_learning_mode`. Move the legend to the bottom and give it a clearer title.
+
+```{r}
+#| label: chapter17-practice-3-legend-repair
+#| lst-label: lst-chapter17-practice-3-legend-repair
+#| lst-cap: "Code for Practice 3 legend repair"
+#| eval: false
+
+df_analysis |>
+  filter(!is.na(week), !is.na(project_score), !is.na(preferred_learning_mode)) |>
+  group_by(week, preferred_learning_mode) |>
+  summarise(mean_project_score = mean(project_score, na.rm = TRUE), .groups = "drop") |>
+  ggplot(aes(x = week, y = mean_project_score, colour = preferred_learning_mode)) +
+  geom_line() +
+  labs(colour = "Learning mode") +
+  theme(legend.position = "bottom")
+```
+
+The code in @lst-chapter17-practice-3-legend-repair shows the code pattern being discussed here.
+
+
+### Practice 4: Use `ggrepel`
+
+Summarise average study hours and project scores by country. Label the countries with `geom_text()` first. Then replace it with `ggrepel::geom_text_repel()`.
+
+```{r}
+#| label: chapter17-practice-4-ggrepel-labels
+#| lst-label: lst-chapter17-practice-4-ggrepel-labels
+#| lst-cap: "Code for Practice 4 ggrepel labels"
+#| eval: false
+
+library(ggrepel)
+
+country_summary |>
+  ggplot(aes(x = mean_study_hours, y = mean_project_score, label = country)) +
+  geom_point() +
+  ggrepel::geom_text_repel()
+```
+
+The code in @lst-chapter17-practice-4-ggrepel-labels shows the code pattern being discussed here.
+
+
+### Practice 5: Decide whether interactivity is necessary
+
+Create a static scatter plot. Then write down whether the reader needs point-level details. If yes, try `plotly::ggplotly()`. If no, improve the static plot instead.
+
+## A Small Practice Lab
+
+Use the following workflow to refine any plot in this chapter.
+
+```{r}
+#| label: chapter17-practice-lab-refinement-workflow
+#| lst-label: lst-chapter17-practice-lab-refinement-workflow
+#| lst-cap: "Code for the Chapter 17 practice lab refinement workflow"
+#| eval: false
+
+# 1. State the visual question.
+# Example: Do learners with more weekly study time tend to earn higher project scores?
+
+# 2. Build the simplest correct plot.
+base_plot <- ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point()
+
+# 3. Identify the first reader problem.
+# Example: Too many points overlap.
+
+# 4. Fix that problem.
+clearer_plot <- ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.25)
+
+# 5. Add guidance.
+clearer_plot +
+  labs(
+    title = "Study time and project scores move together, but not perfectly",
+    subtitle = "Transparency helps show where learner records are concentrated.",
+    x = "Weekly study hours",
+    y = "Project score"
+  )
+
+# 6. Read the plot again.
+# What is clearer now?
+# What remains uncertain?
+# What should not be claimed from this plot alone?
+```
+
+The code in @lst-chapter17-practice-lab-refinement-workflow shows the code pattern being discussed here.
+
+
+The lab is simple by design. Professional refinement often means fixing one problem at a time.
+
+## Common Beginner Mistakes
+
+### Mistake 1: Treating the default plot as the final plot
+
+Defaults are useful starting points. They are not evidence that the plot is ready for readers.
+
+### Mistake 2: Adding more design before naming the problem
+
+If Leo cannot say what is wrong with the plot, adding more code may only add more noise.
+
+### Mistake 3: Using scale limits without noticing what they remove
+
+Scale limits can drop observations from the displayed layer. When the intention is zooming, `coord_cartesian()` is usually safer.
+
+### Mistake 4: Choosing colours before deciding what colour means
+
+Colour should encode meaning, not mood.
+
+### Mistake 5: Making legends carry too much work
+
+A legend is useful when it is simple. When it becomes a puzzle, direct labels or a simpler grouping structure may be better.
+
+### Mistake 6: Labeling every visible point
+
+Labels should focus attention. Too many labels scatter attention.
+
+### Mistake 7: Using interactivity to avoid editing
+
+Interactive graphics can support exploration, but they do not excuse an unclear static design.
+
+### Mistake 8: Forgetting that refinement is still analysis
+
+Every design choice changes what readers notice. That makes visual refinement an analytical responsibility.
+
+## Short Recap
+
+Chapter 17 moved Leo from plotting to visual control.
+
+He learned that a chart can be correct and still fail. He learned to diagnose common clarity problems: weak scale choices, distracting colour, crowded labels, confusing legends, overplotting, poor aspect ratios, and layouts that make comparison difficult. He learned how `scale_x_*()`, `scale_y_*()`, `theme()`, `element_text()`, `element_rect()`, `element_line()`, `coord_cartesian()`, `ggrepel`, `patchwork`, `cowplot`, `plotly`, `ggiraph`, `viridis`, and `ggtext` each solve specific visual problems.
+
+Most importantly, he learned that visual refinement is not decoration.
+
+It is the deliberate shaping of attention.
+
+A chart is not finished when the data appears. A chart is finished when the intended pattern becomes easy to see.
+
+## Leo's Notebook
+
+Leo writes seven reminders to himself:
+
+1. A plot should answer a visual question.
+2. Every scale choice affects interpretation.
+3. Colour must carry meaning.
+4. Labels should guide, not crowd.
+5. Legends should reduce work.
+6. Zooming must be honest.
+7. Interactivity helps exploration, but clarity still comes first.
+
+Then he adds the line that will stay with him:
+
+> I do not just make charts. I shape attention so the evidence can be seen.
+
+## Glossary
+
+**Alpha blending:** The use of transparency to make overlapping observations visible as denser regions.
+
+**Annotation:** Text or visual marks added to a plot to guide interpretation.
+
+**Aspect ratio:** The relationship between the height and width of the plotting panel.
+
+**Binning:** Grouping many individual observations into rectangular or hexagonal regions to show density.
+
+**Clarity:** The degree to which the intended pattern can be seen and understood.
+
+**Control:** The deliberate adjustment of scales, labels, colour, layout, and supporting elements.
+
+**Coordinate zooming:** Changing the visible plotting window without necessarily filtering the underlying data used by layers.
+
+**Direct label:** A label placed near the data it describes, often used instead of a legend.
+
+**Facet:** A repeated panel showing the same plot structure across groups.
+
+**Legend:** A guide explaining how visual properties map to data values.
+
+**Overplotting:** A situation where many observations overlap and hide one another.
+
+**Scale:** A rule that maps data values to visual properties such as position, colour, fill, or size.
+
+**Theme:** A collection of settings that control non-data elements of a plot.
+
+## Chapter Outcome
+
+By the end of Chapter 17, Leo can take a working plot and refine it into a readable, controlled, and publication-ready visualisation.
+
+He can control scales without misleading the reader, choose colours with purpose, adjust text and themes, simplify legends, reduce clutter, handle overplotting, prevent label collisions, annotate responsibly, manage aspect ratios, zoom honestly, arrange multiple plots, and decide when interactivity is useful.
+
+He now understands that visualisation is not simply creating charts. It is the deliberate shaping of attention.
+
+A chart becomes valuable when readers immediately see what matters.
+
+## What Comes Next
+
+Leo can now make individual plots clearer and more controlled.
+
+But real analytical communication rarely ends with one plot. A report may need several visuals. A presentation may need one plot to prepare the reader for another. A chapter may need a sequence of figures that moves from context to comparison to implication.
+
+That is the next challenge.
+
+Chapter 18 will move from controlled plots to visual communication. Leo will learn how multiple visualisations, narrative structure, and analytical explanation work together so readers do not merely see a chart. They follow the evidence.
+
+## References and Further Reading
+
+Bostock, M., Ogievetsky, V., & Heer, J. (2011). D³ data-driven documents. *IEEE Transactions on Visualization and Computer Graphics, 17*(12), 2301-2309. https://doi.org/10.1109/TVCG.2011.185
+
+Garnier, S., Ross, N., Rudis, R., Camargo, A. P., Sciaini, M., & Scherer, C. (2024). *viridisLite: Colorblind-friendly color maps for R*. R package.
+
+Gohel, D., & Skintzos, P. (2024). *ggiraph: Make ggplot2 graphics interactive*. R package.
+
+Sievert, C. (2020). *Interactive web-based data visualization with R, plotly, and shiny*. Chapman and Hall/CRC.
+
+Slowikowski, K. (2024). *ggrepel: Automatically position non-overlapping text labels with ggplot2*. R package.
+
+Wickham, H. (2016). *ggplot2: Elegant graphics for data analysis* (2nd ed.). Springer. https://doi.org/10.1007/978-3-319-24277-4
+
+Wilkinson, L. (2005). *The grammar of graphics* (2nd ed.). Springer. https://doi.org/10.1007/0-387-28695-0

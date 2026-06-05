@@ -1,0 +1,19 @@
+/* Custom styles for Not So Short Introduction to R */
+
+.callout {
+  border-radius: 0.6rem;
+}
+
+code {
+  white-space: pre-wrap;
+}
+
+figcaption,
+.figure-caption,
+.quarto-float-caption {
+  font-weight: 400;
+}
+
+.figure-label-bold {
+  font-weight: 700 !important;
+}

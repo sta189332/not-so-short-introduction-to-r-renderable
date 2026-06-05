@@ -1,0 +1,634 @@
+---
+title: "Data Before Types: Atoms, Containers, and the First Shape of R Thinking"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{3.\arabic{figure}}
+\setcounter{figure}{0}
+```
+
+## Opening Scene: The Question Beneath the Code
+
+Leo has now met the R ecosystem.
+
+He has seen the console respond. He has typed small instructions. He has stored values under names. He has also learned that serious work should not depend on memory alone.
+
+Now a quieter question appears.
+
+> What exactly is R working with when it runs code?
+
+When R evaluates `1 + 1`, it is working with values. When R stores `"Leo"` under a name, it is storing data that can be found and reused later. When R works with a table, that table is still built from smaller pieces underneath.
+
+Before there are data types, there are values.
+
+Before there are larger data structures, there are containers that hold connected values together.
+
+Before there is analysis, there is material that R must store, inspect, compare, and reuse.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+This chapter answers the question left by Chapter 2: **what is R working with when it runs code?**
+
+The answer begins with small pieces of data, the names that help R find them, and the containers that allow those pieces to exist together.
+:::
+
+## What Changed After Chapter 2
+
+Chapter 2 introduced the first working map of the R ecosystem.
+
+R runs the instructions. The console gives direct contact with R. RStudio gives a better place to organise that work. A script preserves instructions so that they can be used again.
+
+That was the first practical contact.
+
+Chapter 3 turns the attention inward. Instead of asking where the work happens, it asks what the work acts on.
+
+A command is not important only because it runs. It is important because it acts on something. That something may be a number, a word, a truth value, a missing signal, or a named object that holds one of these pieces.
+
+This is the first shape of R thinking:
+
+```text
+instruction
+   ↓
+acts on data
+   ↓
+produces a result
+```
+
+The instruction matters. The result matters. But the data beneath the instruction matters first.
+
+## The Material Beneath Every Command
+
+Every R command has material underneath it.
+
+In this line, the material is two numbers:
+
+```{r}
+1 + 1
+```
+
+In this line, the material is a piece of text:
+
+```{r}
+print("Hello R")
+```
+
+In this line, the material is stored under a name:
+
+```{r}
+learner_name <- "Leo"
+learner_name
+```
+
+The code looks different in each example, but the underlying idea is the same. R is receiving values it can inspect, store, and transform.
+
+A serious beginner should learn to pause at this point. Do not only ask, “What command should I use?” Ask first, “What material is this command using?”
+
+That question will protect the reader later. Many R errors come from using the right-looking command on the wrong kind of material.
+
+## Data Comes in Pieces
+
+The smallest useful idea in this chapter is the **value**.
+
+A value is a piece of data that R can hold and work with. It may look like a number, a word, a label, a truth signal, or a special signal such as missingness.
+
+For now, the important point is not the formal category of each value. That comes in Chapter 4. The point is smaller and more foundational: R must first have pieces of data before it can do any meaningful work.
+
+```{r}
+42
+```
+
+```{r}
+"London"
+```
+
+```{r}
+TRUE
+```
+
+Each line gives R one piece of data.
+
+These pieces do not yet form a dataset. They are not yet a table. They are the basic material that later commands will compare, combine, store, summarise, and transform.
+
+::: {.callout-note appearance="simple" title="A Beginner's Metaphor"}
+In this chapter, “atom” is a beginner’s mental model, not a full technical lecture on R’s internal object system.
+
+The point is simple: before there is a dataset, there are values. Before there is analysis, there are pieces of data that R must hold, inspect, compare, and reuse.
+:::
+
+## Values Need Somewhere to Live
+
+A single value can be useful, but it becomes more useful when R can refer to it again.
+
+That is where names enter the picture.
+
+```{r}
+score <- 72
+score
+```
+
+The value is `72`.
+
+The name is `score`.
+
+The assignment arrow `<-` tells R to keep the value under that name.
+
+This is not yet a full lesson on assignment or environments. It is a first operational habit: when a value has a name, it can be reused.
+
+```{r}
+score + 5
+```
+
+The name gives R a way to find the value again.
+
+## Names Help R Find Values
+
+A name is not the value itself. It is a label that points R back to the value.
+
+This distinction matters because beginners often think the name and the value are the same thing. They are connected, but they are not identical.
+
+In R, a simple named object can hold a value that the code will use later.
+
+::: {.callout-tip appearance="simple" title="Small Mental Map"}
+```text
+72
+ ↓
+score <- 72
+ ↓
+score is now a named object R can reuse
+```
+:::
+
+```{r}
+study_hours <- 6
+study_hours
+```
+
+Now R can use `study_hours` in a later instruction:
+
+```{r}
+study_hours * 2
+```
+
+The result is not produced because the name is special. It is produced because the name helps R find the value.
+
+::: {.callout-tip appearance="simple" title="How R Thinks: Names Help R Find Values"}
+When a value is assigned to a name, R can refer to that value again by using the name.
+
+At this stage, that is enough. Later chapters will explain more about objects, structures, and how R organises larger pieces of work.
+:::
+
+## From Single Values to Containers
+
+A value can stand alone. Several values can also be placed together.
+
+For now, call that a **container**.
+
+A container is a beginner’s way of imagining how several pieces can be held together so that R can work with them as a group.
+
+```{r}
+learner_scores <- c(72, 81, 65, 90)
+learner_scores
+```
+
+This example uses `c()` to combine several values. The chapter does not need the formal theory yet. The main idea is enough: R can hold more than one value under one name.
+
+```text
+value
+   ↓
+container
+   ↓
+larger structure
+```
+
+This idea prepares the ground for later chapters.
+
+Chapter 4 will ask what kind of values these are. Chapter 5 will ask what shapes values can take when they are organised into larger structures.
+
+For now, the reader only needs the first map:
+
+```text
+values can stand alone
+values can be named
+values can be held together
+```
+
+## A Small Visual Map
+
+Here is a visual way to imagine the previous example. The figure below shows the shift from separate values to one named container.
+
+This picture is not teaching a formal data structure yet. It is only a mental model: values can exist as separate pieces, but a name can also point to several connected values held together.
+
+```{r}
+#| label: fig-learner-scores-container
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4
+#| fig-align: center
+#| fig-cap: "From Scattered Values to One Named Container"
+
+old_par <- par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i")
+plot.new()
+plot.window(xlim = c(0, 14), ylim = c(0, 7), asp = 1)
+
+scores <- c(72, 81, 65, 90)
+
+draw_cell <- function(x, y, w, h, label = "", fill_col = "#c9c8ff",
+                      cex = 0.9, font = 2, lwd = 1.3) {
+  depth_x <- 0.18
+  depth_y <- 0.18
+  border_col <- "#222222"
+
+  front_fill <- adjustcolor(fill_col, alpha.f = 0.30)
+  top_fill <- adjustcolor(fill_col, alpha.f = 0.20)
+  side_fill <- adjustcolor(fill_col, alpha.f = 0.24)
+
+  polygon(
+    x = c(x, x + w, x + w, x),
+    y = c(y, y, y + h, y + h),
+    col = front_fill,
+    border = border_col,
+    lwd = lwd
+  )
+
+  polygon(
+    x = c(x, x + depth_x, x + w + depth_x, x + w),
+    y = c(y + h, y + h + depth_y, y + h + depth_y, y + h),
+    col = top_fill,
+    border = border_col,
+    lwd = lwd
+  )
+
+  polygon(
+    x = c(x + w, x + w + depth_x, x + w + depth_x, x + w),
+    y = c(y, y + depth_y, y + h + depth_y, y + h),
+    col = side_fill,
+    border = border_col,
+    lwd = lwd
+  )
+
+  text(
+    x = x + w / 2,
+    y = y + h / 2,
+    labels = label,
+    cex = cex,
+    font = font
+  )
+}
+
+rot_coords <- function(x, y, cx, cy, angle_deg) {
+  rad <- angle_deg * pi / 180
+  xr <- cx + (x - cx) * cos(rad) - (y - cy) * sin(rad)
+  yr <- cy + (x - cx) * sin(rad) + (y - cy) * cos(rad)
+  list(x = xr, y = yr)
+}
+
+draw_rotated_cell <- function(x, y, w, h, label, angle_deg,
+                              fill_col = "#e2e1ff") {
+  depth_x <- 0.18
+  depth_y <- 0.18
+  border_col <- "#555555"
+
+  front_fill <- adjustcolor(fill_col, alpha.f = 0.35)
+  top_fill <- adjustcolor("#efeeff", alpha.f = 0.40)
+  side_fill <- adjustcolor("#b8b7f5", alpha.f = 0.30)
+
+  cx <- x + w / 2
+  cy <- y + h / 2
+
+  # Front face
+  fx <- c(x, x + w, x + w, x)
+  fy <- c(y, y, y + h, y + h)
+  f_rot <- rot_coords(fx, fy, cx, cy, angle_deg)
+
+  polygon(
+    f_rot$x,
+    f_rot$y,
+    col = front_fill,
+    border = border_col,
+    lwd = 1.3,
+    lty = 2
+  )
+
+  # Top face
+  tx <- c(x, x + depth_x, x + w + depth_x, x + w)
+  ty <- c(y + h, y + h + depth_y, y + h + depth_y, y + h)
+  t_rot <- rot_coords(tx, ty, cx, cy, angle_deg)
+
+  polygon(
+    t_rot$x,
+    t_rot$y,
+    col = top_fill,
+    border = border_col,
+    lwd = 1.3,
+    lty = 2
+  )
+
+  # Side face
+  sx <- c(x + w, x + w + depth_x, x + w + depth_x, x + w)
+  sy <- c(y, y + depth_y, y + h + depth_y, y + h)
+  s_rot <- rot_coords(sx, sy, cx, cy, angle_deg)
+
+  polygon(
+    s_rot$x,
+    s_rot$y,
+    col = side_fill,
+    border = border_col,
+    lwd = 1.3,
+    lty = 2
+  )
+
+  text(
+    x = cx,
+    y = cy,
+    labels = label,
+    cex = 0.95,
+    font = 2,
+    col = "#444444",
+    srt = angle_deg
+  )
+}
+
+# Panel titles
+text(3.2, 6.35, "Separate values", cex = 1.05, font = 2)
+text(10.6, 6.35, "One named container", cex = 1.05, font = 2)
+
+text(3.2, 5.95, "pieces exist, but are not yet held together", cex = 0.72)
+text(10.6, 5.95, "`learner_scores` holds the values together", cex = 0.72)
+
+# Left panel: scattered values
+x_starts <- c(1.10, 2.65, 4.00, 2.15)
+y_starts <- c(4.55, 3.90, 4.85, 3.05)
+angles_deg <- c(24, -35, 145, -125)
+
+for (i in seq_along(scores)) {
+  draw_rotated_cell(
+    x = x_starts[i],
+    y = y_starts[i],
+    w = 0.80,
+    h = 0.58,
+    label = scores[i],
+    angle_deg = angles_deg[i]
+  )
+}
+
+rect(0.65, 2.65, 5.55, 5.65, border = "#777777", lwd = 1, lty = 2)
+
+# Arrow between panels
+arrows(
+  x0 = 5.90,
+  y0 = 4.15,
+  x1 = 7.55,
+  y1 = 4.15,
+  length = 0.10,
+  lwd = 1.6
+)
+
+text(6.72, 4.55, "name and hold", cex = 0.78, font = 2)
+
+# Right panel: named container
+x_start <- 8.15
+y_start <- 3.95
+cell_width <- 0.92
+cell_height <- 0.64
+
+for (i in seq_along(scores)) {
+  draw_cell(
+    x = x_start + (i - 1) * cell_width,
+    y = y_start,
+    w = 0.88,
+    h = cell_height,
+    label = scores[i],
+    fill_col = "#c9c8ff",
+    cex = 0.92
+  )
+}
+
+text(
+  x = x_start + 1.75,
+  y = y_start + 1.25,
+  labels = "learner_scores",
+  cex = 0.92,
+  font = 2
+)
+
+rect(7.75, 2.65, 13.15, 5.65, border = "#777777", lwd = 1, lty = 2)
+
+par(old_par)
+```
+
+As shown in @fig-learner-scores-container, the point is not that loose values are wrong. The point is that a name can help R hold related values together and reuse them.
+
+In this picture, the values `72`, `81`, `65`, and `90` first appear as separate pieces. Once they are held under the name `learner_scores`, they become easier to refer to as one connected object. Later, [Chapter 5](05-data-structures.qmd) will explain the formal structures behind this idea. For now, the important lesson is simple: one name can point to more than one piece of data.
+
+The name `learner_scores` points to several connected values. Each value sits in its own cell, but the container allows R to hold the values together and use them again. Later, [Chapter 5](05-data-structures.qmd) will explain the formal structures behind this idea. For now, the important lesson is simple: one name can point to more than one piece of data.
+
+```text
+single value
+   ↓
+named object
+   ↓
+several connected values
+   ↓
+larger data work
+```
+
+That map helps prevent a common beginner mistake. Code is not just symbols on the screen. It is a set of instructions acting on values that R can find, hold, and inspect.
+
+## Special Values Are Still Signals
+
+Not every value looks like an ordinary number or word.
+
+Real data work contains gaps, impossible calculations, infinite results, and absence. R has special signals for some of these situations.
+
+The most important ones at this stage are:
+
+- `NA`
+- `NaN`
+- `Inf`
+- `NULL`
+
+These are not decorative details. They matter because serious data work depends on knowing when a value is present, missing, impossible, infinite, or absent.
+
+A beginner who ignores special values may trust results too quickly.
+
+## Predict Before You Run
+
+Before running the next code, pause and predict which checks will return `TRUE`.
+
+```{r}
+is.na(NA)
+is.nan(NaN)
+is.infinite(Inf)
+is.null(NULL)
+```
+
+The purpose is not to memorise these functions immediately. The purpose is to practise inspection before trust.
+
+R can check what kind of signal it is seeing. The reader should learn to ask R for evidence rather than guessing.
+
+## Missing, Impossible, Infinite, and Empty
+
+`NA` means a value is missing.
+
+It often appears when a value was expected but is not available.
+
+```{r}
+age <- NA
+is.na(age)
+```
+
+`NaN` means “not a number.”
+
+It usually appears when a numerical calculation has produced an undefined result.
+
+```{r}
+not_a_number <- 0 / 0
+not_a_number
+is.nan(not_a_number)
+```
+
+`Inf` means infinity.
+
+It can appear when a calculation produces a value beyond ordinary finite limits.
+
+```{r}
+infinite_value <- 1 / 0
+infinite_value
+is.infinite(infinite_value)
+```
+
+`NULL` needs special care.
+
+It is not a missing value inside a column in the same ordinary way that `NA` is. `NA` usually means a value was expected but is missing. `NULL` usually means there is nothing there: no value, no component, or no object content in that place.
+
+```{r}
+empty_value <- NULL
+is.null(empty_value)
+```
+
+This distinction will become more useful later. For now, it is enough to keep the idea clear:
+
+| Signal | What it usually means | Plain reading |
+|---|---|---|
+| `NA` | A value was expected but is missing | “Something should be here, but it is unavailable.” |
+| `NaN` | A numerical result is undefined | “This calculation did not produce a valid number.” |
+| `Inf` | A numerical result is infinite | “This value goes beyond ordinary finite limits.” |
+| `NULL` | No value or content is present | “There is nothing here.” |
+
+## Why Inspection Comes Before Trust
+
+A printed result can look simple while hiding an important signal.
+
+```text
+printed result
+   ↓
+hidden signal?
+   ↓
+inspect before trust
+```
+
+For example:
+
+```{r}
+scores_with_missing <- c(72, 81, NA, 90)
+scores_with_missing
+```
+
+The missing value may look like a small detail. It is not small when calculation begins.
+
+```{r}
+mean(scores_with_missing)
+```
+
+R returns `NA` because one of the values is missing. This is not a failure in R’s behaviour. It is evidence about the data.
+
+R can calculate the mean only when the missing value is handled deliberately.
+
+```{r}
+mean(scores_with_missing, na.rm = TRUE)
+```
+
+This command does not “fix” the missing value. It tells R to remove missing values before calculation.
+
+This small example introduces a professional habit:
+
+> inspect the material before trusting the result.
+
+::: {.callout-important appearance="simple" title="Workflow Principle"}
+A result is only as trustworthy as the data signals that produced it.
+:::
+
+## Why This Matters Before Data Types
+
+It may be tempting to jump straight into formal labels: numeric, character, logical, and so on.
+
+That will come next.
+
+But a learner who jumps to labels too quickly may miss the deeper idea. R is not only storing categories of data. It is working with pieces, names, simple containers, and signals.
+
+The question in Chapter 3 is not yet:
+
+> What type of data is this?
+
+The question is:
+
+> What is the piece of data, where is it being held, and what signal is it giving?
+
+Once that question is clear, data types become easier to understand.
+
+## What Leo Is Expected to Know at This Point
+
+At this point, the learner does not need to know formal data structures. There is no need yet to master vectors, lists, matrices, data frames, coercion, factors, or dates.
+
+The expected understanding is smaller and more important:
+
+- R works with values.
+- Values can be given names.
+- Names help R find values again.
+- Several connected values can be held under one name.
+- Special values such as `NA`, `NaN`, `Inf`, and `NULL` carry signals.
+- Inspection should come before trust.
+
+::: {.callout-note appearance="simple" title="Not Yet"}
+This chapter does not teach formal data types or data structures.
+
+It prepares the mental ground for them. Chapter 4 will ask what kind of values R is holding. Chapter 5 will ask how values can be organised into larger structures.
+:::
+
+## Chapter Outcome
+
+By the end of this chapter, the learner should be able to explain that R does not work with vague code symbols. It works with values, names, simple objects, containers, and signals.
+
+The chapter has introduced a small but important change in thinking:
+
+```text
+Do not only read the command.
+Inspect the data beneath the command.
+```
+
+That habit will return throughout the book.
+
+## Transition to Chapter 4
+
+The question left by Chapter 2 was:
+
+> What exactly is R working with when it runs code?
+
+Chapter 3 answered:
+
+> R works with values, names, containers, and special signals.
+
+But another question now appears.
+
+If data comes in pieces, what kind of pieces are they?
+
+Some values behave like numbers. Some behave like text. Some behave like truth signals. Some look like dates. Some appear simple but behave differently from what the beginner expects.
+
+Chapter 4 begins there.
+
+::: {.callout-tip appearance="simple" title="Ready for the Next Question"}
+Chapter 3 showed that R works with values before it works with larger datasets.
+
+Chapter 4 asks the next question:
+
+**what kind of value is R holding, and why do different values behave differently?**
+:::

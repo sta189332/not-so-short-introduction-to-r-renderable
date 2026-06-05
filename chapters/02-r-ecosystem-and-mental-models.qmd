@@ -1,0 +1,471 @@
+---
+title: "Understanding the R Ecosystem"
+subtitle: "The Engine, the Cockpit, and the Flight Plan"
+---
+
+## Opening Scene: The Engine Is Not the Whole Journey
+
+Leo opens R for the first time and sees a plain console.
+
+No spreadsheet grid.  
+No ribbon.  
+No familiar rows, columns, tabs, or formula bar.
+
+Just a prompt waiting for an instruction:
+
+```text
+>
+```
+
+The screen feels almost too empty. Chapter 1 explained why R matters: it helps turn hidden manual steps into visible, repeatable work. Now the idea has become a direct encounter.
+
+Leo can type a command, and R will answer. That part is simple enough. A harder question appears almost immediately:
+
+Where does serious work live?
+
+A few commands can sit in the console. A longer piece of work needs more. Some lines will be experiments. Some will be worth keeping. Some will need correction tomorrow. Some will become part of a result that another person may need to check.
+
+The console can run code.
+
+A working system needs more than a place to type.
+
+This chapter gives Leo the first practical map of that system: R, the console, RStudio, scripts, packages, and the computer workspace that holds the work together.
+
+::: {.callout-note appearance="simple" title="Chapter Focus"}
+This chapter gives Leo a first practical map of the R working environment.
+
+The goal is not to master every tool. The goal is to understand how R, the console, RStudio, scripts, packages, and project folders begin to fit together.
+:::
+
+## What Changed After Chapter 1
+
+Chapter 1 explained why R matters before Leo wrote any code.
+
+The main idea was simple: data work becomes stronger when the process behind a result can be saved, inspected, corrected, and repeated.
+
+Chapter 2 moves from reason to contact. Leo will now see where R begins, how the console works, why a script matters, and why a more organised workspace quickly becomes useful.
+
+He will not analyse a real dataset yet. He will not clean data, manage packages deeply, or build a report. Those tasks need a foundation. First, he needs to know what the main pieces of the R working environment are and how they relate.
+
+## The First Map of the R Ecosystem
+
+The R ecosystem is the collection of tools, files, habits, and working spaces that make R useful beyond isolated commands.
+
+At this stage, the map can stay small:
+
+```text
+R        = runs R code
+Console  = gives direct contact with R
+RStudio  = helps write, save, inspect, and organise work
+Scripts  = preserve instructions
+Packages = add specialist tools
+Projects = keep related work together
+```
+
+These pieces are connected, but they are not the same thing.
+
+That distinction matters later. A beginner who confuses R with RStudio may not know what to install first. A learner who confuses a script with the console may run code once but fail to keep it. A person who scatters files across the Desktop and Downloads folder may produce a result but struggle to rebuild it.
+
+The map prevents that confusion before it grows.
+
+## R as the Engine
+
+R is the computational engine.
+
+That means R is the part that interprets instructions and returns results. If the instruction is `1 + 1`, R calculates. If the instruction stores a value, R keeps that value in the current session. If the instruction asks for the value again, R returns it.
+
+The rest of the ecosystem exists because computation alone is not enough. A learner also needs a way to write clearly, save useful steps, see what exists, organise files, and return to the work later.
+
+That is where the console, RStudio, scripts, packages, and project folders begin to matter.
+
+## Before R: Understanding Your Computer Workspace
+
+Before Leo installs tools, he needs a small amount of computer workspace literacy.
+
+This is not advanced computer science. It is ordinary organisation.
+
+A **folder** is a place on the computer where related files can be kept together.
+
+A **file name** tells Leo what a file is called.
+
+A **file extension** gives a clue about the kind of file:
+
+```text
+.R     = an R script
+.csv   = a comma-separated data file
+.xlsx  = an Excel workbook
+.qmd   = a Quarto document
+.pdf   = a rendered document
+```
+
+A **path** is the direction the computer follows to find a file. Later, R will use paths to find data, save outputs, and render reports.
+
+A **project folder** is a folder that keeps related work in one place. Leo does not need to build a full project structure today. He only needs one habit:
+
+Keep work somewhere he can find again.
+
+A simple future project may eventually look like this:
+
+```text
+project/
+├── data/
+├── scripts/
+├── output/
+└── report.qmd
+```
+
+That diagram is only a preview. The point for now is practical: code is easier to repeat when files are not scattered across Downloads, Desktop, email attachments, and unnamed folders.
+
+## Installing R First
+
+Leo begins by installing R itself.
+
+He goes to [CRAN](https://cran.r-project.org), the official place to download R.
+
+At this stage, he installs only R. No large dataset. No package routine. No full project workflow. Just the core system that runs R code.
+
+The order matters because RStudio needs R to be installed first. RStudio provides a better working environment, but R is still the system that runs the instructions.
+
+::: {.callout-tip appearance="simple" title="Installation Order"}
+Install R before installing RStudio.
+
+R is the engine. RStudio is the working environment that helps Leo use that engine more effectively.
+:::
+
+## Leo Meets the R Console
+
+After installing R, Leo opens it for the first time.
+
+The console is plain. It does not offer a spreadsheet grid or a set of familiar data buttons. It gives a text prompt:
+
+```text
+>
+```
+
+That prompt means R is waiting.
+
+The plainness can feel strange, but it has one advantage: direct feedback. Leo writes something. R evaluates it. The result appears. Before any larger interface is introduced, he can see the basic rhythm of working with R.
+
+He starts small.
+
+## The First Commands
+
+Leo types the simplest command he can think of.
+
+```{r}
+1 + 1
+```
+
+R returns the result.
+
+Next, he tries text.
+
+```{r}
+print("Hello R")
+```
+
+The quotation marks tell R that `"Hello R"` is text. The function `print()` displays it. Leo does not need a full theory of functions yet. He only needs to see that R can receive an instruction and act on it.
+
+Then he stores a value.
+
+```{r}
+x <- 10
+x
+```
+
+The first line stores `10` using the name `x`. The second line asks R to show what is stored there.
+
+The assignment operator is:
+
+```text
+<-
+```
+
+It means: take the value on the right and store it in the name on the left.
+
+Leo then reuses the stored value.
+
+```{r}
+x * 2
+```
+
+The value has not disappeared after one use. It can be named, called back, and used again.
+
+Now he stores text.
+
+```{r}
+learner_name <- "Leo"
+learner_name
+```
+
+Later, names will hold larger things. For now, the idea is enough: R lets a learner name something so it can be reused.
+
+## What These Commands Teach
+
+The first commands are small, but they establish the working rhythm:
+
+1. write an instruction;
+2. let R evaluate it;
+3. inspect the result;
+4. keep what may be needed again.
+
+From `1 + 1`, Leo sees calculation.  
+From `print("Hello R")`, he sees a function act on text.  
+From `x <- 10`, he sees assignment.  
+From `x * 2`, he sees reuse.  
+From `learner_name <- "Leo"`, he sees that names can hold text as well as numbers.
+
+This is the first practical contact with operational thinking. The question is no longer only, “Did something appear on the screen?” It is also, “What did I ask R to do, where is the result, and can I use it again?”
+
+## Where the Console Starts to Feel Limited
+
+At first, the console feels satisfying. Leo types a command. R responds. He types another. R responds again.
+
+Then the work begins to separate into categories.
+
+Some lines are experiments.  
+Some lines are mistakes.  
+Some lines are worth keeping.  
+Some lines need to be edited and rerun.
+
+The console is useful for quick interaction, but it is not enough to carry a longer workflow by itself. If all useful steps remain only in the console, the route behind the result can become difficult to recover.
+
+::: {.callout-warning appearance="simple" title="Common Beginner Trap"}
+Running code successfully is not the same as preserving the work.
+
+The console is useful for quick testing, but a result becomes more reliable when the useful steps are saved somewhere Leo can return to.
+:::
+
+## The Question That Changes the Workflow
+
+The console has shown Leo that R responds to instructions.
+
+Now a better question appears:
+
+> How do people use R for longer work without losing the route behind the result?
+
+The console is not the problem. It remains useful for quick checks and immediate feedback.
+
+The issue is that the console should not carry everything. Leo needs a place to write, save, edit, rerun, inspect, and organise code.
+
+That is where RStudio enters the chapter.
+
+## RStudio as the Working Environment
+
+RStudio gives Leo a structured working environment for using R.
+
+It does not replace R. It does not become the source of computation. It gives the learner a clearer place to work with the code that R will run.
+
+In RStudio, Leo can write code in a script, run selected lines, see objects in memory, browse files, view plots, read help pages, and organise work inside a project folder.
+
+The main improvement is not decoration. It is control.
+
+The console remains useful. RStudio adds the structure needed for longer work.
+
+## Integrated Development Environments
+
+RStudio is one example of an Integrated Development Environment, often called an IDE.
+
+An IDE is a workspace for writing, running, inspecting, and managing code.
+
+There are several ways to work with R:
+
+- the basic R graphical interface;
+- Visual Studio Code with R extensions;
+- Jupyter Notebook with an R kernel;
+- RStudio.
+
+This book uses RStudio because it is widely used in R teaching, data analysis, research workflows, and reproducible reporting. Leo does not need a long comparison of alternatives. The point is smaller: R is the language and computational system; an IDE is a working environment around it.
+
+## Installing RStudio
+
+Leo now installs RStudio Desktop from Posit:
+
+[Posit RStudio Desktop](https://posit.co/download/rstudio-desktop/)
+
+This step makes sense because R is already installed. RStudio uses the R installation on Leo’s computer.
+
+The relationship can be kept simple:
+
+```text
+R       = runs the code
+RStudio = helps write, save, inspect, and organise the code
+```
+
+That distinction will prevent many later misunderstandings.
+
+## First Look at the RStudio Workspace
+
+Leo opens RStudio.
+
+The screen is more organised than the raw console. There are panes, tabs, and visible areas for different parts of the work. He does not need to master the whole interface immediately.
+
+The **Console** is still present. Commands can run there immediately.
+
+The **Script editor** is where Leo writes code he wants to keep.
+
+The **Environment pane** shows objects that currently exist in memory. After `x <- 10`, he can see that `x` exists.
+
+The **Files pane** helps him navigate folders and files.
+
+The **Plots pane** will later show visual output.
+
+The **Packages pane** helps him see installed packages.
+
+The **Help pane** gives access to documentation.
+
+Each pane has a job. Leo can learn them gradually.
+
+::: {.callout-tip appearance="simple" title="Mental Model"}
+R runs the code.  
+The console gives direct contact with R.  
+RStudio provides a working environment.  
+Scripts preserve instructions.  
+Packages add specialist tools.
+:::
+
+## Running the Same Commands in a Better Workflow
+
+Leo now runs the same commands again, but this time from a script in RStudio.
+
+```{r}
+1 + 1
+
+print("Hello R")
+
+x <- 10
+x
+
+x * 2
+
+learner_name <- "Leo"
+learner_name
+```
+
+The code has not changed. The working condition has.
+
+In a script, the sequence can be saved, edited, rerun, and improved. The Environment pane can show objects that exist. The Files pane can help keep the work in a sensible place.
+
+The difference is easy to miss because the commands are still simple. But this is the beginning of a habit that matters later: useful code should not remain trapped in a temporary console history.
+
+## Save the Script
+
+Leo saves the script with a simple name:
+
+```text
+chapter_02_first_commands.R
+```
+
+The file is not impressive. It does not need to be.
+
+Its value is that it keeps the instructions.
+
+If Leo wants to run the same steps tomorrow, he does not have to reconstruct them from memory. He can open the script and run the code again.
+
+That is why this sentence matters:
+
+> Code is not only something Leo runs. Code is something Leo keeps.
+
+Later, projects will extend this discipline by keeping scripts, data, outputs, images, reports, and references together. For now, saving one script is enough.
+
+## Packages as Specialist Extensions
+
+Packages are another part of the R ecosystem.
+
+A package adds tools that do not need to be built from scratch every time. Some packages help import files. Some help transform data. Some help visualise patterns. Others help check results or build reports.
+
+For now, Leo only needs the first idea:
+
+> Packages extend what R can do.
+
+A few examples make the idea concrete.
+
+| Kind of task | What a package may help with | Example packages |
+|---|---|---|
+| Data transformation | Expressing common data operations clearly | `dplyr` |
+| Visualisation | Turning data into plots | `ggplot2` |
+| Importing files | Reading CSV, Excel, and database sources | `readr`, `readxl`, `DBI` |
+| Data checking | Finding name, structure, or testing issues | `janitor`, `testthat` |
+| Web communication | Working with web-based data sources | `httr2`, `rvest` |
+
+The table is only a preview. Leo should not stop here to install everything. That would be too much, too early.
+
+::: {.callout-note appearance="simple" title="Package Preview"}
+Leo does not need to install these packages yet.
+
+At this stage, the point is simply to understand why packages exist: they add tested, reusable tools for common data tasks.
+:::
+
+## A Note About the Dataset Waiting Ahead
+
+This book will later use one teaching dataset called `df_r_migration`.
+
+Leo will not load it in this chapter.
+
+That restraint is intentional. This chapter is about first contact with the working environment, not full data analysis.
+
+The dataset will become meaningful when Leo is ready for real data workflows. It will help him work with variables such as `learner_id`, `country`, `background`, `study_hours`, `confidence_score`, `project_score`, `first_script_completed`, `enrolment_date`, `first_login_date`, and `week`.
+
+For now, knowing that the dataset is waiting is enough.
+
+## A Tiny Glimpse of Analysis
+
+Before the chapter closes, Leo gets one small glimpse of where this is going.
+
+```{r}
+learner_scores <- c(72, 81, 65, 90)
+
+mean(learner_scores)
+```
+
+This is not full analysis. It is only a small example with four scores.
+
+Still, something important has happened. R received several values, stored them under a name, and calculated a summary.
+
+Later, Leo will perform similar operations on larger, messier datasets where the stakes are higher and the workflow must be preserved. For now, the point is emotional as much as technical: these early commands are not separate from real data work. They are the first small version of it.
+
+## Momentum Win
+
+Leo began this chapter with a plain prompt on the screen.
+
+By the end, he has made contact with R, stored and reused a value, opened a better working environment, saved code, and seen a small calculation that points toward later analysis.
+
+The result is small. The direction is clear.
+
+A capable R user does not begin with a complicated report. The work begins with understanding where code runs, where useful instructions are kept, and why the route behind a result matters.
+
+## Chapter Outcome
+
+By the end of this chapter, Leo has moved from a general idea of R to a practical map of the R ecosystem.
+
+He now understands that:
+
+- R runs R code;
+- the console gives direct contact with R;
+- RStudio provides a better working environment;
+- scripts preserve instructions;
+- folders and file names matter because work needs a place to live;
+- packages add specialist tools;
+- small commands can point toward larger analysis.
+
+Most importantly, Leo has learned that the R ecosystem is not a random collection of tools. It is the working system that helps isolated commands become recoverable work.
+
+## Transition to Chapter 3
+
+Leo now has the first map.
+
+He knows where commands begin. He has met the console. He has entered a workspace that can help him preserve and inspect his work. He has heard about packages. He has saved his first script. He has seen a tiny calculation that hints at analysis.
+
+But a workspace matters because something is being worked on.
+
+The next question is quieter, and it will shape everything that follows:
+
+> What exactly is R working with when it runs code?
+
+In the next chapter, Leo stops looking only at commands and begins looking at the material beneath them: data as pieces, signals, and containers.
+
+::: {.callout-tip appearance="simple" title="Ready for the Next Question"}
+Chapter 2 gives Leo the first working map of the R ecosystem.
+
+Chapter 3 begins the next layer: the data R receives, stores, checks, and returns.
+:::

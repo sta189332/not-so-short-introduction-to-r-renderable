@@ -1,0 +1,10 @@
+---
+title: "Part 1: Foundations"
+number-sections: false
+---
+
+# Part 1: Foundations {.unnumbered}
+
+Part 1 gives Leo the mental ground he needs before real data cleaning begins.
+
+This file is included for compatibility with earlier drafts. The active book structure is controlled by `_quarto.yml`, where Part 1 is defined directly under `book: chapters:`.

@@ -1,0 +1,174 @@
+project:
+  type: book
+  output-dir: _book
+  resources:
+    - datasets/
+
+book:
+  title: "Not So Short Introduction to R"
+  subtitle: "A Practical Learning Journey from First Contact to Reproducible Data Systems"
+  author: "Daniel James"
+  description: "A story-driven, beginner-friendly guide to learning R from first contact with the console to reproducible data systems."
+  date: today
+  favicon: images/favicon.png
+  date-format: "MMMM D, YYYY"
+
+  site-url: "https://sta189332.github.io/not-so-short-introduction-to-r/"
+  repo-url: "https://github.com/sta189332/not-so-short-introduction-to-r"
+  repo-actions: [edit, issue]
+
+  search: true
+  page-navigation: true
+  reader-mode: true
+  downloads: [pdf, epub]
+  cover-image: images/cover.jpg
+
+  repo-branch: main
+
+  sidebar:
+    search: true
+    collapse-level: 1
+    tools:
+      - icon: github
+        href: "https://github.com/sta189332/not-so-short-introduction-to-r"
+
+  chapters:
+    - index.qmd
+    - preface.qmd
+
+    - part: "Part 1: Foundations"
+      chapters:
+        - chapters/01-first-contact-with-r.qmd
+        - chapters/02-r-ecosystem-and-mental-models.qmd
+        - chapters/03-data-as-atoms-and-containers.qmd
+        - chapters/04-data-types.qmd
+        - chapters/05-data-structures.qmd
+
+    - part: "Part 2: Language of R"
+      chapters:
+        - chapters/06-syntax-as-structure-of-meaning.qmd
+        - chapters/07-logic-in-r.qmd
+        - chapters/08-functions.qmd
+        - chapters/09-user-defined-functions.qmd
+        - chapters/10-debugging-r.qmd
+
+    - part: "Part 3: Data Workflows: From Isolated Commands to Reproducible Analysis"
+      chapters:
+        - chapters/11-packages.qmd
+        - chapters/12-importing-data.qmd
+        - chapters/13-cleaning-and-preparing-data.qmd
+        - chapters/14-selecting-filtering-and-transforming-data.qmd
+        - chapters/15-summarising-and-grouping-data.qmd
+
+    - part: "Part 4: Seeing and Communicating Insight"
+      chapters:
+        - chapters/16-data-visualization.qmd
+        - chapters/17-clarity-and-control.qmd
+        - chapters/18-communication-from-plots-to-story.qmd
+
+    - part: "Part 5: Reproducible, Collaborative, and Scalable Workflows"
+      chapters:
+        - chapters/19-reproducible-reports-with-quarto.qmd
+        - chapters/20-data-connections.qmd
+        - chapters/21-collaboration-and-version-control.qmd
+        - chapters/22-from-functions-to-packages.qmd
+        - chapters/23-reliability-and-automation.qmd
+        - chapters/24-performance-and-scale.qmd
+        - chapters/25-final-integration-project.qmd
+
+    - references.qmd
+
+bibliography: references.bib
+csl: assets/apa.csl
+
+citation-location: document
+reference-location: document
+
+crossref:
+  chapters: true
+  fig-title: "Figure"
+  tbl-title: "Table"
+  fig-prefix: "Figure"
+  tbl-prefix: "Table"
+  sec-prefix: "Section"
+
+execute:
+  echo: true
+  warning: false
+  message: false
+  error: false
+  freeze: auto
+
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.align: "center"
+    fig.width: 7
+    fig.height: 5
+    out.width: "90%"
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    css: assets/styles.css
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-copy: true
+    code-overflow: wrap
+    fig-cap-location: bottom
+    callout-appearance: simple
+    code-link: true
+    code-fold: true
+    code-tools: true
+    df-print: paged
+    anchor-sections: true
+    smooth-scroll: true    
+    include-after-body:
+      text: |
+        <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          document.querySelectorAll("figcaption.quarto-float-caption, figcaption.figure-caption").forEach(function (cap) {
+            if (cap.querySelector(".figure-label-bold")) return;
+
+            cap.innerHTML = cap.innerHTML.replace(
+              /^\s*(Figure(?:&nbsp;|&#160;|\u00a0|\s)+\d+(?:\.\d+)*:)\s*/i,
+              '<span class="figure-label-bold">$1</span> '
+            );
+          });
+        });
+        </script>
+
+  pdf:
+    documentclass: scrreprt
+    papersize: a4
+    geometry:
+      - top=1in
+      - bottom=1in
+      - left=0.9in
+      - right=0.9in
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    colorlinks: true
+    fig-width: 6.5
+    fig-height: 4.5
+    fig-cap-location: bottom
+    include-in-header:
+      text: |
+        \usepackage{microtype}
+        \usepackage{fvextra}
+        \usepackage{caption}
+        \usepackage{chngcntr}
+        \captionsetup[figure]{labelfont=bf,textfont=normalfont,labelsep=colon}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+
+  epub:
+    cover-image: assets/cover.png
+    css: assets/epub.css
+    toc: true
+    toc-depth: 3
+    number-sections: true

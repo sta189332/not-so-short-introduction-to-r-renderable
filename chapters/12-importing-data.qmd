@@ -1,0 +1,625 @@
+---
+title: "Importing Data: From Files on Disk to Objects R Can Work With"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{12.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{12.\arabic{table}}
+\setcounter{table}{0}
+```
+
+## Opening Scene: The File Leo Can See but R Cannot Yet Use
+
+Leo has just crossed an important threshold.
+
+In Part 2, he learned how R speaks. He learned that code has structure, that logic turns conditions into judgments, that built-in functions are ready-made actions, and that repeated rules can be given names of their own.
+
+Then Part 3 began.
+
+Chapter 11 showed him that serious R work does not depend on language alone. A real workflow also needs tools. Some tools help R read files. Some help inspect data. Some help clean names, work with dates, handle text, transform columns, summarise groups, and record the computational setup.
+
+Now the tools are ready.
+
+Leo looks inside the project folder and sees this file:
+
+```text
+df_r_migration_messy.csv
+```
+
+He can open it in a spreadsheet program. Rows and columns appear. He can see learner IDs, countries, backgrounds, study hours, project scores, completion status, dates, tool-use indicators, and notes.
+
+It feels as if the data are already available.
+
+But R cannot analyse a file simply because Leo can see it on the screen.
+
+The file is still outside R. It is stored on disk. R needs to be told where the file is, how to read it, and what object name should hold the imported result.
+
+That is the first serious lesson of this chapter:
+
+> Importing data is not just opening a file. It is the act of turning an external file into an R object that must be located, read, inspected, and verified before analysis.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+In this chapter, Leo learns how to move data from a CSV file into R without losing control of the workflow. He will learn the difference between a file, a path, and an object; how to use project-relative paths; how to import the official raw dataset; how to inspect what arrived; and why importing data is not the same as trusting it.
+
+This chapter does not teach full cleaning. That work begins in Chapter 13.
+:::
+
+## What Changed After Chapter 11
+
+Chapter 11 prepared Leo’s tools. It showed that packages are not random add-ons. They are selected because a workflow needs them.
+
+For this chapter, one package matters especially: `readr`. It provides `read_csv()`, a clear and modern way to import CSV files into R. Base R can also import CSV files with `read.csv()`. In this book’s Part 3 workflow, Leo will mainly use `readr::read_csv()` because it gives clear import messages, works well with the workflow tools introduced in Chapter 11, and fits the book’s movement toward reproducible analysis.
+
+This book continues to use both Base R and tidyverse tools deliberately. Base R helps explain how R works internally. Tidyverse tools help express common workflow tasks clearly and consistently.
+
+The Chapter 11 principle still holds:
+
+> Base R teaches the structure of the language. Tidyverse teaches workflow fluency. Serious R users eventually understand both.
+
+In Chapter 12, the practical issue is simple: Leo needs a reliable way to bring the official CSV file into R, inspect it, and keep the raw evidence protected.
+
+## The Part 3 Workflow So Far
+
+Part 3 follows a practical workflow path:
+
+```text
+Packages -> Import -> Inspect -> Clean -> Transform -> Summarise
+```
+
+Chapter 11 prepared the tools. Chapter 12 now handles the first data movement: import.
+
+The workflow has not reached cleaning yet. Leo is not correcting country names, fixing date formats, recoding logical fields, or removing duplicate records in this chapter. He is learning how to make the data enter R in a way that can be checked.
+
+That order matters. If the import is unclear, every later step becomes fragile.
+
+## The Official Dataset for This Book
+
+The official dataset for Part 3 is:
+
+```text
+df_r_migration_messy.csv
+```
+
+In the project workflow, the raw file should live here:
+
+```text
+data/raw/df_r_migration_messy.csv
+```
+
+To follow Leo’s workflow on your own machine, download the raw teaching dataset here:
+
+[Download `df_r_migration_messy.csv`](../data/raw/df_r_migration_messy.csv){download="df_r_migration_messy.csv"}
+
+If a local preview opens the CSV in the browser because it is a plain-text file, use your browser’s **Save As** or **Save Link As** option. In many published HTML versions, the download attribute encourages the browser to treat the link as a downloadable file. If the CSV still opens in a browser tab, use Save As or Save Link As to save it locally.
+
+The path used in the download link is for the rendered book. The path used inside the R code below is the project-relative path R should follow from the project root. @tbl-official-dataset-overview summarises the official raw dataset before Leo imports it.
+
+| Item | Detail |
+|---|---|
+| File name | `df_r_migration_messy.csv` |
+| File type | CSV file |
+| Project location | `data/raw/df_r_migration_messy.csv` |
+| Rows | 650 |
+| Columns | 28 |
+| Unit of observation | One recorded learner observation within the R migration learning journey |
+| Purpose in the book | A deliberately messy raw dataset for teaching import, inspection, cleaning, transformation, and summary |
+
+: Overview of the official raw teaching dataset {#tbl-official-dataset-overview}
+
+The dataset contains `650` rows and `28` columns. The columns are:
+
+`learner_id`, `learner_name`, `country`, `region`, `job_role`, `industry`, `background`, `excel_years`, `r_experience_level`, `enrolment_date`, `first_login_date`, `week`, `study_hours`, `lessons_completed`, `confidence_score`, `pre_assessment_score`, `project_score`, `first_script_completed`, `used_rstudio`, `used_quarto`, `used_git`, `used_renv`, `preferred_learning_mode`, `monthly_income_band`, `completion_status`, `manager_support`, `notes`, `payment_probability_score`.
+
+The dataset tells a simple learning story. The file follows learners moving from spreadsheet-heavy or reporting-heavy backgrounds into R-based data work. Each row should be read as a recorded learner observation within that learning journey, not as a guarantee that every learner appears only once. It records personal and learning-context fields such as `learner_id`, `country`, `region`, `job_role`, `industry`, and `background`; progress indicators such as `week`, `study_hours`, `lessons_completed`, `confidence_score`, `pre_assessment_score`, and `project_score`; tool-use fields such as `used_rstudio`, `used_quarto`, `used_git`, and `used_renv`; and outcome or context fields such as `completion_status`, `manager_support`, `notes`, and `payment_probability_score`.
+
+The file is intentionally messy. That is not a flaw in the book. It is the teaching engine for Part 3.
+
+A perfectly clean teaching file would make import look easy, but it would hide the work that real analysts actually face. Real datasets often contain inconsistent capitalisation, extra spaces, missing-like values, mixed date formats, duplicated identifiers, and values that look suspicious only after careful inspection.
+
+This file includes those kinds of problems. Initial inspection shows:
+
+- text fields such as `country`, `industry`, `background`, `job_role`, and `completion_status` contain inconsistent capitalisation or extra spaces;
+- logical fields such as `first_script_completed`, `used_rstudio`, `used_quarto`, `used_git`, `used_renv`, and `manager_support` are encoded in several ways, including values such as `TRUE`, `FALSE`, `Yes`, `No`, `Y`, `N`, `1`, and `0`;
+- date fields such as `enrolment_date` and `first_login_date` appear in more than one format;
+- missing-like values appear especially in `first_login_date`, `confidence_score`, `project_score`, and `notes`;
+- there are repeated learner IDs, and learner-week records will need careful checking later;
+- `study_hours` includes a suspicious negative value that should not be ignored.
+
+Chapter 12 does not fix those problems. It teaches Leo how to bring the file into R and inspect what arrived. Chapter 13 will ask what to do with the problems once they are visible.
+
+## File, Path, and Object Are Not the Same Thing
+
+Many importing problems begin with one small confusion: the learner sees a file and assumes R can see it too.
+
+R does not work from human eyesight. For file-based workflows, R works from paths and objects.
+
+| Concept | Meaning | Example |
+|---|---|---|
+| File | The actual dataset stored on disk. | `df_r_migration_messy.csv` |
+| Path | The address R follows to find the file. | `data/raw/df_r_migration_messy.csv` |
+| Object | The version of the data R holds in memory after import. | `raw_migration` |
+
+: Common file, path, and object distinctions {#tbl-file-path-object-distinction}
+
+The distinction in @tbl-file-path-object-distinction is one of the most important ideas in this chapter because many import errors begin when these three ideas are treated as the same thing.
+
+A **file** can sit in a folder without being available inside R.
+
+A **path** tells R where to look for the file.
+
+An **object** is created only after R reads the file and stores the result in memory.
+
+So when Leo writes this:
+
+```{r}
+#| eval: false
+raw_migration <- readr::read_csv("data/raw/df_r_migration_messy.csv")
+```
+
+three things are happening.
+
+First, the quoted text gives R the path to the file. Second, `readr::read_csv()` reads the CSV file. Third, the assignment operator `<-` stores the imported result as an object called `raw_migration`.
+
+That object is what R can inspect, count, print, and later clean.
+
+## A Small Visual Map of Importing
+
+The movement from file to object is easier to understand when Leo sees the whole import chain at once.
+
+```{r}
+#| label: fig-file-path-object-import
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4.2
+#| fig-align: center
+#| fig-cap: "From File on Disk to Object in R"
+
+old_par <- par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i", lend = "round")
+plot.new()
+plot.window(xlim = c(0, 14), ylim = c(0, 7), asp = 1)
+
+draw_box <- function(x, y, w, h, label, fill_col = "#c9c8ff",
+                     cex = 0.70, font = 2, lwd = 1.2,
+                     border_col = "#222222") {
+  fill <- adjustcolor(fill_col, alpha.f = 0.28)
+
+  rect(
+    xleft = x,
+    ybottom = y,
+    xright = x + w,
+    ytop = y + h,
+    col = fill,
+    border = border_col,
+    lwd = lwd
+  )
+
+  text(
+    x = x + w / 2,
+    y = y + h / 2,
+    labels = label,
+    cex = cex,
+    font = font
+  )
+}
+
+draw_arrow <- function(x0, y0, x1, y1, lwd = 1.3) {
+  arrows(
+    x0 = x0,
+    y0 = y0,
+    x1 = x1,
+    y1 = y1,
+    length = 0.08,
+    lwd = lwd
+  )
+}
+
+# Title
+text(
+  x = 7,
+  y = 6.55,
+  labels = "Importing turns stored evidence into an object R can inspect",
+  cex = 1.0,
+  font = 2
+)
+
+# Main boxes
+draw_box(
+  x = 0.65,
+  y = 4.20,
+  w = 2.45,
+  h = 0.82,
+  label = "File on disk\ndf_r_migration_messy.csv",
+  fill_col = "#eeeeee",
+  cex = 0.58
+)
+
+draw_box(
+  x = 3.55,
+  y = 4.20,
+  w = 2.55,
+  h = 0.82,
+  label = "Path\ndata/raw/...",
+  fill_col = "#c9c8ff",
+  cex = 0.60
+)
+
+draw_box(
+  x = 6.55,
+  y = 4.20,
+  w = 2.35,
+  h = 0.82,
+  label = "Import action\nreadr::read_csv()",
+  fill_col = "#ffd6b5",
+  cex = 0.58
+)
+
+draw_box(
+  x = 9.35,
+  y = 4.20,
+  w = 2.15,
+  h = 0.82,
+  label = "R object\nraw_migration",
+  fill_col = "#c8efd2",
+  cex = 0.62
+)
+
+draw_box(
+  x = 11.95,
+  y = 4.20,
+  w = 1.70,
+  h = 0.82,
+  label = "Inspect\nbefore trust",
+  fill_col = "#eeeeee",
+  cex = 0.56
+)
+
+# Arrows
+draw_arrow(3.18, 4.61, 3.47, 4.61)
+draw_arrow(6.18, 4.61, 6.47, 4.61)
+draw_arrow(8.98, 4.61, 9.27, 4.61)
+draw_arrow(11.58, 4.61, 11.87, 4.61)
+
+# Bottom explanatory boxes
+draw_box(
+  x = 1.30,
+  y = 2.10,
+  w = 3.30,
+  h = 0.70,
+  label = "A visible file is not yet data in R.",
+  fill_col = "#eeeeee",
+  cex = 0.62,
+  font = 2
+)
+
+draw_box(
+  x = 5.35,
+  y = 2.10,
+  w = 3.40,
+  h = 0.70,
+  label = "The path tells R where to look.",
+  fill_col = "#eeeeee",
+  cex = 0.62,
+  font = 2
+)
+
+draw_box(
+  x = 9.45,
+  y = 2.10,
+  w = 3.25,
+  h = 0.70,
+  label = "The object is what R can use.",
+  fill_col = "#eeeeee",
+  cex = 0.62,
+  font = 2
+)
+
+# Reliable analysis reminder
+draw_box(
+  x = 3.20,
+  y = 0.75,
+  w = 7.60,
+  h = 0.62,
+  label = "Import first. Inspect next. Clean only after the problems are visible.",
+  fill_col = "#c8efd2",
+  cex = 0.66,
+  font = 2
+)
+
+par(old_par)
+```
+
+As shown in @fig-file-path-object-import, importing is a controlled transition from external storage into R’s working memory. The important idea is not the function itself, but the sequence: locate the file, import it deliberately, then verify what arrived before continuing with analysis.
+
+## Project-Relative Paths
+
+Leo could import a file by writing a full path such as:
+
+```text
+C:/Users/Leo/Documents/RBook/data/raw/df_r_migration_messy.csv
+```
+
+That may work on Leo’s computer, but it is a poor habit for a reproducible project. The path is tied to one machine, one username, and one folder arrangement.
+
+A project-relative path is better:
+
+```text
+data/raw/df_r_migration_messy.csv
+```
+
+This path starts from the project root. It tells R to look inside the project folder, then inside `data`, then inside `raw`, then for the CSV file.
+
+That kind of path is easier to share, easier to render, and easier to explain.
+
+::: {.callout-tip appearance="simple" title="Project Habit"}
+Keep raw data inside the project, usually in a folder such as `data/raw/`. Then refer to it with a project-relative path.
+
+A path that works only on one computer is not a workflow. It is a local accident waiting to happen.
+:::
+
+Before importing, Leo can check whether the file exists:
+
+```{r}
+#| eval: false
+file.exists("data/raw/df_r_migration_messy.csv")
+```
+
+If R returns `TRUE`, the file is where the code expects it to be. If R returns `FALSE`, Leo should not continue blindly. He should check the file name, folder name, spelling, capitalisation, and working directory.
+
+## Importing the CSV File
+
+The main import code for this chapter is short. In the rendered book, some import chunks are shown without being evaluated so that the chapter can render safely even before a reader has copied the dataset into the project folder.
+
+```{r}
+#| eval: false
+#| message: false
+raw_migration <- readr::read_csv("data/raw/df_r_migration_messy.csv")
+```
+
+This line should be read slowly.
+
+`readr::read_csv()` is the import function. The path inside quotation marks tells R where the file is. The object name `raw_migration` tells R where to store the imported result.
+
+The name `raw_migration` is intentional. It reminds Leo that this is the raw import, not a cleaned analysis dataset.
+
+A beginner may be tempted to call the object `df_r_migration` immediately. That is not wrong by itself, but this book keeps the first imported object visibly raw. Later, Chapter 13 will create a working copy for cleaning.
+
+```{r}
+#| eval: false
+raw_migration <- readr::read_csv("data/raw/df_r_migration_messy.csv")
+
+# Later, when cleaning begins:
+df_r_migration <- raw_migration
+```
+
+The second line is shown only as a preview. In Chapter 13, `df_r_migration` becomes the working copy used for cleaning and preparation, while `raw_migration` remains the untouched imported evidence. Chapter 12 imports and inspects. Chapter 13 decides what to change.
+
+## A Base R Import Option
+
+Base R can also import CSV files:
+
+```{r}
+#| eval: false
+raw_migration_base <- read.csv("data/raw/df_r_migration_messy.csv")
+```
+
+This is useful to know because Base R is always available with R.
+
+In this book’s Part 3 workflow, however, Leo will mainly use `readr::read_csv()` for the official dataset. That choice is about consistent workflow practice, not about declaring one approach superior. Base R helps Leo understand R’s structure. The tidyverse family helps him express common data-workflow steps clearly.
+
+## Seeing What Came In
+
+After importing, Leo should inspect the object immediately.
+
+A common beginner mistake is to import a file and then rush into analysis. That is risky. The file may have imported with unexpected column types, missing values, date problems, strange column names, duplicated IDs, or values that should not be possible.
+
+The first inspection can be simple:
+
+```{r}
+#| eval: false
+names(raw_migration)
+```
+
+```{r}
+#| eval: false
+dim(raw_migration)
+```
+
+```{r}
+#| eval: false
+str(raw_migration)
+```
+
+```{r}
+#| eval: false
+head(raw_migration)
+```
+
+These functions ask different inspection questions.
+
+`names()` asks: what are the column names?
+
+`dim()` asks: how many rows and columns arrived?
+
+`str()` asks: what is the internal structure of the object?
+
+`head()` asks: what do the first few rows look like?
+
+Leo should not expect these checks to solve the data problems. Their purpose is to reveal how R interpreted the file.
+
+## Inspecting the Official Dataset
+
+When Leo imports the CSV and inspects the resulting object, `raw_migration`, several things should become clear.
+
+First, the dataset has `650` rows and `28` columns. If his import returns a very different shape, something has gone wrong.
+
+Second, the column names should match the official list. A missing column or a strange extra column may suggest a file problem, an import problem, or an accidental edit.
+
+Third, the data should still look raw. That is expected. Raw data are expected to contain inconsistencies. The analyst’s responsibility is to inspect them before analysis begins.
+
+Here are the checks Leo should run after import:
+
+```{r}
+#| eval: false
+dim(raw_migration)
+names(raw_migration)
+```
+
+He can also inspect selected columns without cleaning them:
+
+```{r}
+#| eval: false
+unique(raw_migration$completion_status)
+unique(raw_migration$first_script_completed)
+head(raw_migration$enrolment_date)
+summary(raw_migration$study_hours)
+```
+
+These lines are not cleaning steps. They are questions. They help Leo see why Chapter 13 will be necessary.
+
+## Import Messages Are Part of the Evidence
+
+When `readr::read_csv()` imports a file, it often reports what it found. It may show how many rows and columns were read. It may describe column types. It may tell Leo whether the parser made assumptions.
+
+Beginners sometimes ignore those messages because they look technical. That is understandable, but it is not a good professional habit.
+
+Import messages are not decoration. They are early evidence about how R interpreted the file.
+
+If R says a date column came in as character, Leo should notice. If R says a score column came in as character, he should pause. If the number of rows or columns does not match expectation, he should stop and investigate.
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+Importing is not verification. A file becomes useful only after R reads it and the analyst inspects what came in.
+:::
+
+## Protecting the Raw Data
+
+The file in `data/raw/` should be treated as evidence.
+
+Leo should not open the raw CSV in a spreadsheet program, edit cells manually, save the file again, and then continue as if nothing changed. That breaks the trail between the original file and the analysis.
+
+A better workflow is:
+
+```text
+data/raw/       original raw file
+data/processed/ cleaned or prepared version
+```
+
+Chapter 12 is concerned with `data/raw/`. Chapter 13 will create a cleaned or prepared result later.
+
+For now, Leo should keep the rule simple:
+
+> Raw data should be imported and inspected, not manually edited into silence.
+
+## Common Beginner Mistakes
+
+### Mistake 1: Confusing the file name with the object name
+
+The file is called:
+
+```text
+df_r_migration_messy.csv
+```
+
+The imported object may be called:
+
+```r
+raw_migration
+```
+
+Those are not the same thing.
+
+The file sits on disk. The object lives inside R after import.
+
+### Mistake 2: Forgetting quotation marks around the path
+
+This will not work:
+
+```{r}
+#| eval: false
+readr::read_csv(data/raw/df_r_migration_messy.csv)
+```
+
+R needs the path as text:
+
+```{r}
+#| eval: false
+readr::read_csv("data/raw/df_r_migration_messy.csv")
+```
+
+The quotation marks tell R that the path is a character value, not a set of object names and operators.
+
+### Mistake 3: Using an absolute path
+
+This may work on one computer:
+
+```text
+C:/Users/Leo/Downloads/df_r_migration_messy.csv
+```
+
+But it will usually fail somewhere else.
+
+Project-relative paths make a workflow more portable.
+
+### Mistake 4: Importing from the Downloads folder
+
+The Downloads folder is temporary storage, not a reproducible project structure. Before importing, move the file into the project, preferably:
+
+```text
+data/raw/df_r_migration_messy.csv
+```
+
+### Mistake 5: Assuming import means clean
+
+Importing only brings the file into R. It does not standardise text, repair dates, recode logical values, remove duplicates, or explain suspicious values.
+
+Those are later tasks.
+
+### Mistake 6: Overwriting the raw file
+
+The raw file should remain untouched. If Leo creates a cleaned version later, it should be saved separately.
+
+## What Leo Is Expected to Know at This Point
+
+By the end of this chapter, Leo should be able to explain the import workflow in plain language.
+
+He should know that a file on disk is not the same as an object in R. He should understand that a path is how R finds a file. He should be able to import the official CSV with a project-relative path. He should know why the first imported object is called `raw_migration`. Most importantly, he should know that inspection comes before trust.
+
+::: {.callout-note appearance="simple" title="Not Yet"}
+Leo is not expected to clean the dataset yet. He is not expected to fix dates, recode categories, standardise text, remove duplicates, or decide what to do with suspicious values.
+
+Those tasks belong to Chapter 13. Chapter 12 ends once Leo knows how to bring the raw file into R and inspect its condition before cleaning begins.
+:::
+
+## Chapter Outcome
+
+Chapter 12 has moved Leo from tool preparation to data entry.
+
+He now understands that importing data is a controlled movement:
+
+```text
+file on disk -> path -> import function -> R object -> inspection
+```
+
+That movement is small, but it changes the workflow. Data is no longer something Leo merely sees in a file. It is now something R can hold, inspect, and prepare for the next stage.
+
+The official raw dataset, `df_r_migration_messy.csv`, has entered the book’s workflow. It is deliberately imperfect, which makes it useful for learning. It will give Leo realistic practice with messy categories, missing-like values, varied dates, mixed logical encodings, duplicate identifiers, and suspicious numeric values.
+
+But he should not repair those issues yet.
+
+First he had to bring the evidence into R without damaging it.
+
+That workflow step is now clear.
+
+## Transition to Chapter 13
+
+The import step has revealed enough to make the next chapter necessary.
+
+Leo can see the object. He can inspect its names, dimensions, structure, and first rows. He can see signs of inconsistent text, missing values, mixed date formats, repeated learner IDs, and suspicious values.
+
+Now the harder question begins:
+
+> What should Leo do when the imported data are inconsistent, incomplete, duplicated, or suspicious?
+
+::: {.callout-tip appearance="simple" title="Ready for Cleaning"}
+Leo can now bring the raw dataset into R and inspect what arrived. Chapter 13 begins the next stage: cleaning and preparing the evidence without hiding what changed.
+:::

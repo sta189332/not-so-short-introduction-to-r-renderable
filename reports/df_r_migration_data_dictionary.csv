@@ -1,0 +1,29 @@
+column,description
+learner_id,Unique learner ID
+learner_name,Synthetic learner name
+country,Country
+region,Region
+job_role,Job role
+industry,Industry
+background,Background
+excel_years,Years of Excel experience
+r_experience_level,R experience level
+enrolment_date,Enrolment date
+first_login_date,First login date
+week,Week
+study_hours,Study hours
+lessons_completed,Lessons completed
+confidence_score,Confidence score
+pre_assessment_score,Pre-assessment score
+project_score,Project score
+first_script_completed,First script completed
+used_rstudio,Used RStudio
+used_quarto,Used Quarto
+used_git,Used Git
+used_renv,Used renv
+preferred_learning_mode,Learning mode
+monthly_income_band,Income band
+completion_status,Payment probability
+manager_support,Completion status
+notes,Manager support
+payment_probability_score,Notes

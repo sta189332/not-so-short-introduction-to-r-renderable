@@ -1,0 +1,1567 @@
+---
+title: "Data Visualization: Turning Patterns into Pictures"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{16.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{16.\arabic{table}}
+\setcounter{table}{0}
+```
+
+```{r}
+#| label: setup-chapter-16
+#| include: false
+
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(ggplot2)
+  library(tibble)
+  library(knitr)
+})
+
+chapter16_find_first_existing <- function(paths) {
+  existing <- paths[file.exists(paths)]
+  if (length(existing) == 0) {
+    return(NA_character_)
+  }
+  existing[[1]]
+}
+
+chapter16_standardise_text <- function(x) {
+  x <- as.character(x)
+  x <- trimws(x)
+  x[x %in% c("", "NA", "N/A", "missing", "not available")] <- NA_character_
+  tools::toTitleCase(tolower(x))
+}
+
+chapter16_to_logical <- function(x) {
+  if (is.logical(x)) {
+    return(x)
+  }
+  x <- tolower(trimws(as.character(x)))
+  dplyr::case_when(
+    x %in% c("true", "yes", "y", "1", "completed", "complete") ~ TRUE,
+    x %in% c("false", "no", "n", "0", "not completed", "incomplete", "stopped", "in progress") ~ FALSE,
+    TRUE ~ NA
+  )
+}
+
+chapter16_to_number <- function(x) {
+  suppressWarnings(as.numeric(x))
+}
+
+chapter16_build_df_analysis <- function(source_df) {
+  source_df <- source_df |>
+    mutate(
+      across(
+        any_of(c(
+          "country", "region", "job_role", "industry", "background",
+          "r_experience_level", "completion_status",
+          "preferred_learning_mode", "monthly_income_band"
+        )),
+        chapter16_standardise_text
+      ),
+      across(
+        any_of(c(
+          "excel_years", "week", "study_hours", "lessons_completed",
+          "confidence_score", "pre_assessment_score", "project_score",
+          "payment_probability_score"
+        )),
+        chapter16_to_number
+      ),
+      across(
+        any_of(c(
+          "first_script_completed", "used_rstudio", "used_quarto",
+          "used_git", "used_renv", "manager_support"
+        )),
+        chapter16_to_logical
+      )
+    )
+
+  source_df |>
+    select(
+      any_of(c(
+        "learner_id", "country", "region", "job_role", "industry",
+        "background", "r_experience_level", "week", "study_hours",
+        "lessons_completed", "confidence_score", "pre_assessment_score",
+        "project_score", "completion_status", "first_script_completed",
+        "used_rstudio", "used_quarto", "used_git", "used_renv",
+        "preferred_learning_mode", "monthly_income_band",
+        "manager_support", "payment_probability_score"
+      ))
+    ) |>
+    filter(
+      !is.na(study_hours),
+      !is.na(pre_assessment_score),
+      !is.na(project_score),
+      study_hours >= 0,
+      project_score >= 0,
+      project_score <= 100
+    ) |>
+    mutate(
+      high_project_score = project_score >= 80,
+      score_gap = project_score - pre_assessment_score,
+      study_band = case_when(
+        is.na(study_hours) ~ NA_character_,
+        study_hours < 4 ~ "Low study time",
+        study_hours < 8 ~ "Moderate study time",
+        TRUE ~ "High study time"
+      )
+    )
+}
+
+if (!exists("df_analysis")) {
+  df_analysis_rds <- chapter16_find_first_existing(c(
+    "data/processed/df_analysis.rds",
+    "datasets/processed/df_analysis.rds",
+    "../datasets/processed/df_analysis.rds"
+  ))
+
+  df_analysis_csv <- chapter16_find_first_existing(c(
+    "data/processed/df_analysis.csv",
+    "datasets/processed/df_analysis.csv",
+    "../datasets/processed/df_analysis.csv"
+  ))
+
+  prepared_rds <- chapter16_find_first_existing(c(
+    "data/processed/df_r_migration_prepared.rds",
+    "data/processed/df_r_migration_clean.rds",
+    "datasets/processed/df_r_migration_prepared.rds",
+    "datasets/processed/df_r_migration_clean.rds",
+    "../datasets/processed/df_r_migration_prepared.rds",
+    "../datasets/processed/df_r_migration_clean.rds"
+  ))
+
+  raw_csv <- chapter16_find_first_existing(c(
+    "data/raw/df_r_migration_messy.csv",
+    "datasets/raw/df_r_migration_messy.csv",
+    "../datasets/raw/df_r_migration_messy.csv"
+  ))
+
+  if (!is.na(df_analysis_rds)) {
+    df_analysis <- readRDS(df_analysis_rds)
+  } else if (!is.na(df_analysis_csv)) {
+    df_analysis <- read.csv(
+      df_analysis_csv,
+      stringsAsFactors = FALSE,
+      na.strings = c("", "NA", "N/A", "missing", "not available")
+    )
+  } else if (!is.na(prepared_rds)) {
+    df_analysis <- chapter16_build_df_analysis(readRDS(prepared_rds))
+  } else if (!is.na(raw_csv)) {
+    raw_for_analysis <- read.csv(
+      raw_csv,
+      stringsAsFactors = FALSE,
+      na.strings = c("", "NA", "N/A", "missing", "not available")
+    )
+    df_analysis <- chapter16_build_df_analysis(raw_for_analysis)
+
+    dir.create("data/processed", recursive = TRUE, showWarnings = FALSE)
+    saveRDS(df_analysis, "data/processed/df_analysis.rds")
+    write.csv(df_analysis, "data/processed/df_analysis.csv", row.names = FALSE)
+  } else {
+    stop(
+      "Chapter 16 requires the Part 3 analysis handoff. ",
+      "Provide data/processed/df_analysis.rds, data/processed/df_analysis.csv, ",
+      "or the source file data/raw/df_r_migration_messy.csv so df_analysis can be rebuilt."
+    )
+  }
+}
+
+text_columns <- intersect(
+  c(
+    "country", "region", "job_role", "industry", "background",
+    "r_experience_level", "completion_status", "preferred_learning_mode",
+    "manager_support", "monthly_income_band"
+  ),
+  names(df_analysis)
+)
+
+numeric_columns <- intersect(
+  c(
+    "excel_years", "week", "study_hours", "lessons_completed",
+    "confidence_score", "pre_assessment_score", "project_score",
+    "payment_probability_score"
+  ),
+  names(df_analysis)
+)
+
+logical_columns <- intersect(
+  c("first_script_completed", "used_rstudio", "used_quarto", "used_git", "used_renv"),
+  names(df_analysis)
+)
+
+df_analysis <- df_analysis |>
+  mutate(across(all_of(text_columns), chapter16_standardise_text)) |>
+  mutate(across(all_of(numeric_columns), chapter16_to_number)) |>
+  mutate(across(all_of(logical_columns), chapter16_to_logical))
+
+if (!"study_band" %in% names(df_analysis) && "study_hours" %in% names(df_analysis)) {
+  df_analysis <- df_analysis |>
+    mutate(
+      study_band = case_when(
+        is.na(study_hours) ~ NA_character_,
+        study_hours < 4 ~ "Low study time",
+        study_hours < 8 ~ "Moderate study time",
+        TRUE ~ "High study time"
+      )
+    )
+}
+
+if (!"score_gap" %in% names(df_analysis) &&
+    all(c("project_score", "pre_assessment_score") %in% names(df_analysis))) {
+  df_analysis <- df_analysis |>
+    mutate(score_gap = project_score - pre_assessment_score)
+}
+
+if (!"high_project_score" %in% names(df_analysis) &&
+    "project_score" %in% names(df_analysis)) {
+  df_analysis <- df_analysis |>
+    mutate(high_project_score = project_score >= 80)
+}
+
+required_plot_columns <- c(
+  "background", "week", "study_hours", "lessons_completed",
+  "confidence_score", "project_score"
+)
+
+missing_plot_columns <- setdiff(required_plot_columns, names(df_analysis))
+if (length(missing_plot_columns) > 0) {
+  stop(
+    "Chapter 16 cannot build the visualisation examples because df_analysis is missing: ",
+    paste(missing_plot_columns, collapse = ", ")
+  )
+}
+
+df_plot <- df_analysis |>
+  filter(if_all(all_of(required_plot_columns), ~ !is.na(.x)))
+
+if ("completion_status" %in% names(df_plot)) {
+  df_plot <- df_plot |>
+    mutate(
+      completed_flag = case_when(
+        tolower(completion_status) %in% c("completed", "complete", "yes", "y", "true", "1") ~ TRUE,
+        tolower(completion_status) %in% c("stopped", "in progress", "not completed", "incomplete", "no", "n", "false", "0") ~ FALSE,
+        TRUE ~ NA
+      )
+    )
+}
+```
+
+## Opening Scene: When the Table Stops Being Enough
+
+Leo has reached an important point in the workflow.
+
+In Chapter 11, he learned that serious R work depends on tools as well as language. In Chapter 12, he moved the project dataset from a file on disk into an R object. In Chapter 13, he learned that imported data must be inspected and prepared before analysis. In Chapter 14, he selected, filtered, and transformed rows into an analysis-ready form. In Chapter 15, he grouped and summarised those rows so that many observations could speak together.
+
+That is real progress.
+
+For the first time, Leo can ask questions and get evidence back.
+
+He can write:
+
+```{r}
+#| label: tbl-16-first-grouped-summary
+#| tbl-cap: "First Grouped Summary Used to Motivate Visualisation"
+#| lst-label: lst-chapter16-first-summary
+#| lst-cap: "Code for the First Grouped Summary Used to Motivate Visualisation"
+
+df_analysis |>
+  group_by(background) |>
+  summarise(
+    learners = n(),
+    avg_project_score = mean(project_score, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  knitr::kable()
+```
+
+The code in @lst-chapter16-first-summary creates @tbl-16-first-grouped-summary, the first grouped summary used to motivate visualisation.
+
+It is useful. It is precise. It is also slightly unsatisfying.
+
+Leo reads the rows. He compares the numbers. He moves his eyes from one category to another. He holds one average in memory while checking another. He starts to understand the pattern, but the pattern has not yet become visible.
+
+That is the moment Chapter 16 begins.
+
+A summary tells Leo what happened. A plot helps him see how the pattern behaves.
+
+The difference matters because professional analysis does not end with correct numbers. Other people must be able to inspect the evidence, notice the comparison, question the pattern, and understand the result without fighting the format.
+
+The central idea of this chapter is simple:
+
+> A good plot is not decoration. It is a visual argument built from data, mappings, layers, scales, and design choices.
+
+This chapter opens Part 4 by moving Leo from data manipulation into visual evidence. Chapter 17 will later help him refine that evidence for clarity and control. Chapter 18 will help him connect plots into a fuller story. For now, the work is more fundamental: Leo needs to learn how a plot is built.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+In this chapter, Leo learns how to turn analysis-ready data into visual evidence. He will meet base R graphics, recognise other plotting systems he may encounter, and then focus on `ggplot2` because it gives him a grammar for building plots from data, mappings, layers, scales, facets, themes, and coordinates.
+:::
+
+
+## Data Handoff from Part 3
+
+Part 4 does not restart from the raw file. It continues from the analysis-ready object created in Chapter 14 and carried through Chapter 15:
+
+```r
+df_analysis
+```
+
+The raw file, `df_r_migration_messy.csv`, remains the source evidence. But the visualisation chapters use the shaped data because plotting should follow the same evidence trail Leo has already built.
+
+To follow the Part 4 examples on his own machine, Leo needs the reusable analysis-ready dataset created during the Chapter 15 handoff step. The dataset is available in both CSV and Excel formats:
+
+[Download `df_analysis.csv`](../datasets/processed/df_analysis.csv){download="df_analysis.csv"}
+
+[Download `df_analysis.xlsx`](../datasets/processed/df_analysis.xlsx){download="df_analysis.xlsx"}
+
+
+Place the CSV version in this project location before rendering Chapters 16 to 18:
+
+```text
+data/processed/df_analysis.csv
+```
+
+If that processed file is not present but the raw teaching dataset is available at `data/raw/df_r_migration_messy.csv`, the setup chunk in this chapter rebuilds `df_analysis` using the same Part 3 selection, filtering, and transformation logic. That fallback exists for renderability; conceptually, the visualisation object remains `df_analysis`, not the raw dataset.
+
+::: {.callout-important appearance="simple" title="Why Chapter 16 uses df_analysis"}
+Visualisation should not silently return to raw data after the book has already taught import, cleaning, shaping, and summarising. The correct object for Part 4 is `df_analysis`, because it is the analysis-ready table produced by the Part 3 workflow.
+:::
+
+
+## Why Visualization Comes After Preparation
+
+A plot looks immediate. R draws it quickly, sometimes with one line of code.
+
+That speed can mislead beginners.
+
+Visualization should not be treated as the first step in analysis. It depends on everything Leo has already learned. A plot is only as trustworthy as the data behind it.
+
+If `project_score` is still stored as text, a scatter plot will fail or mislead. If `completion_status` contains `"Completed"`, `"completed "`, `"COMPLETE"`, and `"Yes"` as separate categories, a bar chart will split one idea into several bars. If missing values have not been recognised, a plot may quietly remove rows. If rows are duplicated, a count plot may exaggerate a group.
+
+So visualization comes after importing, cleaning, transforming, and summarising because plotting does not repair weak evidence. It reveals the consequences of earlier decisions.
+
+Chapter 16 therefore continues the same evidence trail:
+
+```{r}
+#| label: chapter16-evidence-trail
+#| lst-label: lst-chapter16-evidence-trail
+#| lst-cap: "Code for the Part 3 Evidence Trail Leading into Visualisation"
+#| eval: false
+
+raw_migration              # imported evidence
+df_r_migration             # working copy
+df_r_migration_prepared    # cleaned and prepared evidence
+df_analysis                # shaped analysis-ready evidence
+```
+
+The code in @lst-chapter16-evidence-trail sketches the evidence trail from raw import to analysis-ready visual evidence.
+
+Leo should read this sequence as a professional habit. The plot is not floating in the air. It is the visible end of a traceable workflow.
+
+::: {.callout-warning appearance="simple" title="A plot does not make data clean"}
+A beautiful chart can still be built from inconsistent, incomplete, or wrongly typed data. Before Leo trusts a plot, he should ask whether the variables behind it were imported, cleaned, and transformed responsibly.
+:::
+
+## Data Frames, Tidy Data, and Why Plots Need Structure
+
+In Chapter 5, Leo learned that a data frame is one of R's most important structures for analytical work. It holds variables in columns and observations in rows.
+
+That structure matters here because most modern plotting in R expects data to arrive as a data frame or something very close to it.
+
+A plot needs to know:
+
+* which variable goes on the x-axis
+* which variable goes on the y-axis
+* which variable defines colour, fill, size, shape, or grouping
+* whether each variable is continuous or discrete
+* whether each row is one observation or one already summarised result
+
+Chapter 14 added another important idea: tidy data. In tidy data, each variable has its own column, each observation has its own row, and each value has its own cell. That arrangement makes plotting easier because visual mappings can point directly to columns.
+
+For example, this structure is easy to plot:
+
+```{r}
+#| label: tbl-16-tidy-plotting-structure
+#| tbl-cap: "A Small Tidy Structure for Plotting"
+#| lst-label: lst-chapter16-tidy-example
+#| lst-cap: "Code for Selecting a Small Tidy Plotting Structure"
+
+df_analysis |>
+  select(learner_id, week, study_hours, project_score, completion_status) |>
+  slice_head(n = 6) |>
+  knitr::kable()
+```
+
+The code in @lst-chapter16-tidy-example creates @tbl-16-tidy-plotting-structure, a small table showing why this structure is easy to plot.
+
+Each column has a job. `Week` can become a horizontal time axis. `Study_hours` can become a numeric input. `Project_score` can become a vertical outcome. `Completion_status` can become a colour or fill category.
+
+The data frame supplies the evidence. The plot decides how the evidence becomes visible.
+
+That is the first reason `ggplot2` will feel different from older plotting habits. It does not ask Leo to pull vectors out of the data frame one by one. It asks him to keep the data together and describe how variables should be mapped into a visual form.
+
+## A First Look at Base R Graphics
+
+Before Leo meets `ggplot2`, he should know that R could draw plots long before the tidyverse existed.
+
+Base R includes plotting functions such as:
+
+```{r}
+#| label: chapter16-base-plot-examples
+#| lst-label: lst-chapter16-base-plot-examples
+#| lst-cap: "Code for Common Base R Plotting Functions"
+#| eval: false
+
+plot(df_analysis$study_hours, df_analysis$project_score)
+hist(df_analysis$confidence_score)
+barplot(table(df_analysis$completion_status))
+```
+
+The code in @lst-chapter16-base-plot-examples lists common base R plotting functions Leo may encounter.
+
+These functions are useful. They are built into R. They can be fast, direct, and reliable for quick checks. Many older books, online posts, and statistical examples use them. Leo should not dismiss them.
+
+He starts with a small summary from the project data:
+
+```{r}
+#| label: chapter16-base-summary
+#| lst-label: lst-chapter16-base-summary
+#| lst-cap: "Code for Preparing the Base R Bar Plot Summary"
+#| echo: true
+
+df_background_base <- df_plot |>
+  group_by(background) |>
+  summarise(
+    avg_project_score = mean(project_score, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(avg_project_score))
+
+df_background_base
+```
+
+The code in @lst-chapter16-base-summary prepares the summary used in @fig-16-1-base-r-barplot.
+
+Now he draws a base R bar plot.
+
+```{r}
+#| label: fig-16-1-base-r-barplot
+#| lst-label: lst-fig-16-1-base-r-barplot
+#| lst-cap: "Code for A Base R Bar Plot of Average Project Score by Learner Background"
+#| fig-cap: "A Base R Bar Plot of Average Project Score by Learner Background."
+#| fig-alt: "A bar plot showing average project score by learner background, created with base R graphics."
+#| fig-width: 7
+#| fig-height: 5
+
+barplot(
+  height = df_background_base$avg_project_score,
+  names.arg = df_background_base$background,
+  las = 2,
+  main = "Average project score by learner background",
+  xlab = "Learner background",
+  ylab = "Average project score"
+)
+```
+
+The code in @lst-fig-16-1-base-r-barplot produces @fig-16-1-base-r-barplot.
+
+Leo can read the chart. It does the job.
+
+But he also notices the friction. The data frame is not used as a whole inside `barplot()`. The bar heights are passed as one vector. The labels are passed as another vector. The title, x-axis label, and y-axis label are additional arguments. This is not wrong, but it feels less connected to the shape of the data frame.
+
+That friction becomes more visible as plots become more complex.
+
+If Leo wants a scatter plot with colour by completion status, a line plot by learning mode, a faceted comparison by region, and carefully controlled scales, base R can do many of these things, but the code often becomes more manual.
+
+So the issue is not whether base R works. It does.
+
+The issue is whether Leo wants a plotting system that scales with the kind of layered, data-frame-based workflow he has been learning.
+
+## Other Visualization Tools Leo May Encounter
+
+R has more than one graphics system. That can feel confusing at first, but it is also a strength. Different tools serve different purposes.
+
+Some are good for quick diagnostic plots. Some are good for multi-panel statistical graphics. Some are good for interactivity. Some are good for dashboards or maps. Some are designed around a grammar of graphics.
+
+```{r}
+#| label: tbl-16-1-visualization-tools
+#| lst-label: lst-tbl-16-1-visualization-tools
+#| lst-cap: "Code for A Practical Comparison of Common R Visualization Approaches"
+#| tbl-cap: "A Practical Comparison of Common R Visualization Approaches."
+
+tibble::tribble(
+  ~Approach, ~Best_for, ~How_Leo_should_think_about_it,
+  "Base R graphics", "Quick plots, teaching examples, older statistical workflows", "Useful and always available, but complex designs may require more manual control.",
+  "lattice", "Conditioning plots and multi-panel statistical graphics", "A powerful system Leo may meet in older or specialist R materials.",
+  "plotly", "Interactive charts that users can hover, zoom, and explore", "Often used to make existing plots interactive, especially with ggplotly().",
+  "Shiny", "Interactive web applications and dashboards", "Not just a plotting package. It builds user interfaces around analysis and visuals.",
+  "ggplot2", "Layered, reproducible, grammar-based graphics from data frames", "The main system in this chapter because it fits Leo's tidy data workflow."
+) |>
+  knitr::kable()
+```
+
+The code in @lst-tbl-16-1-visualization-tools creates @tbl-16-1-visualization-tools.
+
+This chapter will focus on `ggplot2`, but that does not mean the other systems are inferior. A professional R user learns to recognise the purpose of each tool.
+
+`lattice`, developed around trellis graphics, remains important in some statistical contexts and older R books (Sarkar, 2008). `plotly` can turn plots into interactive web graphics, and it is especially useful when the reader needs to explore details rather than only view a printed figure (Sievert, 2020). Shiny is a framework for building interactive R applications, not merely a plot function. It becomes important when analysis needs controls, filters, user inputs, or dashboards.
+
+For Leo's current stage, however, `ggplot2` is the right centre of gravity. It connects naturally to data frames, tidy data, pipes, grouping, summaries, and reproducible code.
+
+## The Grammar of Graphics: The Idea Behind ggplot2
+
+The name `ggplot2` comes from the grammar of graphics, a way of thinking about statistical graphics associated with Wilkinson (2005) and implemented for R by Wickham (2016).
+
+A grammar matters because it gives Leo something deeper than a catalogue of chart types.
+
+Instead of memorising one command for scatter plots, another for bar charts, another for lines, and another for histograms, Leo learns the building blocks behind them.
+
+A plot is built from parts:
+
+* **data** supplies the evidence
+* **aesthetic mappings** connect variables to visual attributes
+* **geometries** choose the visual marks, such as points, lines, or bars
+* **statistical transformations** compute counts, bins, means, or summaries when needed
+* **scales** translate data values into positions, colours, sizes, and labels
+* **facets** split one plot into small panels
+* **themes** control non-data appearance
+* **coordinates** control the plotting space
+* **layers** are drawn in order
+
+This is the lightbulb moment.
+
+Leo is not asking R to "make a chart" in one mysterious act. He is building a visual argument from understandable parts.
+
+The most basic mental model is:
+
+```{r}
+#| label: chapter16-ggplot-template
+#| lst-label: lst-chapter16-ggplot-template
+#| lst-cap: "Code for the Basic ggplot2 Template"
+#| eval: false
+
+ggplot(data = ...) +
+  geom_...(mapping = aes(...))
+```
+
+The code in @lst-chapter16-ggplot-template gives Leo the basic grammar-of-graphics template.
+
+Read that slowly.
+
+`ggplot(data = ...)` starts with the data frame.
+
+`aes(...)` says how variables in that data frame should become visual properties.
+
+`geom_...()` says what kind of mark should be drawn.
+
+The `+` sign adds parts to the plot.
+
+::: {.callout-important appearance="simple" title="The ggplot2 sentence"}
+A `ggplot2` plot reads like a sentence: "Use this data, map these variables, draw this kind of mark, then add more instructions if needed."
+:::
+
+## The First ggplot2 Plot: Study Hours and Project Score
+
+Leo begins with a question that fits a scatter plot:
+
+> Do learners who study more hours tend to have higher project scores?
+
+A scatter plot is useful when both variables are numeric and Leo wants to see the relationship between them.
+
+```{r}
+#| label: fig-16-2-scatter-study-hours-project-score
+#| lst-label: lst-fig-16-2-scatter-study-hours-project-score
+#| lst-cap: "Code for Study Hours and Project Score Shown as a ggplot2 Scatter Plot"
+#| fig-cap: "Study Hours and Project Score Shown as a ggplot2 Scatter Plot."
+#| fig-alt: "A scatter plot showing weekly study hours on the x-axis and project score on the y-axis."
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(
+  data = df_plot,
+  mapping = aes(x = study_hours, y = project_score)
+) +
+  geom_point(alpha = 0.65) +
+  labs(
+    title = "Study hours and project score",
+    x = "Study hours",
+    y = "Project score"
+  ) +
+  theme_minimal()
+```
+
+The code in @lst-fig-16-2-scatter-study-hours-project-score produces @fig-16-2-scatter-study-hours-project-score.
+
+The code in @lst-fig-16-2-scatter-study-hours-project-score has three main parts.
+
+First, `data = df_plot` supplies the evidence.
+
+Second, `aes(x = study_hours, y = project_score)` maps variables to axes. The variable `study_hours` becomes horizontal position. The variable `project_score` becomes vertical position.
+
+Third, `geom_point()` draws one point for each row.
+
+The plot does not prove a cause. It does not say that study hours alone determine project score. But it lets Leo see the relationship as a pattern rather than a column of numbers.
+
+He can now ask better questions.
+
+Are the points generally rising? Are there learners with many study hours but low project scores? Are there learners with high scores despite fewer hours? Does the relationship differ by background or learning mode?
+
+Visualization does not end analysis. It sharpens analysis.
+
+## Aesthetic Mappings with aes()
+
+The function `aes()` is one of the most important ideas in this chapter.
+
+It tells `ggplot2` how variables in the data should become visible parts of the plot.
+
+Common aesthetics include:
+
+* `x`
+* `y`
+* `color`
+* `fill`
+* `size`
+* `shape`
+* `group`
+* `alpha`
+
+For example:
+
+```{r}
+#| label: fig-16-aes-color-example
+#| lst-label: lst-chapter16-aes-color-example
+#| lst-cap: "Code for Mapping Completion Status to Colour"
+#| fig-cap: "Mapping Completion Status to Colour in a Scatter Plot"
+#| fig-alt: "A scatter plot of weekly study hours and project score, with point colour mapped to completion status."
+#| eval: true
+
+ggplot(df_plot, aes(x = study_hours, y = project_score, color = completion_status)) +
+  geom_point()
+```
+
+The code in @lst-chapter16-aes-color-example produces @fig-16-aes-color-example and means:
+
+> Put `study_hours` on the x-axis, put `project_score` on the y-axis, and use different colours for different values of `completion_status`.
+
+The important phrase is "different values." When Leo writes a variable inside `aes()`, he is mapping the values of that variable to a visual property.
+
+That is different from setting a property to a fixed value.
+
+## Mapping Versus Setting
+
+One of the most common beginner mistakes in `ggplot2` is confusing mapping with setting.
+
+Mapping connects a variable to a visual attribute.
+
+Setting gives a visual attribute one fixed value.
+
+These two lines look similar, but they mean very different things:
+
+```{r}
+#| label: chapter16-mapping-setting
+#| lst-label: lst-chapter16-mapping-setting
+#| lst-cap: "Code for Comparing Mapping and Setting"
+#| eval: false
+
+aes(color = completion_status)
+
+color = "steelblue"
+```
+
+The code in @lst-chapter16-mapping-setting contrasts mapping and setting.
+
+The first line maps a variable. It tells `ggplot2` to use colour to represent different completion statuses.
+
+The second line sets a constant. It tells `ggplot2` to make the points steelblue, regardless of what the data say.
+
+Leo can see the difference in code.
+
+```{r}
+#| label: fig-16-3-mapping-completion-status
+#| lst-label: lst-fig-16-3-mapping-completion-status
+#| lst-cap: "Code for Mapping Completion Status to Colour in a Scatter Plot"
+#| fig-cap: "Mapping Completion Status to Colour in a Scatter Plot."
+#| fig-alt: "A scatter plot of study hours and project score, with points coloured by learner completion status."
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(
+  data = df_plot,
+  mapping = aes(x = study_hours, y = project_score, color = completion_status)
+) +
+  geom_point(alpha = 0.65) +
+  labs(
+    title = "Study hours and project score by completion status",
+    x = "Study hours",
+    y = "Project score",
+    color = "Completion status"
+  ) +
+  theme_minimal()
+```
+
+The code in @lst-fig-16-3-mapping-completion-status produces @fig-16-3-mapping-completion-status.
+
+Here, colour carries information. It helps Leo see whether the relationship between study hours and project score differs across completion groups.
+
+Now compare that with a fixed colour:
+
+```{r}
+#| label: fig-16-fixed-colour-example
+#| fig-cap: "Setting One Fixed Colour for All Points"
+#| fig-alt: "A scatter plot of study hours and project score, with all points shown in one fixed colour."
+#| lst-label: lst-chapter16-fixed-color-example
+#| lst-cap: "Code for Setting One Fixed Point Colour"
+
+ggplot(
+  data = df_plot,
+  mapping = aes(x = study_hours, y = project_score)
+) +
+  geom_point(color = "steelblue")
+```
+
+The code in @lst-chapter16-fixed-color-example produces @fig-16-fixed-colour-example.
+
+In the second version, colour does not carry information. It only controls appearance.
+
+::: {.callout-tip appearance="simple" title="The mapping test"}
+If the visual property should change according to a variable in the data, put it inside `aes()`. If the visual property should stay the same for every mark, put it outside `aes()`.
+:::
+
+This small distinction prevents many confusing plots.
+
+## Geometric Layers: The Marks on the Page
+
+The `geom_*()` function decides what kind of visual mark appears.
+
+A point, a line, and a bar are not just different decorations. They answer different kinds of questions.
+
+```{r}
+#| label: tbl-16-2-common-geoms
+#| lst-label: lst-tbl-16-2-common-geoms
+#| lst-cap: "Code for Common ggplot2 Geoms and When Leo Should Use Them"
+#| tbl-cap: "Common ggplot2 Geoms and When Leo Should Use Them."
+
+tibble::tribble(
+  ~Geom, ~Common_use, ~Typical_question,
+  "`geom_point()`", "Scatter plots for two numeric variables", "How are two numeric variables related?",
+  "`geom_line()`", "Trends across an ordered variable such as time or week", "How does a value change across an ordered sequence?",
+  "`geom_bar()`", "Counts of observations in categories", "How many rows fall into each category?",
+  "`geom_col()`", "Bars where the height is already computed", "How large is a prepared summary value for each category?",
+  "`geom_histogram()`", "Distribution of one numeric variable using bins", "How are values spread across ranges?",
+  "`geom_boxplot()`", "Distribution of a numeric variable across groups", "How do distributions compare across categories?"
+) |>
+  knitr::kable()
+```
+
+The code in @lst-tbl-16-2-common-geoms creates @tbl-16-2-common-geoms.
+
+The table is not a list to memorise. It is a decision aid.
+
+Leo should begin with the question:
+
+> What kind of comparison am I trying to make visible?
+
+Then he chooses the geom.
+
+## Bar Charts: Counts and Prepared Values
+
+Bar charts create frequent confusion because `ggplot2` has both `geom_bar()` and `geom_col()`.
+
+They look similar, but they do different jobs.
+
+`geom_bar()` counts rows.
+
+```{r}
+#| label: fig-16-4-geom-bar-completion-count
+#| lst-label: lst-fig-16-4-geom-bar-completion-count
+#| lst-cap: "Code for Completion Status Counted Directly with Geom_bar()"
+#| fig-cap: "Completion Status Counted Directly with geom_bar()."
+#| fig-alt: "A bar chart showing the number of learners in each completion-status category."
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(
+  data = df_plot,
+  mapping = aes(x = completion_status)
+) +
+  geom_bar() +
+  labs(
+    title = "Number of learners by completion status",
+    x = "Completion status",
+    y = "Number of learners"
+  ) +
+  theme_minimal()
+```
+
+The code in @lst-fig-16-4-geom-bar-completion-count produces @fig-16-4-geom-bar-completion-count.
+
+Here, Leo does not calculate the counts first. `geom_bar()` performs a statistical transformation behind the scenes. It counts how many rows fall into each value of `completion_status`.
+
+`geom_col()` is different. It expects the bar height to already exist in the data.
+
+```{r}
+#| label: tbl-16-background-score-summary
+#| lst-label: lst-chapter16-geom-col-summary
+#| lst-cap: "Code for Preparing Values for geom_col()"
+#| tbl-cap: "Average Project Score by Learner Background Prepared for geom_col()."
+#| echo: true
+
+df_background_score <- df_plot |>
+  group_by(background) |>
+  summarise(
+    avg_project_score = mean(project_score, na.rm = TRUE),
+    learners = n(),
+    .groups = "drop"
+  ) |>
+  arrange(desc(avg_project_score))
+
+knitr::kable(df_background_score)
+```
+
+The code in @lst-chapter16-geom-col-summary creates @tbl-16-background-score-summary. The code in @lst-fig-16-5-geom-col-background-score uses that prepared summary to produce @fig-16-5-geom-col-background-score.
+
+```{r}
+#| label: fig-16-5-geom-col-background-score
+#| lst-label: lst-fig-16-5-geom-col-background-score
+#| lst-cap: "Code for Average Project Score by Learner Background Using Geom_col()"
+#| fig-cap: "Average Project Score by Learner Background Using geom_col()."
+#| fig-alt: "A column chart showing average project score for each learner background category."
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(
+  data = df_background_score,
+  mapping = aes(x = background, y = avg_project_score)
+) +
+  geom_col() +
+  labs(
+    title = "Average project score by learner background",
+    x = "Learner background",
+    y = "Average project score"
+  ) +
+  theme_minimal()
+```
+
+In @fig-16-5-geom-col-background-score, the average has already been calculated in `df_background_score`. `geom_col()` simply draws the prepared values.
+
+The difference is worth remembering:
+
+* use `geom_bar()` when the plot should count rows
+* use `geom_col()` when the y-value already exists
+
+## Histograms: Bins and Distributions
+
+A summary average can hide the shape of a variable.
+
+Suppose Leo calculates the average confidence score. That gives one number. But one number cannot show whether confidence is clustered, spread out, skewed, or uneven.
+
+A histogram helps Leo see distribution.
+
+```{r}
+#| label: fig-16-6-confidence-histogram
+#| lst-label: lst-fig-16-6-confidence-histogram
+#| lst-cap: "Code for Distribution of Learner Confidence Scores Using Histogram Bins"
+#| fig-cap: "Distribution of Learner Confidence Scores Using Histogram Bins."
+#| fig-alt: "A histogram showing the distribution of learner confidence scores across bins."
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(
+  data = df_plot,
+  mapping = aes(x = confidence_score)
+) +
+  geom_histogram(bins = 15, boundary = 0, closed = "left") +
+  labs(
+    title = "Distribution of learner confidence scores",
+    x = "Confidence score",
+    y = "Number of learners"
+  ) +
+  theme_minimal()
+```
+
+The code in @lst-fig-16-6-confidence-histogram produces @fig-16-6-confidence-histogram.
+
+The word `bins` matters. A histogram does not show every value as a separate category. It divides the numeric range into intervals and counts how many observations fall into each interval.
+
+This is another statistical transformation. The original data contain individual confidence scores. The plot calculates counts within bins.
+
+Leo should not treat the number of bins as a purely cosmetic choice. Too few bins can hide variation. Too many bins can make the pattern noisy. At this stage, he only needs the habit: check whether the distribution changes when the binning changes.
+
+## Lines: Change Across an Ordered Variable
+
+Line plots are useful when the x-axis has a meaningful order.
+
+`week` is ordered. Week 2 follows Week 1. Week 3 follows Week 2. That makes it reasonable to connect values with a line.
+
+Leo first creates a weekly summary.
+
+```{r}
+#| label: chapter16-weekly-summary
+#| lst-label: lst-chapter16-weekly-summary
+#| lst-cap: "Code for Preparing the Weekly Project-Score Summary"
+#| echo: true
+
+df_weekly_score <- df_plot |>
+  group_by(week) |>
+  summarise(
+    avg_project_score = mean(project_score, na.rm = TRUE),
+    avg_confidence = mean(confidence_score, na.rm = TRUE),
+    learners = n(),
+    .groups = "drop"
+  ) |>
+  arrange(week)
+
+df_weekly_score
+```
+
+The code in @lst-chapter16-weekly-summary prepares the weekly summary used in @fig-16-7-weekly-line.
+
+Then he plots the trend.
+
+```{r}
+#| label: fig-16-7-weekly-line
+#| lst-label: lst-fig-16-7-weekly-line
+#| lst-cap: "Code for Average Project Score Across Weeks"
+#| fig-cap: "Average Project Score Across Weeks."
+#| fig-alt: "A line chart showing average project score across learning weeks."
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(
+  data = df_weekly_score,
+  mapping = aes(x = week, y = avg_project_score)
+) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    title = "Average project score across weeks",
+    x = "Week",
+    y = "Average project score"
+  ) +
+  theme_minimal()
+```
+
+The code in @lst-fig-16-7-weekly-line produces @fig-16-7-weekly-line.
+
+The line works because `week` has order. It would be a mistake to connect unordered categories such as country names or backgrounds with a line. A line implies movement, sequence, or continuity.
+
+That is why Leo should ask:
+
+> Does the x-axis have a meaningful order?
+
+If the answer is no, a bar chart, dot plot, or boxplot may be better.
+
+## Continuous and Discrete Variables
+
+Plots behave differently depending on the type of variable.
+
+A continuous variable has numeric values across a range. Examples include `study_hours`, `project_score`, `confidence_score`, `lessons_completed`, and `payment_probability_score`.
+
+A discrete variable has categories. Examples include `background`, `completion_status`, `preferred_learning_mode`, `region`, and `r_experience_level`.
+
+This matters because `ggplot2` chooses scales based on variable type.
+
+If Leo maps `project_score` to the y-axis, `ggplot2` creates a continuous scale. If he maps `background` to the x-axis, `ggplot2` creates a discrete scale. If he maps `completion_status` to colour, `ggplot2` creates a discrete colour legend. If he maps `payment_probability_score` to colour, `ggplot2` creates a continuous colour scale.
+
+The plot is not only reading names. It is reading types.
+
+That links this chapter back to Chapter 4, where Leo learned that values have types. Two values can look similar on the screen and still behave differently inside R. In visualization, that difference becomes visible.
+
+::: {.callout-warning appearance="simple" title="Check the type before blaming the plot"}
+If a numeric variable behaves like categories, it may have been imported as text. If a category behaves like a numeric scale, it may need to be converted or recoded. Plotting problems often point back to data type problems.
+:::
+
+## Grouping: When One Pattern Is Really Several Patterns
+
+Some plots need groups.
+
+In `ggplot2`, grouping can happen explicitly through `group = ...`, or implicitly through aesthetics such as `color`, `fill`, or `linetype`.
+
+Leo wants to know whether weekly project scores change differently across learning modes. He creates a grouped summary.
+
+```{r}
+#| label: chapter16-weekly-learning-mode-summary
+#| lst-label: lst-chapter16-weekly-learning-mode-summary
+#| lst-cap: "Code for Preparing Weekly Project Scores by Learning Mode"
+#| echo: true
+
+df_weekly_mode <- df_plot |>
+  group_by(week, preferred_learning_mode) |>
+  summarise(
+    avg_project_score = mean(project_score, na.rm = TRUE),
+    learners = n(),
+    .groups = "drop"
+  ) |>
+  arrange(preferred_learning_mode, week)
+
+df_weekly_mode
+```
+
+The code in @lst-chapter16-weekly-learning-mode-summary prepares the grouped weekly summary used in @fig-16-8-grouped-lines-learning-mode.
+
+Now he maps learning mode to colour and group.
+
+```{r}
+#| label: fig-16-8-grouped-lines-learning-mode
+#| lst-label: lst-fig-16-8-grouped-lines-learning-mode
+#| lst-cap: "Code for Weekly Average Project Score Grouped by Preferred Learning Mode"
+#| fig-cap: "Weekly Average Project Score Grouped by Preferred Learning Mode."
+#| fig-alt: "A grouped line chart showing weekly average project score by preferred learning mode."
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(
+  data = df_weekly_mode,
+  mapping = aes(
+    x = week,
+    y = avg_project_score,
+    color = preferred_learning_mode,
+    group = preferred_learning_mode
+  )
+) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    title = "Weekly average project score by learning mode",
+    x = "Week",
+    y = "Average project score",
+    color = "Learning mode"
+  ) +
+  theme_minimal()
+```
+
+The code in @lst-fig-16-8-grouped-lines-learning-mode produces @fig-16-8-grouped-lines-learning-mode.
+
+The `group` instruction tells `ggplot2` which points belong to the same line. In this example, each learning mode gets its own line.
+
+Colour also separates the groups visually. Without grouping, `ggplot2` may connect points in a way that does not match Leo's question.
+
+The deeper rule is this:
+
+> When a plot should show several patterns instead of one, Leo must tell R what defines each pattern.
+
+## Statistical Transformations: Counts, Bins, Means, and Summaries
+
+Some geoms draw the data exactly as supplied. `geom_point()` draws points from existing x and y values.
+
+Other geoms compute something before drawing. `geom_bar()` counts rows. `geom_histogram()` bins values and counts observations in those bins. `stat_summary()` can calculate means or other summaries before drawing.
+
+This is why `ggplot2` often uses the language of geoms and stats.
+
+Leo does not need advanced statistical graphics yet, but he does need to know when the plotted value already exists and when the plot is computing it.
+
+For example, this plot calculates the mean project score inside the plot:
+
+```{r}
+#| label: fig-16-9-stat-summary-mean
+#| lst-label: lst-fig-16-9-stat-summary-mean
+#| lst-cap: "Code for Mean Project Score by Preferred Learning Mode Calculated with Stat_summary()"
+#| fig-cap: "Mean Project Score by Preferred Learning Mode Calculated with stat_summary()."
+#| fig-alt: "A plot showing mean project score by preferred learning mode using a statistical summary layer."
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(
+  data = df_plot,
+  mapping = aes(x = preferred_learning_mode, y = project_score)
+) +
+  stat_summary(fun = mean, geom = "point", size = 3) +
+  stat_summary(fun = mean, geom = "crossbar", width = 0.5) +
+  labs(
+    title = "Mean project score by preferred learning mode",
+    x = "Preferred learning mode",
+    y = "Mean project score"
+  ) +
+  theme_minimal()
+```
+
+The code in @lst-fig-16-9-stat-summary-mean produces @fig-16-9-stat-summary-mean.
+
+This is useful for teaching what `ggplot2` can compute. However, in serious analysis, Leo should often calculate important summaries explicitly before plotting. That makes the evidence easier to inspect, test, and explain.
+
+A good habit is:
+
+1. use plot-level statistics for quick exploration
+2. create summary tables when the calculation matters to the argument
+3. plot the inspected summary table when reporting a result
+
+That habit keeps visualization connected to reproducible analysis.
+
+## Multi-Layer Rendering Order
+
+A `ggplot2` plot is built in layers.
+
+The order matters.
+
+Layers added later are drawn on top of earlier layers. That can help Leo emphasise important marks, but it can also hide information if he is careless.
+
+Here is a simple layered plot.
+
+```{r}
+#| label: fig-16-10-layer-order
+#| lst-label: lst-fig-16-10-layer-order
+#| lst-cap: "Code for A Layered Plot Where the Summary Mean Is Drawn After the Individual Points"
+#| fig-cap: "A Layered Plot Where the Summary Mean Is Drawn After the Individual Points."
+#| fig-alt: "A layered plot showing individual points in the background and summary means drawn on top."
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(
+  data = df_plot,
+  mapping = aes(x = preferred_learning_mode, y = project_score)
+) +
+  geom_jitter(width = 0.15, alpha = 0.35) +
+  stat_summary(fun = mean, geom = "point", size = 4) +
+  labs(
+    title = "Individual scores with group means",
+    x = "Preferred learning mode",
+    y = "Project score"
+  ) +
+  theme_minimal()
+```
+
+The code in @lst-fig-16-10-layer-order produces @fig-16-10-layer-order.
+
+The jittered points appear first. They show individual variation. The mean points appear after them, so they are drawn on top.
+
+If Leo reversed the order, the individual points could cover the summary marks.
+
+That is the layer rule:
+
+> In `ggplot2`, later layers are drawn over earlier layers.
+
+This is not only technical. It is part of visual reasoning. Leo decides what should sit in the background and what should sit in the foreground.
+
+## Basic Faceting: Small Multiples Without Losing the Main Plot
+
+Sometimes one plot contains too many comparisons.
+
+Leo may want to see whether the relationship between study hours and project score differs across learner backgrounds or regions. He could map another variable to colour, but too many colours can become hard to read.
+
+Faceting offers another option. It splits one plot into smaller panels.
+
+The basic form is:
+
+```{r}
+#| label: chapter16-facet-template
+#| lst-label: lst-chapter16-facet-template
+#| lst-cap: "Code for Basic Faceting Templates"
+#| eval: false
+
+facet_wrap(~ background)
+
+facet_grid(region ~ preferred_learning_mode)
+```
+
+The code in @lst-chapter16-facet-template shows the basic faceting templates Leo is about to use.
+
+`facet_wrap()` arranges panels for one faceting variable.
+
+`facet_grid()` arranges panels across rows and columns.
+
+Leo begins with a simple faceted scatter plot.
+
+```{r}
+#| label: fig-16-11-facet-wrap-background
+#| lst-label: lst-fig-16-11-facet-wrap-background
+#| lst-cap: "Code for Study Hours and Project Score Faceted by Learner Background"
+#| fig-cap: "Study Hours and Project Score Faceted by Learner Background."
+#| fig-alt: "A faceted scatter plot showing study hours and project score separately for each learner background."
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot(
+  data = df_plot,
+  mapping = aes(x = study_hours, y = project_score)
+) +
+  geom_point(alpha = 0.55) +
+  facet_wrap(~ background) +
+  labs(
+    title = "Study hours and project score by learner background",
+    x = "Study hours",
+    y = "Project score"
+  ) +
+  theme_minimal()
+```
+
+The code in @lst-fig-16-11-facet-wrap-background produces @fig-16-11-facet-wrap-background.
+
+Faceting helps Leo compare patterns across groups while keeping the same axes and visual grammar.
+
+But faceting can also become too much. If there are too many categories, the plot becomes a wall of small panels. Chapter 17 will return to this issue through the lens of clarity and control. For now, Leo only needs the basic idea: use facets when the same plot needs to be repeated across groups.
+
+Here is the basic grid version:
+
+```{r}
+#| label: fig-16-facet-grid-example
+#| fig-cap: "Using facet_grid() to Compare Two Grouping Variables"
+#| fig-alt: "A faceted scatter plot of study hours and project score, arranged by region and preferred learning mode."
+#| lst-label: lst-chapter16-facet-grid-example
+#| lst-cap: "Code for a facet_grid() Example"
+
+ggplot(
+  data = df_plot,
+  mapping = aes(x = study_hours, y = project_score)
+) +
+  geom_point(alpha = 0.55) +
+  facet_grid(region ~ preferred_learning_mode)
+```
+
+The code in @lst-chapter16-facet-grid-example produces @fig-16-facet-grid-example.
+
+This can be useful when Leo wants to compare two grouping variables at once. It should be used carefully because the number of panels can grow quickly.
+
+## Themes: Controlling Non-Data Appearance
+
+A theme controls the parts of a plot that are not the data itself.
+
+This includes background, grid lines, text size, legend position, panel spacing, and other visual elements.
+
+For beginners, one of the safest starting points is:
+
+```{r}
+#| label: chapter16-theme-minimal
+#| lst-label: lst-chapter16-theme-minimal
+#| lst-cap: "Code for Applying theme_minimal()"
+#| eval: false
+
+theme_minimal()
+```
+
+The code in @lst-chapter16-theme-minimal shows the basic `theme_minimal()` pattern.
+
+Leo has already used it in several plots in this chapter. It reduces visual heaviness without demanding a full design system.
+
+Other built-in themes include:
+
+```{r}
+#| label: chapter16-theme-examples
+#| lst-label: lst-chapter16-theme-examples
+#| lst-cap: "Code for Built-In ggplot2 Theme Examples"
+#| eval: false
+
+theme_classic()
+theme_bw()
+theme_light()
+theme_void()
+```
+
+The code in @lst-chapter16-theme-examples lists other built-in themes Leo may encounter.
+
+This is where beginners often go too far. They try to make a plot "beautiful" before they make it clear. That is not the purpose of themes in this chapter.
+
+The practical rule is:
+
+> Use themes to reduce distraction, not to decorate weak analysis.
+
+Chapter 17 will show Leo how to refine visual clarity more deliberately. Here, the important point is simply that theme choices affect readability, but they do not change the data.
+
+## Scales and Coordinate Systems
+
+Scales control how data values become visual values.
+
+Coordinates control the space in which the plot is drawn.
+
+Leo has already seen scales without naming them. When `study_hours` goes on the x-axis, `ggplot2` creates an x scale. When `completion_status` becomes colour, `ggplot2` creates a colour scale. When `project_score` becomes height, `ggplot2` creates a y scale.
+
+Sometimes Leo needs to control those scales.
+
+For example, he can format a y-axis as percentages when plotting completion rates.
+
+```{r}
+#| label: tbl-16-completion-rate-summary
+#| lst-label: lst-chapter16-completion-rate-summary
+#| lst-cap: "Code for Preparing Completion Rates by Learner Background"
+#| tbl-cap: "Completion Rates by Learner Background Prepared for Plotting."
+#| echo: true
+
+df_completion_rate <- df_plot |>
+  filter(!is.na(completed_flag)) |>
+  group_by(background) |>
+  summarise(
+    completion_rate = mean(completed_flag),
+    learners = n(),
+    .groups = "drop"
+  ) |>
+  arrange(desc(completion_rate))
+
+knitr::kable(df_completion_rate)
+```
+
+The code in @lst-chapter16-completion-rate-summary creates @tbl-16-completion-rate-summary. The code in @lst-fig-16-12-scale-coordinate-completion-rate uses that prepared summary to produce @fig-16-12-scale-coordinate-completion-rate.
+
+```{r}
+#| label: fig-16-12-scale-coordinate-completion-rate
+#| lst-label: lst-fig-16-12-scale-coordinate-completion-rate
+#| lst-cap: "Code for Completion Rate by Learner Background with a Percentage Scale and Flipped Coordinates"
+#| fig-cap: "Completion Rate by Learner Background with a Percentage Scale and Flipped Coordinates."
+#| fig-alt: "A horizontal bar chart showing completion rate by learner background with a percentage scale."
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(
+  data = df_completion_rate,
+  mapping = aes(x = background, y = completion_rate)
+) +
+  geom_col() +
+  scale_y_continuous(
+    labels = function(x) paste0(round(x * 100), "%"),
+    limits = c(0, 1)
+  ) +
+  coord_flip() +
+  labs(
+    title = "Completion rate by learner background",
+    x = "Learner background",
+    y = "Completion rate"
+  ) +
+  theme_minimal()
+```
+
+The code in @lst-fig-16-12-scale-coordinate-completion-rate produces @fig-16-12-scale-coordinate-completion-rate.
+
+Two things changed here.
+
+`scale_y_continuous()` controls how the numeric y-axis is displayed. The data remain proportions, but the labels are shown as percentages.
+
+`coord_flip()` switches the x and y axes visually. This can make long category labels easier to read.
+
+Leo should notice the boundary. Scales and coordinates change how the data are displayed. They should not be used to mislead. A visual choice that hides relevant variation or exaggerates a pattern weakens the argument.
+
+## Saving and Exporting Plots with ggsave()
+
+A plot in the RStudio Plots pane is not yet a deliverable.
+
+Leo will often need to save a figure for a report, slide, article, or Quarto document. `ggplot2` provides `ggsave()` for this task.
+
+The safest habit is to assign the plot to an object and then save it.
+
+```{r}
+#| label: chapter16-save-plot
+#| lst-label: lst-chapter16-save-plot
+#| lst-cap: "Code for Saving a Named Plot with ggsave()"
+#| eval: false
+
+completion_plot <- ggplot(
+  data = df_completion_rate,
+  mapping = aes(x = background, y = completion_rate)
+) +
+  geom_col() +
+  scale_y_continuous(
+    labels = function(x) paste0(round(x * 100), "%"),
+    limits = c(0, 1)
+  ) +
+  coord_flip() +
+  labs(
+    title = "Completion rate by learner background",
+    x = "Learner background",
+    y = "Completion rate"
+  ) +
+  theme_minimal()
+
+ggsave(
+  filename = "outputs/figures/chapter16-completion-rate.png",
+  plot = completion_plot,
+  width = 7,
+  height = 5,
+  dpi = 300
+)
+```
+
+The code in @lst-chapter16-save-plot shows how to save a named plot with explicit size and resolution.
+
+This code names the file, names the plot object, sets dimensions, and specifies resolution.
+
+That is much better than saving whatever happens to be in the plotting window.
+
+::: {.callout-tip appearance="simple" title="Export plots deliberately"}
+When a plot matters, save it with a clear filename, explicit width, explicit height, and an appropriate resolution. Reproducible output should not depend on the size of Leo's current RStudio window.
+:::
+
+Later, when Leo works more deeply with Quarto, many figures will be generated directly inside reports. Still, `ggsave()` remains useful when he needs standalone image files.
+
+## A Brief Look at Interactive Visualization
+
+Not every plot is meant for print.
+
+Sometimes a reader needs to hover over points, zoom into a region, filter categories, or explore values dynamically. That is where interactive visualization becomes useful.
+
+One common route is `plotly`.
+
+```{r}
+#| label: chapter16-plotly-example
+#| lst-label: lst-chapter16-plotly-example
+#| lst-cap: "Code for Converting a ggplot2 Plot to plotly"
+#| eval: false
+
+library(plotly)
+
+p <- ggplot(
+  data = df_plot,
+  mapping = aes(
+    x = study_hours,
+    y = project_score,
+    color = completion_status,
+    text = learner_id
+  )
+) +
+  geom_point(alpha = 0.65) +
+  labs(
+    title = "Interactive study hours and project score",
+    x = "Study hours",
+    y = "Project score"
+  ) +
+  theme_minimal()
+
+ggplotly(p)
+```
+
+The code in @lst-chapter16-plotly-example shows how a `ggplot2` object can be converted into an interactive `plotly` object.
+
+This takes a `ggplot2` object and turns it into an interactive plot. A reader can hover, zoom, and inspect values.
+
+Another route is Shiny, which builds interactive applications.
+
+```{r}
+#| label: chapter16-shiny-sketch
+#| lst-label: lst-chapter16-shiny-sketch
+#| lst-cap: "Code for a Small Shiny App Sketch"
+#| eval: false
+
+library(shiny)
+
+ui <- fluidPage(
+  selectInput(
+    inputId = "mode",
+    label = "Choose learning mode",
+    choices = unique(df_plot$preferred_learning_mode)
+  ),
+  plotOutput("score_plot")
+)
+
+server <- function(input, output, session) {
+  output$score_plot <- renderPlot({
+    df_plot |>
+      filter(preferred_learning_mode == input$mode) |>
+      ggplot(aes(x = study_hours, y = project_score)) +
+      geom_point() +
+      theme_minimal()
+  })
+}
+
+shinyApp(ui, server)
+```
+
+The code in @lst-chapter16-shiny-sketch sketches the basic structure of a small Shiny application.
+
+This is only a glimpse. Shiny belongs to a larger topic: building applications around analysis. Leo does not need to master it here.
+
+The key boundary is this:
+
+* `ggplot2` builds the visual argument
+* `plotly` can make plots interactive
+* Shiny can build interactive tools around plots and data
+
+For Chapter 16, the goal is still the foundation: build a correct, readable static plot first. Interactivity should not be used to rescue a confusing design.
+
+## Common Plot Problems and How to Diagnose Them
+
+Many plotting errors are not really plotting errors. They are data, type, structure, or logic problems showing up visually.
+
+Leo can use the same debugging discipline he has built across the book.
+
+```{r}
+#| label: tbl-16-3-plot-diagnosis
+#| lst-label: lst-tbl-16-3-plot-diagnosis
+#| lst-cap: "Code for Common Plotting Problems and Practical Diagnosis Steps"
+#| tbl-cap: "Common Plotting Problems and Practical Diagnosis Steps."
+
+tibble::tribble(
+  ~Problem, ~Likely_cause, ~What_Leo_should_check,
+  "The plot is blank.", "Filtered data may have zero rows, or required values may be missing.", "Run nrow() and count missing values in mapped variables.",
+  "A numeric axis behaves like categories.", "The variable may have been imported as character.", "Check class() or glimpse(), then convert carefully if appropriate.",
+  "A bar chart shows duplicate-looking categories.", "Text values may differ by spelling, case, or spaces.", "Use count() to inspect categories and standardise text values.",
+  "A line connects categories in a strange order.", "The x-axis may not be a meaningful ordered variable.", "Use a line only when the x variable has sequence or time meaning.",
+  "Colours do not represent groups.", "A fixed colour may have been set outside aes(), or a variable may be mapped incorrectly.", "Decide whether the colour should be mapped or set.",
+  "A faceted plot has too many panels.", "The faceting variable may have too many categories.", "Reduce categories, filter the plot, or use a simpler comparison.",
+  "The saved figure looks distorted.", "The export dimensions or resolution were not specified.", "Use ggsave() with width, height, and dpi."
+) |>
+  knitr::kable()
+```
+
+The code in @lst-tbl-16-3-plot-diagnosis creates @tbl-16-3-plot-diagnosis.
+
+This table should feel familiar. It is the same mental discipline from earlier chapters:
+
+* check syntax
+* check the object
+* check the type
+* check the structure
+* check the logic
+
+Plotting has its own vocabulary, but it does not require a new personality. Leo still works patiently from evidence to explanation.
+
+## What Leo Can Now Do
+
+Leo began this chapter with a table that was correct but slow to interpret.
+
+He now understands why a plot is not a magic picture produced by R. It is a deliberate construction.
+
+He can choose a data frame, map variables to visual attributes, add geometric layers, distinguish mapping from setting, use counts and bins, calculate or display summaries, group patterns correctly, draw layers in a meaningful order, split a plot into facets, apply basic themes, control scales and coordinates, and export a plot with `ggsave()`.
+
+That is a major step.
+
+But Leo also sees the next problem.
+
+A technically correct plot is not always a clear plot.
+
+A plot can use the right variables and still bury the point. It can have the right geom and still use confusing labels. It can show the right summary and still make the reader work too hard.
+
+That is why Chapter 17 moves from making plots to controlling what readers actually see.
+
+## Chapter Outcome
+
+By the end of this chapter, Leo can:
+
+* explain why visualization depends on cleaned and analysis-ready data
+* recognise the difference between base R graphics, `lattice`, `plotly`, Shiny, and `ggplot2`
+* describe the grammar of graphics in practical terms
+* build basic `ggplot2` plots from data frames
+* use `aes()` to map variables to visual attributes
+* distinguish mapping from setting
+* choose between `geom_point()`, `geom_line()`, `geom_bar()`, `geom_col()`, and `geom_histogram()`
+* explain the difference between continuous and discrete scales
+* use grouping to draw several patterns in one plot
+* understand basic statistical transformations such as counts, bins, and means
+* control basic layer order
+* use simple faceting with `facet_wrap()` and `facet_grid()`
+* apply basic themes, scales, and coordinate changes
+* save plots deliberately with `ggsave()`
+* recognise when interactivity belongs to `plotly` or Shiny rather than basic static plotting
+
+## Chapter Design Principle
+
+Show the structure behind the picture.
+
+Leo has moved from summarising evidence to seeing evidence.
+
+Next, he will learn how to make that evidence clearer.
+
+## References
+
+Chang, W., Cheng, J., Allaire, J. J., Sievert, C., Schloerke, B., Aden-Buie, G., Xie, Y., Allen, J., McPherson, J., Dipert, A., Borges, B., & Posit Software, PBC. (2026). *shiny: Web application framework for R* (R package). https://doi.org/10.32614/CRAN.package.shiny
+
+Cleveland, W. S. (1993). *Visualizing data*. Hobart Press.
+
+Healy, K. (2019). *Data visualization: A practical introduction*. Princeton University Press.
+
+Sarkar, D. (2008). *Lattice: Multivariate data visualization with R*. Springer. https://doi.org/10.1007/978-0-387-75969-2
+
+Sievert, C. (2020). *Interactive web-based data visualization with R, plotly, and shiny*. Chapman and Hall/CRC. https://doi.org/10.1201/9780429447273
+
+Wickham, H. (2016). *ggplot2: Elegant graphics for data analysis* (2nd ed.). Springer. https://doi.org/10.1007/978-3-319-24277-4
+
+Wickham, H., Çetinkaya-Rundel, M., & Grolemund, G. (2023). *R for data science* (2nd ed.). O'Reilly Media. https://r4ds.hadley.nz/
+
+Wilkinson, L. (2005). *The grammar of graphics* (2nd ed.). Springer. https://doi.org/10.1007/0-387-28695-0

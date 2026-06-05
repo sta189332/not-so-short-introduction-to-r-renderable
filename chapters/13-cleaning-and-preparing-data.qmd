@@ -1,0 +1,951 @@
+---
+title: "Cleaning and Preparing Data: Making Evidence Trustworthy"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{13.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{13.\arabic{table}}
+\setcounter{table}{0}
+```
+
+## Opening Scene: When Import Reveals the Work
+
+Leo has done what many beginners think is the difficult part.
+
+He has learned how to bring the CSV file into R.
+
+In Chapter 12, the official raw dataset was brought into the workflow as an object called `raw_migration`. In the book’s workflow, that object represents the imported evidence. Leo can inspect its names, dimensions, structure, and first rows before deciding what needs attention.
+
+That feels like progress, and it is.
+
+But it is not yet analysis.
+
+The moment a dataset enters R, a more serious question begins:
+
+> What condition is this evidence in?
+
+The answer is rarely perfect. Some values may be missing. Some categories may be spelt or spaced differently. Some logical fields may use `TRUE` and `FALSE`, while others use `Yes`, `No`, `Y`, `N`, `1`, and `0`. Some dates may arrive in more than one format. Some numbers may look suspicious. Some records may be repeated for good reasons, while others may need investigation.
+
+This is where beginners are often tempted to rush. They see a messy column and immediately want to fix it. They see a missing value and immediately want to replace it. They see a repeated ID and immediately want to delete it.
+
+That instinct is understandable, but it is risky.
+
+Cleaning is not about making data look neat as quickly as possible. It is about making the condition of the data explicit, consistent, and safe enough for analysis without hiding what was changed.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+In this chapter, Leo learns how to prepare the imported evidence for later analysis. He will keep the raw import untouched, create a working copy, inspect the main forms of messiness, apply selected cleaning steps, compare before and after, and record what changed.
+
+This chapter does not teach full transformation. Chapter 14 will handle selecting, filtering, and transforming data for analytical questions.
+:::
+
+## What Changed After Chapter 12
+
+Chapter 12 taught Leo that a file, a path, and an object are not the same thing.
+
+The official CSV file lives in the project at:
+
+```text
+data/raw/df_r_migration_messy.csv
+```
+
+After import, the object created in R is:
+
+```r
+raw_migration
+```
+
+That object represents the raw imported evidence. Chapter 13 begins by creating a working copy:
+
+```r
+df_r_migration <- raw_migration
+```
+
+The distinction matters.
+
+`raw_migration` should remain the untouched import. Leo can always return to it if he needs to check what the data looked like before preparation.
+
+`df_r_migration` is the working copy. This is where cleaning and preparation happen.
+
+```{r}
+#| eval: false
+df_r_migration <- raw_migration
+```
+
+If this chapter is rendered independently, Leo may need to recreate `raw_migration` from the official raw CSV before making the working copy:
+
+```{r}
+#| eval: false
+# This setup is only for running Chapter 13 independently.
+# The learning workflow still continues from Chapter 12.
+raw_migration <- readr::read_csv("data/raw/df_r_migration_messy.csv")
+
+df_r_migration <- raw_migration
+```
+
+The point is not to reteach importing. The point is to keep the evidence trail clear:
+
+```text
+raw import -> working copy -> prepared dataset
+```
+
+## The Part 3 Workflow So Far
+
+Part 3 follows this workflow path:
+
+```text
+Packages -> Import -> Inspect -> Clean -> Transform -> Summarise
+```
+
+Chapter 11 prepared the tools. Chapter 12 imported the official raw dataset and inspected what arrived. Chapter 13 now begins the cleaning and preparation stage.
+
+This is also where Part 2 starts to pay off in practical work.
+
+Chapter 6 taught Leo to read code as structure. Cleaning code must also be structured clearly.
+
+Chapter 7 taught him that logical judgments matter. Cleaning depends on checks such as `is.na()`, `duplicated()`, `study_hours < 0`, and `first_script_completed %in% c("Yes", "Y", "1")`.
+
+Chapter 8 taught him that built-in functions are ready-made actions. Cleaning uses many of them: `names()`, `str()`, `summary()`, `is.na()`, `unique()`, `table()`, `trimws()`, `tolower()`, and `colSums()`.
+
+Chapter 9 taught him that repeated rules can be named. In this chapter, Leo will see repeated cleaning patterns. Some are shown directly. Later, those patterns could become small helper functions.
+
+Part 3 is not a new unrelated beginning. It is Part 2 applied to real data work.
+
+## Raw Evidence and Working Copy
+
+The safest cleaning workflow begins with restraint.
+
+Leo should not casually edit the raw import. He should first create a working copy.
+
+```{r}
+#| eval: false
+df_r_migration <- raw_migration
+```
+
+This line is small, but the habit is large.
+
+The raw object answers the question:
+
+> What did R import from the official CSV?
+
+The working copy answers the question:
+
+> What version will Leo prepare for analysis?
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+Do not clean the only copy of the evidence. Keep `raw_migration` untouched and use `df_r_migration` as the working copy.
+:::
+
+That rule gives Leo room to make careful decisions. If a cleaning step behaves unexpectedly, he can compare the working copy against the raw import. If a reviewer asks what changed, he has a clearer trail. If a mistake appears later, the original imported evidence is still available.
+
+## A Small Visual Map of Cleaning
+
+The cleaning workflow is easier to understand when the evidence trail is visible.
+
+```{r}
+#| label: fig-raw-to-working-cleaning
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4.4
+#| fig-align: center
+#| fig-cap: "From Raw Evidence to a Prepared Working Dataset"
+
+old_par <- par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i", lend = "round")
+plot.new()
+plot.window(xlim = c(0, 14), ylim = c(0, 7.3), asp = 1)
+
+draw_box <- function(x, y, w, h, label, fill_col = "#c9c8ff",
+                     cex = 0.68, font = 2, lwd = 1.2,
+                     border_col = "#222222") {
+  fill <- adjustcolor(fill_col, alpha.f = 0.28)
+
+  rect(
+    xleft = x,
+    ybottom = y,
+    xright = x + w,
+    ytop = y + h,
+    col = fill,
+    border = border_col,
+    lwd = lwd
+  )
+
+  text(
+    x = x + w / 2,
+    y = y + h / 2,
+    labels = label,
+    cex = cex,
+    font = font
+  )
+}
+
+draw_arrow <- function(x0, y0, x1, y1, lwd = 1.3) {
+  arrows(
+    x0 = x0,
+    y0 = y0,
+    x1 = x1,
+    y1 = y1,
+    length = 0.08,
+    lwd = lwd
+  )
+}
+
+text(
+  x = 7,
+  y = 6.75,
+  labels = "Cleaning protects the raw evidence while preparing a working dataset",
+  cex = 1.0,
+  font = 2
+)
+
+draw_box(
+  x = 0.80,
+  y = 4.75,
+  w = 2.65,
+  h = 0.85,
+  label = "raw_migration\nuntouched import",
+  fill_col = "#eeeeee",
+  cex = 0.60
+)
+
+draw_box(
+  x = 4.05,
+  y = 4.75,
+  w = 2.55,
+  h = 0.85,
+  label = "df_r_migration\nworking copy",
+  fill_col = "#ffd6b5",
+  cex = 0.60
+)
+
+draw_box(
+  x = 7.20,
+  y = 4.75,
+  w = 2.80,
+  h = 0.85,
+  label = "cleaning checks\nnames, missing, text",
+  fill_col = "#c9c8ff",
+  cex = 0.56
+)
+
+draw_box(
+  x = 10.65,
+  y = 4.75,
+  w = 2.70,
+  h = 0.85,
+  label = "prepared data\nready for Chapter 14",
+  fill_col = "#c8efd2",
+  cex = 0.58
+)
+
+draw_arrow(3.55, 5.18, 3.95, 5.18)
+draw_arrow(6.70, 5.18, 7.10, 5.18)
+draw_arrow(10.10, 5.18, 10.55, 5.18)
+
+draw_box(
+  x = 1.20,
+  y = 2.85,
+  w = 2.20,
+  h = 0.68,
+  label = "Keep as evidence",
+  fill_col = "#eeeeee",
+  cex = 0.58
+)
+
+draw_box(
+  x = 4.25,
+  y = 2.85,
+  w = 2.20,
+  h = 0.68,
+  label = "Change carefully",
+  fill_col = "#ffd6b5",
+  cex = 0.58
+)
+
+draw_box(
+  x = 7.05,
+  y = 2.85,
+  w = 3.25,
+  h = 0.68,
+  label = "Inspect before and after",
+  fill_col = "#c9c8ff",
+  cex = 0.58
+)
+
+draw_box(
+  x = 10.85,
+  y = 2.85,
+  w = 2.30,
+  h = 0.68,
+  label = "Save separately",
+  fill_col = "#c8efd2",
+  cex = 0.58
+)
+
+draw_box(
+  x = 2.60,
+  y = 1.05,
+  w = 8.80,
+  h = 0.72,
+  label = "A cleaning step is complete only after Leo checks what changed.",
+  fill_col = "#eeeeee",
+  cex = 0.66,
+  font = 2
+)
+
+par(old_par)
+```
+
+As shown in @fig-raw-to-working-cleaning, cleaning should not overwrite the raw evidence. The raw import remains available as `raw_migration`. The working copy, `df_r_migration`, carries the preparation work. Only after checks and documented decisions should Leo create a prepared dataset for later analysis.
+
+This is a professional habit, not an advanced trick.
+
+## Before Cleaning: Inspect the Mess
+
+Chapter 12 made the condition of the official dataset visible. Chapter 13 now examines that condition more deliberately before changing anything.
+
+The dataset has 650 rows and 28 columns. It records learner observations from people moving into R-based data work. It includes fields about identity, background, dates, progress, tool use, completion, notes, and payment probability.
+
+The dataset is deliberately messy because real workflow practice needs realistic evidence. @tbl-cleaning-issues summarises the main issues Leo should inspect before changing anything.
+
+| Cleaning issue | Variables to inspect | Why it matters |
+|---|---|---|
+| Inconsistent text | `country`, `industry`, `background`, `job_role`, `completion_status` | Grouping and counting become unreliable when the same category appears in several forms. |
+| Mixed logical encodings | `first_script_completed`, `used_rstudio`, `used_quarto`, `used_git`, `used_renv`, `manager_support` | R may treat yes/no fields as text unless the values are prepared consistently. |
+| Varied date formats | `enrolment_date`, `first_login_date` | Time-based work becomes unreliable when dates are not recognised consistently. |
+| Missing-like values | `first_login_date`, `confidence_score`, `project_score`, `notes` | Missingness affects interpretation and should not be ignored. |
+| Repeated records | `learner_id`, `week` | Some repetition may be valid, while repeated learner-week records require checking. |
+| Suspicious numeric values | `study_hours`, `project_score`, `payment_probability_score` | Impossible or unlikely values require investigation before analysis. |
+
+: Cleaning issues to inspect in the official dataset {#tbl-cleaning-issues}
+
+The table is not a cleaning recipe. It is an inspection map.
+
+Leo should not remove records, replace values, or standardise categories simply because a table says they look messy. Each cleaning step needs a reason.
+
+## Cleaning Is Not Transformation
+
+Cleaning and transformation are related, but they are not the same job.
+
+Cleaning prepares evidence so that the values are consistent enough to interpret. It asks questions such as:
+
+```text
+Are missing values marked consistently?
+Are categories written consistently?
+Are yes/no fields encoded consistently?
+Are dates recognisable as dates?
+Are there impossible or suspicious values?
+Are repeated records valid or accidental?
+```
+
+Transformation creates or reshapes analytical meaning. It asks questions such as:
+
+```text
+Which columns do I need?
+Which rows answer this question?
+What new variable should I create?
+How should this dataset be shaped for analysis?
+```
+
+Chapter 13 is about cleaning and preparation. Chapter 14 will teach Leo how to select, filter, and transform data for analytical questions.
+
+::: {.callout-note appearance="simple" title="Boundary Check"}
+Cleaning makes existing evidence safer to work with. Transformation reshapes or extends that evidence for a question.
+
+Chapter 13 prepares. Chapter 14 transforms.
+:::
+
+## Start with Column Names and Structure
+
+Before changing values, Leo should inspect the structure.
+
+Base R makes the first checks plain:
+
+```{r}
+#| eval: false
+names(df_r_migration)
+dim(df_r_migration)
+str(df_r_migration)
+```
+
+The tidyverse gives a compact structural view:
+
+```{r}
+#| eval: false
+dplyr::glimpse(df_r_migration)
+```
+
+The official dataset already uses clear snake-case column names, such as `learner_id`, `study_hours`, `project_score`, and `completion_status`. That is useful. It means Leo does not need to begin by renaming columns.
+
+But he should still inspect them.
+
+A column name can look clean while the values inside the column remain messy. That is why Chapter 13 moves from structure to values.
+
+::: {.callout-tip appearance="simple" title="Part 2 in Practice"}
+Chapter 6 taught Leo to read code structurally. Chapter 13 asks him to read data structurally too: names, rows, columns, types, and values all have roles in the workflow.
+:::
+
+## Missing Values and Missing-Like Values
+
+Missing values are not empty inconveniences. They are information about absence, uncertainty, or non-response.
+
+In the official dataset, missing-like values appear especially in `first_login_date`, `confidence_score`, `project_score`, and `notes`.
+
+Base R can count true missing values with `is.na()`:
+
+```{r}
+#| eval: false
+colSums(is.na(df_r_migration))
+```
+
+Some datasets also contain missing-like text such as `"NA"`, `"N/A"`, `"missing"`, or `"not available"`. The official file includes `NA`-style missingness, and Leo should learn to check for this pattern explicitly.
+
+```{r}
+#| eval: false
+missing_like <- c("", "NA", "N/A", "missing", "not available")
+
+missing_like_counts <- sapply(
+  df_r_migration,
+  function(x) sum(trimws(as.character(x)) %in% missing_like, na.rm = TRUE)
+)
+
+missing_like_counts
+```
+
+A tidyverse version expresses the same idea as a workflow step:
+
+```{r}
+#| eval: false
+missing_like <- c("", "NA", "N/A", "missing", "not available")
+
+df_r_migration |>
+  dplyr::summarise(
+    dplyr::across(
+      dplyr::everything(),
+      ~ sum(trimws(as.character(.x)) %in% missing_like, na.rm = TRUE)
+    )
+  )
+```
+
+This is Chapter 7 logic in action. `is.na()` and `%in%` produce judgments. Those judgments help Leo identify what needs attention.
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+Do not replace missing values before understanding what they mean. Missingness is part of the evidence.
+:::
+
+## Text Fields: Spaces, Capitalisation, and Consistency
+
+Text fields often look harmless until Leo tries to group or count them.
+
+For example, the official dataset contains country and category values with inconsistent capitalisation and spacing. A human reader may recognise `India`, ` INDIA `, and `india` as the same country. R does not make that assumption automatically.
+
+Leo can inspect unique values in a text column:
+
+```{r}
+#| eval: false
+unique(df_r_migration$country)
+```
+
+A frequency table can make the problem more visible:
+
+```{r}
+#| eval: false
+table(df_r_migration$country)
+```
+
+A small before-and-after comparison makes the effect clearer.
+
+| Raw value | Cleaned value |
+|---|---|
+| `" INDIA "` | `"india"` |
+| `"USA"` | `"usa"` |
+| `" nigeria"` | `"nigeria"` |
+
+: Example of text standardisation during cleaning {#tbl-country-cleaning-example}
+
+The cleaning rule does not invent new categories. It standardises different representations of the same category.
+
+A simple Base R cleaning pattern trims spaces and standardises case:
+
+```{r}
+#| eval: false
+df_r_migration$country <- trimws(tolower(df_r_migration$country))
+```
+
+The tidyverse version is more explicit inside a workflow:
+
+```{r}
+#| eval: false
+df_r_migration <- df_r_migration |>
+  dplyr::mutate(
+    country = stringr::str_squish(stringr::str_to_lower(country))
+  )
+```
+
+The same idea can be applied carefully to other text fields:
+
+```{r}
+#| eval: false
+text_fields <- c(
+  "country",
+  "industry",
+  "background",
+  "job_role",
+  "completion_status",
+  "preferred_learning_mode",
+  "monthly_income_band"
+)
+```
+
+Base R can apply the rule across those fields:
+
+```{r}
+#| eval: false
+for (field in text_fields) {
+  df_r_migration[[field]] <- trimws(tolower(df_r_migration[[field]]))
+}
+```
+
+The tidyverse version uses `across()`:
+
+```{r}
+#| eval: false
+df_r_migration <- df_r_migration |>
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::all_of(text_fields),
+      ~ stringr::str_squish(stringr::str_to_lower(.x))
+    )
+  )
+```
+
+This is also Chapter 9 in practice. When the same rule appears repeatedly, Leo should recognise the pattern. Later, a repeated rule like `str_squish(str_to_lower(x))` could become a small helper function. In this chapter, the main goal is not to build that function. The goal is to see the repeated rule and apply it deliberately.
+
+After each cleaning step, inspect the result before continuing. Leo should check what changed:
+
+```{r}
+#| eval: false
+table(df_r_migration$country)
+```
+
+## Logical Fields: Many Encodings for the Same Idea
+
+Logical fields are one of the easiest places for silent confusion.
+
+The official dataset includes several fields that behave like yes/no indicators:
+
+```text
+first_script_completed
+used_rstudio
+used_quarto
+used_git
+used_renv
+manager_support
+```
+
+But the raw values are not encoded in only one way. They include forms such as `TRUE`, `FALSE`, `Yes`, `No`, `Y`, `N`, `1`, and `0`.
+
+Leo should inspect first:
+
+```{r}
+#| eval: false
+unique(df_r_migration$first_script_completed)
+unique(df_r_migration$used_rstudio)
+unique(df_r_migration$manager_support)
+```
+
+Base R can prepare these fields with a clear rule:
+
+```{r}
+#| eval: false
+logical_fields <- c(
+  "first_script_completed",
+  "used_rstudio",
+  "used_quarto",
+  "used_git",
+  "used_renv",
+  "manager_support"
+)
+
+true_values <- c("true", "yes", "y", "1")
+false_values <- c("false", "no", "n", "0")
+
+for (field in logical_fields) {
+  value <- tolower(trimws(as.character(df_r_migration[[field]])))
+
+  df_r_migration[[field]] <- NA
+  df_r_migration[[field]][value %in% true_values] <- TRUE
+  df_r_migration[[field]][value %in% false_values] <- FALSE
+  df_r_migration[[field]] <- as.logical(df_r_migration[[field]])
+}
+```
+
+The final `as.logical()` step ensures that the column is stored as logical data rather than remaining as text.
+
+A tidyverse version can express the same rule with `case_when()`:
+
+```{r}
+#| eval: false
+logical_fields <- c(
+  "first_script_completed",
+  "used_rstudio",
+  "used_quarto",
+  "used_git",
+  "used_renv",
+  "manager_support"
+)
+
+true_values <- c("true", "yes", "y", "1")
+false_values <- c("false", "no", "n", "0")
+
+df_r_migration <- df_r_migration |>
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::all_of(logical_fields),
+      ~ dplyr::case_when(
+        stringr::str_to_lower(stringr::str_squish(as.character(.x))) %in% true_values ~ TRUE,
+        stringr::str_to_lower(stringr::str_squish(as.character(.x))) %in% false_values ~ FALSE,
+        TRUE ~ NA
+      )
+    )
+  )
+```
+
+This is not just tidying. It changes how R understands the fields. Text-like yes/no values become logical values that can support checks later.
+
+After this step, Leo should inspect again:
+
+```{r}
+#| eval: false
+str(df_r_migration[logical_fields])
+```
+
+::: {.callout-warning appearance="simple" title="Common Beginner Trap"}
+Do not assume a yes/no-looking column is already logical. Inspect it. Then prepare it deliberately.
+:::
+
+## Dates: Recognise Before Repairing
+
+Dates are another common source of quiet trouble.
+
+The official dataset includes:
+
+```text
+enrolment_date
+first_login_date
+```
+
+Inspection shows that dates appear in more than one format. Some look like `2025-02-01`. Some look like `02/18/2025`. Some look like `27 Dec 2025`. That variety is realistic, but it also creates risk. Some formats are ambiguous. For example, `02/03/2025` could represent different calendar dates depending on regional conventions. This means Leo should not assume the dates are already safe for time-based analysis.
+
+He can begin by inspecting examples:
+
+```{r}
+#| eval: false
+head(df_r_migration$enrolment_date)
+head(df_r_migration$first_login_date)
+```
+
+Base R can attempt date conversion when the format is consistent, but this dataset contains mixed formats. That makes a single `as.Date()` format too narrow for the whole column:
+
+```{r}
+#| eval: false
+as.Date(df_r_migration$enrolment_date, format = "%Y-%m-%d")
+```
+
+Date handling is difficult enough that the tidyverse ecosystem includes specialised tools for working with dates and times. For mixed formats, a workflow tool such as `lubridate::parse_date_time()` is often more practical. This is shown here as a careful preparation step, not as a full lesson on date handling:
+
+```{r}
+#| eval: false
+df_r_migration$enrolment_date <- lubridate::parse_date_time(
+  df_r_migration$enrolment_date,
+  orders = c("ymd", "dmy", "mdy", "d b Y", "d B Y")
+)
+
+df_r_migration$first_login_date <- lubridate::parse_date_time(
+  df_r_migration$first_login_date,
+  orders = c("ymd", "dmy", "mdy", "d b Y", "d B Y")
+)
+```
+
+The important lesson is not memorising date formats. The important lesson is recognising the problem before trusting the field.
+
+After parsing, Leo should inspect the result:
+
+```{r}
+#| eval: false
+class(df_r_migration$enrolment_date)
+summary(df_r_migration$enrolment_date)
+```
+
+Chapter 13 keeps this at first-contact level. More advanced date work belongs later.
+
+## Numeric Fields: Values That Need Questioning
+
+Numeric columns can also carry problems.
+
+Important numeric fields in the official dataset include:
+
+```text
+excel_years
+week
+study_hours
+lessons_completed
+confidence_score
+pre_assessment_score
+project_score
+payment_probability_score
+```
+
+Leo can begin with structure and summary checks:
+
+```{r}
+#| eval: false
+summary(df_r_migration$study_hours)
+summary(df_r_migration$project_score)
+summary(df_r_migration$payment_probability_score)
+```
+
+If a numeric column arrived as character because of missing-like values or formatting issues, Leo can inspect and convert carefully. Any warning produced during conversion should be treated as evidence to investigate, not as noise to ignore:
+
+```{r}
+#| eval: false
+df_r_migration$study_hours <- as.numeric(df_r_migration$study_hours)
+df_r_migration$project_score <- as.numeric(df_r_migration$project_score)
+```
+
+A tidyverse version can prepare selected numeric fields:
+
+```{r}
+#| eval: false
+numeric_fields <- c(
+  "excel_years",
+  "week",
+  "study_hours",
+  "lessons_completed",
+  "confidence_score",
+  "pre_assessment_score",
+  "project_score",
+  "payment_probability_score"
+)
+
+df_r_migration <- df_r_migration |>
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::all_of(numeric_fields),
+      as.numeric
+    )
+  )
+```
+
+The official dataset includes a suspicious negative value in `study_hours`. Leo should not silently delete or replace it. He should identify it:
+
+```{r}
+#| eval: false
+df_r_migration[df_r_migration$study_hours < 0, c("learner_id", "week", "study_hours")]
+```
+
+The tidyverse version reads like a check:
+
+```{r}
+#| eval: false
+df_r_migration |>
+  dplyr::filter(study_hours < 0) |>
+  dplyr::select(learner_id, week, study_hours)
+```
+
+This uses a small amount of filtering, but only as an inspection check. Chapter 14 will teach filtering properly.
+
+The cleaning decision comes after the check. A negative study-hour value might be a typing error, an encoding problem, or a value that should be treated as missing. Chapter 13 should not pretend that code alone knows the answer.
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+Suspicious values should be investigated before they are corrected. A cleaner-looking dataset is not automatically a truer dataset.
+:::
+
+## Duplicates and Repeated Records
+
+The official dataset contains repeated learner IDs. That is not automatically an error.
+
+A learner may appear more than once if the dataset records observations across weeks. In that case, repeated `learner_id` values may be expected.
+
+The stronger check is whether the same learner appears more than once in the same week.
+
+Base R can check repeated learner-week combinations:
+
+```{r}
+#| eval: false
+duplicated_learner_week <- duplicated(df_r_migration[c("learner_id", "week")])
+
+sum(duplicated_learner_week)
+```
+
+Leo can inspect the repeated records:
+
+```{r}
+#| eval: false
+df_r_migration[duplicated_learner_week, c("learner_id", "week")]
+```
+
+The tidyverse version is more readable:
+
+```{r}
+#| eval: false
+df_r_migration |>
+  dplyr::count(learner_id, week) |>
+  dplyr::filter(n > 1)
+```
+
+This is another place where Chapter 7 matters. The check `n > 1` is a logical judgment. It identifies records that need attention.
+
+Leo should not remove duplicates blindly. First he should ask:
+
+```text
+Is repetition expected because learners appear across weeks?
+Is this a repeated observation?
+Is this a data-entry duplicate?
+Which record should be kept, if any?
+What rule justifies the decision?
+```
+
+Cleaning without a rule is guesswork.
+
+## A Cleaning Audit Trail
+
+Professional cleaning must be reproducible. That requires a visible trail of checks, decisions, and changes.
+
+That trail does not have to be complicated. At this level, Leo can create a small audit table that records what he checked, why it mattered, and what he decided.
+
+| Check area | Example check | Decision rule |
+|---|---|---|
+| Working copy | `df_r_migration <- raw_migration` | Keep the raw import untouched. |
+| Missing values | `colSums(is.na(df_r_migration))` | Inspect missingness before replacing values. |
+| Text fields | `unique(df_r_migration$country)` | Standardise spaces and case where categories represent the same idea. |
+| Logical fields | `unique(df_r_migration$used_rstudio)` | Convert recognised yes/no encodings to logical values. |
+| Dates | `head(df_r_migration$enrolment_date)` | Parse only after checking mixed formats. |
+| Numeric fields | `study_hours < 0` | Investigate impossible or suspicious values before changing them. |
+| Repeated records | `count(learner_id, week)` | Treat repeated learner IDs carefully and check repeated learner-week records. |
+
+: A simple cleaning audit trail for Chapter 13 {#tbl-cleaning-audit-trail}
+
+The audit trail helps Leo remember that cleaning is not just code. It is a sequence of decisions.
+
+A cleaning step is not complete when the code runs. It is complete only when Leo checks what changed and can explain why.
+
+## Saving or Naming the Prepared Data
+
+After cleaning decisions have been applied and checked, Leo can keep the prepared result under a clear name.
+
+This chapter uses:
+
+```r
+df_r_migration_prepared
+```
+
+That name is deliberate. It does not claim that the dataset is perfect. It says that the dataset has been prepared for the next stage.
+
+```{r}
+#| eval: false
+df_r_migration_prepared <- df_r_migration
+```
+
+If Leo wants to save the prepared dataset for later chapters, he should save it outside the raw folder.
+
+```{r}
+#| eval: false
+dir.create("data/processed", recursive = TRUE, showWarnings = FALSE)
+
+saveRDS(
+  df_r_migration_prepared,
+  "data/processed/df_r_migration_prepared.rds"
+)
+
+readr::write_csv(
+  df_r_migration_prepared,
+  "data/processed/df_r_migration_prepared.csv"
+)
+```
+
+The `.rds` file preserves the prepared R object for later chapters. The `.csv` file remains useful for sharing or inspecting outside R.
+
+The raw file stays in `data/raw/`. The prepared output belongs in a separate location such as `data/processed/`.
+
+That separation protects the evidence trail.
+
+## Common Beginner Mistakes
+
+### Mistake 1: Cleaning the raw object directly
+
+If Leo changes `raw_migration`, he weakens his ability to compare against the imported evidence.
+
+Create a working copy first:
+
+```{r}
+#| eval: false
+df_r_migration <- raw_migration
+```
+
+### Mistake 2: Changing values before inspecting them
+
+A cleaning command should answer a known problem. It should not be a guess.
+
+Inspect first. Clean second. Inspect again.
+
+### Mistake 3: Treating all repeated IDs as errors
+
+Repeated `learner_id` values may be valid in a dataset with weekly observations. Repeated learner-week records are more suspicious, but even they should be examined before removal.
+
+### Mistake 4: Replacing missing values too quickly
+
+Missing values may mean absence, non-response, delay, system failure, or something else. Replacing them without understanding them can distort analysis.
+
+### Mistake 5: Assuming dates are already dates
+
+A date-looking value may still be text. Inspect with `class()`, `str()`, and sample values before using dates for time-based analysis.
+
+### Mistake 6: Running one cleaning command and moving on
+
+Cleaning changes evidence. Every cleaning step should be followed by a check.
+
+### Mistake 7: Confusing cleaning with transformation
+
+Cleaning prepares what is already there. Transformation creates or reshapes variables for analysis. Chapter 14 begins that next stage.
+
+## What Leo Is Expected to Know at This Point
+
+By the end of this chapter, Leo should be able to explain why `raw_migration` and `df_r_migration` should not be treated as the same working object.
+
+He should be able to inspect missing values, text inconsistencies, logical encodings, date problems, suspicious numeric values, and repeated records. He should recognise that Base R and tidyverse approaches can express the same cleaning idea in different ways. He should understand that cleaning requires logic, functions, and careful structure, not just commands.
+
+Most importantly, he should know that cleaning is accountable work.
+
+::: {.callout-note appearance="simple" title="Not Yet"}
+Leo is not expected to perform full analytical transformation yet. He is not expected to select final analysis columns, filter the dataset for a research question, create derived analytical variables, group rows, or summarise outcomes.
+
+Those tasks belong to Chapters 13 and 14.
+:::
+
+## Chapter Outcome
+
+Chapter 13 has moved Leo from imported data toward evidence that can be prepared responsibly.
+
+He has learned that the raw import should remain untouched. He has created a working copy. He has inspected the main forms of messiness in the official dataset. He has seen how Base R and tidyverse can both support cleaning. He has learned that missing values, text fields, logical encodings, dates, numeric values, and repeated records each require different kinds of checks.
+
+The larger lesson is not a single function.
+
+The lesson is a habit:
+
+```text
+inspect -> clean deliberately -> inspect again -> record the decision
+```
+
+That habit is what makes cleaning part of trustworthy analysis.
+
+## Transition to Chapter 14
+
+Leo now knows how to prepare the dataset responsibly.
+
+But a prepared dataset still does not answer a question by itself. To begin analysis, Leo must learn how to choose relevant columns, keep relevant rows, and create new variables that express analytical meaning.
+
+That is the next movement in Part 3.
+
+::: {.callout-tip appearance="simple" title="Ready for Selection and Transformation"}
+Chapter 13 prepared the evidence. Chapter 14 teaches Leo how to ask sharper questions of that evidence by selecting columns, filtering rows, and transforming variables.
+:::

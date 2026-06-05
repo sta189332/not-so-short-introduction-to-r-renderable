@@ -1,0 +1,306 @@
+---
+number-sections: false
+---
+
+# Introduction: The Day R Became Less Strange {.unnumbered}
+
+::: {.callout-note appearance="simple" title="Chapter Opening Story"}
+You know the screen before you understand it.
+
+Not the code. The silence.
+
+The window opens with no spreadsheet grid, no ribbon, no familiar tabs, no rows running down the left side, no columns labelled A, B, C. There is no cell waiting for a value. No formula bar. No button that says sort, filter, clean, summarize, or chart.
+
+Just a console.
+
+A prompt waits on the screen.
+
+```r
+>
+```
+
+It does not explain itself.
+
+It does not ask what file you want to open.
+
+It does not offer a tutorial.
+
+It simply waits.
+
+Leo looks at it longer than he expected.
+
+He is not new to data. He has worked with spreadsheets. He has cleaned tables. He has copied values, checked formulas, dragged columns, fixed formats, removed duplicates, and wondered why the same file behaves differently on two different mornings.
+
+He knows what messy data feels like.
+
+But this is different.
+
+A spreadsheet gives you a surface. You can click somewhere. You can type into a cell. You can see where the data should go. Even when the workbook is broken, it still gives you a visible place to begin.
+
+R gives Leo something else.
+
+A blank space that expects language.
+
+That is the first shock.
+
+Not difficulty.
+
+Silence.
+
+Leo types the smallest thing he can think of.
+
+```r
+1 + 1
+```
+
+R answers.
+
+```r
+[1] 2
+```
+
+It is not impressive as mathematics. Anyone can add one and one.
+
+But something has happened.
+
+Leo wrote an instruction. R evaluated it. The result appeared immediately.
+
+No dragging.
+
+No clicking.
+
+No hidden formula.
+
+No guessing whether the copied range reached the last row.
+
+Just instruction and result.
+
+He tries again.
+
+```r
+print("Hello R")
+```
+
+The words appear.
+
+Then he tries to store a value.
+
+```r
+x <- 10
+x
+```
+
+R remembers it.
+
+That is the second shock.
+
+R is not only calculating. It is holding things by name.
+
+Leo does not yet understand objects. He does not yet understand functions. He does not yet understand data types, structures, packages, scripts, projects, or reports. He does not know why RStudio matters. He does not know why some people say R is hard and others say it is beautiful.
+
+But a small door has opened.
+
+Then the first friction arrives.
+
+After a few commands, the console begins to feel thin. Leo wants to save the useful lines. He wants to separate experiments from working code. He wants to return tomorrow and continue. He wants to know where his work lives. He wants the computer to remember more than the result.
+
+The raw console can execute.
+
+But it does not yet feel like a place to build.
+
+That is when the real question appears.
+
+Not:
+
+> Can R calculate?
+
+It can.
+
+The better question is:
+
+> How do people use R seriously without losing their work?
+
+That question is the beginning of this book.
+
+Not confidence.
+
+Not mastery.
+
+Not a polished dashboard.
+
+A beginner, a prompt, and the first realization that R is not just another application.
+
+It is a different way of thinking.
+:::
+
+## Why This Book Exists
+
+This book exists because many people are told to learn R before they are helped to understand R.
+
+That is where the trouble often begins.
+
+A beginner is handed syntax before meaning.
+
+Functions before context.
+
+Packages before the base system.
+
+Data frames before data itself.
+
+Plots before objects.
+
+Projects before the learner understands where R is running.
+
+The learner copies a line of code. It fails. They copy another line. It fails differently. They search online. They find three possible answers, none of which explains the original problem. Slowly, they begin to believe that R is only for people who were already technical before they began.
+
+That belief is false.
+
+R can be learned by serious beginners.
+
+But it must be taught in the right order.
+
+This book exists to give that order.
+
+It does not treat the beginner as careless or incapable. It assumes the learner is new. That difference matters. A new learner does not need to be patronized. A new learner needs a path, patient explanation, honest friction, and enough repetition for ideas to settle.
+
+Leo is the learner in this book.
+
+He is intelligent.
+
+He is curious.
+
+He is cautious.
+
+He is not stupid, and the book never treats him as if he is. He simply does not yet know how R works. His confusion is not a character flaw. It is part of the learning process.
+
+Through Leo, this book teaches R as a movement from first contact to structured analytical work.
+
+The journey begins with the raw R console because the learner needs to see the engine. Then the book allows the friction of that raw experience to appear. Only after that does RStudio become meaningful.
+
+The same pattern runs through the whole book.
+
+Exposure first.
+
+Friction second.
+
+Solution last.
+
+That principle matters because tools make more sense when they arrive as answers to problems already felt.
+
+RStudio matters after Leo experiences the limits of the console.
+
+Packages matter after Leo sees that base R cannot comfortably do everything.
+
+Data types matter after Leo sees that values which look similar may behave differently.
+
+Coercion matters after Leo sees R silently change values to make them fit.
+
+Pipelines matter after Leo feels the repetition of manual cleaning.
+
+Visualization matters after Leo sees that tables can contain insight without making that insight visible.
+
+Quarto matters after Leo understands that scripts alone do not fully communicate an analysis.
+
+The book does not rush past confusion.
+
+It uses confusion as the doorway into understanding.
+
+## What This Book Will Help You Do
+
+By the end of this book, you will be able to move from isolated R commands to a complete, reproducible data workflow.
+
+You will know what R is, why it exists, and why it is more than a calculator. You will know why R should be installed first and why RStudio becomes useful only after the raw console has shown its limits. You will know how to write commands, create objects, inspect values, and save code in a script instead of depending on memory.
+
+You will learn to see R as a system.
+
+R is the engine.
+
+RStudio is the working environment.
+
+Packages extend capability.
+
+Scripts preserve thought.
+
+Projects organize work.
+
+Quarto turns analysis into a document that can be read, checked, rendered, and shared.
+
+The emphasis here is understanding before speed.
+
+This is not a trick-first book. It is not built around memorizing commands. It is built around the slow but powerful movement from confusion to control.
+
+You will learn why R treats data the way it does.
+
+You will learn that data begins as small pieces.
+
+You will learn that those pieces have types.
+
+You will learn that types affect behavior.
+
+You will learn that values are placed into structures.
+
+You will learn that structures determine what R can do easily and what it will resist.
+
+You will learn why this works:
+
+```r
+10 + 5
+```
+
+and why this does not behave the same way:
+
+```r
+"10" + 5
+```
+
+You will learn why a column can look numeric and still refuse to calculate.
+
+You will learn why missing values matter.
+
+You will learn why `NA`, `NaN`, `Inf`, and `NULL` are not random annoyances but signals that must be understood.
+
+Later, you will work with one teaching dataset: `df_r_migration`.
+
+That dataset will carry the practical journey of the book. It includes learner-centred variables such as `learner_id`, `country`, `background`, `study_hours`, `confidence_score`, `project_score`, `first_script_completed`, `enrolment_date`, `first_login_date`, and `week`.
+
+The book does not jump from one unrelated toy example to another.
+
+One dataset grows with you.
+
+At first, you will only hear about it. Then you will inspect it. Then you will clean it. Then you will transform it. Then you will visualize it. Then you will communicate insight from it. Finally, you will use it as part of a reproducible analytical system.
+
+That is the real movement of this book.
+
+From first contact to working structure.
+
+From copied commands to understood code.
+
+From scattered effort to reproducible workflow.
+
+::: {.callout-note appearance="simple" title="PhD Insight Made Simple"}
+Many beginners think confusion means they are not capable.
+
+In R, confusion often means the learner has reached a hidden rule.
+
+The task is not to pretend the confusion is not there. The task is to expose the rule behind it. Once Leo understands the rule, the problem becomes less personal and more technical. Technical problems can be inspected, tested, corrected, and practiced.
+
+That is why this book slows down at the moments where many tutorials speed up.
+:::
+
+::: {.callout-important appearance="simple" title="First Contact Application"}
+Before you continue, write down your honest starting point with R.
+
+Answer these five questions:
+
+1. Have you installed R before, or is this your first time?
+2. When you see the R console, what feels most unfamiliar?
+3. What kind of data work do you currently do most often?
+4. What part of that work feels repetitive, fragile, or hard to reproduce?
+5. What would you like R to help you do with more confidence by the end of this book?
+
+Do not solve anything yet.
+
+Do not try to sound advanced.
+
+Just name your starting point clearly. Later, this becomes your evidence of progress.
+:::

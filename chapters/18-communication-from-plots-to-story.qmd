@@ -1,0 +1,1460 @@
+---
+title: "Communication from Plots to Story: Designing Visuals People Can Understand"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{18.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{18.\arabic{table}}
+\setcounter{table}{0}
+```
+
+```{r}
+#| label: setup-chapter-18
+#| include: false
+
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(ggplot2)
+  library(tibble)
+  library(forcats)
+  library(scales)
+  library(knitr)
+})
+
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>",
+  fig.align = "center"
+)
+
+chapter18_has_pkg <- function(pkg) {
+  requireNamespace(pkg, quietly = TRUE)
+}
+
+chapter18_find_first_existing <- function(paths) {
+  existing <- paths[file.exists(paths)]
+  if (length(existing) == 0) {
+    return(NA_character_)
+  }
+  existing[[1]]
+}
+
+chapter18_standardise_text <- function(x) {
+  x <- as.character(x)
+  x <- trimws(x)
+  x[x %in% c("", "NA", "N/A", "missing", "not available")] <- NA_character_
+  tools::toTitleCase(tolower(x))
+}
+
+chapter18_to_logical <- function(x) {
+  x <- tolower(trimws(as.character(x)))
+  dplyr::case_when(
+    x %in% c("true", "yes", "y", "1", "completed") ~ TRUE,
+    x %in% c("false", "no", "n", "0", "not completed", "incomplete") ~ FALSE,
+    TRUE ~ NA
+  )
+}
+
+chapter18_to_number <- function(x) {
+  suppressWarnings(as.numeric(x))
+}
+
+if (!exists("df_analysis")) {
+  rds_path <- chapter18_find_first_existing(c(
+    "data/processed/df_analysis.rds"
+  ))
+
+  csv_path <- chapter18_find_first_existing(c(
+    "data/processed/df_analysis.csv",
+    "datasets/processed/df_analysis.csv",
+    "../datasets/processed/df_analysis.csv"
+  ))
+
+  if (!is.na(rds_path)) {
+    df_analysis <- readRDS(rds_path)
+  } else if (!is.na(csv_path)) {
+    df_analysis <- read.csv(
+      csv_path,
+      stringsAsFactors = FALSE,
+      na.strings = c("", "NA", "N/A", "missing", "not available")
+    )
+  } else {
+    stop(
+      "Chapter 18 requires df_analysis from Chapter 14 or Chapter 15. ",
+      "Run the Part 3 handoff code or download df_analysis.csv into data/processed/."
+    )
+  }
+}
+
+df_story <- df_analysis %>%
+  transmute(
+    learner_id = as.character(learner_id),
+    country = chapter18_standardise_text(country),
+    region = chapter18_standardise_text(region),
+    job_role = chapter18_standardise_text(job_role),
+    industry = chapter18_standardise_text(industry),
+    background = chapter18_standardise_text(background),
+    r_experience_level = chapter18_standardise_text(r_experience_level),
+    week = chapter18_to_number(week),
+    study_hours = chapter18_to_number(study_hours),
+    lessons_completed = chapter18_to_number(lessons_completed),
+    confidence_score = chapter18_to_number(confidence_score),
+    pre_assessment_score = chapter18_to_number(pre_assessment_score),
+    project_score = chapter18_to_number(project_score),
+    first_script_completed = chapter18_to_logical(first_script_completed),
+    used_rstudio = chapter18_to_logical(used_rstudio),
+    used_quarto = chapter18_to_logical(used_quarto),
+    used_git = chapter18_to_logical(used_git),
+    used_renv = chapter18_to_logical(used_renv),
+    preferred_learning_mode = chapter18_standardise_text(preferred_learning_mode),
+    monthly_income_band = chapter18_standardise_text(monthly_income_band),
+    completion_status = chapter18_standardise_text(completion_status),
+    manager_support = chapter18_to_logical(manager_support),
+    payment_probability_score = chapter18_to_number(payment_probability_score),
+    score_gap = if ("score_gap" %in% names(df_analysis)) {
+      chapter18_to_number(score_gap)
+    } else {
+      chapter18_to_number(project_score) - chapter18_to_number(pre_assessment_score)
+    },
+    study_band = if ("study_band" %in% names(df_analysis)) {
+      chapter18_standardise_text(study_band)
+    } else {
+      dplyr::case_when(
+        chapter18_to_number(study_hours) < 4 ~ "Low Study Time",
+        chapter18_to_number(study_hours) < 8 ~ "Moderate Study Time",
+        TRUE ~ "High Study Time"
+      )
+    }
+  ) %>%
+  filter(
+    !is.na(project_score),
+    project_score >= 0,
+    project_score <= 100,
+    !is.na(study_hours),
+    study_hours >= 0,
+    !is.na(week),
+    week > 0
+  )
+
+chapter18_caption_source <- "Source: analysis-ready dataset df_analysis, derived from df_r_migration_messy.csv in the Part 3 workflow."
+```
+
+## Opening Scene: When Clear Plots Still Feel Unfinished
+
+Leo has reached the end of a long visual journey.
+
+In Chapter 16, he learned how a data frame becomes a plot. A variable could move to an axis. A category could become colour. A numerical pattern could become a line, bar, point, or distribution. For the first time, he saw that visualization was not a decorative step after analysis. It was a way of thinking with data.
+
+In Chapter 17, he learned that a correct plot can still be hard to read. He adjusted scales, reduced clutter, repaired legends, controlled themes, handled overplotting, and made better decisions about colour, labels, and layout.
+
+Now he opens one of his best plots and feels an uncomfortable truth.
+
+The plot is cleaner. The labels are readable. The scale is not misleading. The colours are not shouting.
+
+Yet it still does not quite speak.
+
+A reader can look at it and ask, "So what am I supposed to see?"
+
+That question is the doorway into this chapter.
+
+A visualization is not finished when R produces it. It is not even finished when it looks tidy. It is finished when it helps another person understand the point without needing Leo to stand beside the screen and explain every choice.
+
+This is the final step of Part 4: moving from plots that show data to visuals that communicate meaning.
+
+## What Changed After Chapter 17
+
+Chapter 17 gave Leo control over the visible surface of a plot. He learned to ask:
+
+- Are the scales readable?
+- Is colour doing a job?
+- Are the labels placed where they help?
+- Is the legend necessary?
+- Is the chart too crowded?
+- Is the theme supporting or distracting?
+
+Those questions remain important. But Chapter 18 adds a deeper question:
+
+> What should this plot help the reader understand?
+
+That question changes everything.
+
+When Leo makes a plot for himself, he is often exploring. He may not yet know what matters. He tries one chart, changes a grouping variable, filters a subset, checks an outlier, and compares another version. The plot is a working instrument.
+
+When Leo makes a plot for others, the task changes. He is no longer only looking. He is guiding. He must decide what evidence to foreground, what context to provide, what claim can be made, what uncertainty remains, and what the reader should not overinterpret.
+
+::: {.callout-important appearance="simple"}
+## The Central Lightbulb
+
+A plot becomes a story when every design choice helps the reader see what matters, why it matters, and how far the evidence can reasonably go.
+:::
+
+This does not mean turning data into drama. It does not mean forcing a conclusion. It means designing the visual so that the reader can follow the evidence with less confusion and more trust.
+
+## From Exploratory Plot to Explanatory Visual
+
+The same data can produce two very different kinds of plots.
+
+An **exploratory plot** helps the analyst discover what may be happening. It is allowed to be rough because its first audience is the analyst. It may have temporary titles, dense marks, trial colours, and unfinished labels.
+
+An **explanatory visual** helps a reader understand what the analyst has already learned. It must be more deliberate. It needs a clear message, a readable order, helpful context, and responsible boundaries.
+
+```{r}
+#| label: tbl-18-1-exploratory-explanatory
+#| tbl-cap: "The Shift from Exploratory Plots to Explanatory Visual Stories."
+
+tibble::tribble(
+  ~`Design Question`, ~`Exploratory Plot`, ~`Explanatory Visual`,
+  "Primary audience", "The analyst", "A reader, reviewer, manager, learner, or stakeholder",
+  "Main purpose", "Find possible patterns", "Communicate a defensible message",
+  "Title style", "Often descriptive or temporary", "States the main point clearly",
+  "Use of colour", "May test several possibilities", "Highlights what the reader should compare",
+  "Category order", "May follow default order", "Follows analytical or narrative logic",
+  "Annotation", "Often minimal", "Placed where interpretation needs support",
+  "Caption", "Often absent", "Gives source, scope, and limits where needed",
+  "Success test", "Does it help me investigate?", "Does it help someone else understand?"
+) %>%
+  knitr::kable()
+```
+
+@tbl-18-1-exploratory-explanatory shows how the same visual task changes when the audience changes.
+
+The danger for beginners is that they often show exploratory plots as if they were explanatory visuals. The code runs, so they assume the plot is done. But a plot made during analysis carries the analyst's private context. The analyst knows why this variable matters. The analyst remembers what was filtered. The analyst knows which group is important.
+
+The reader does not.
+
+An explanatory visual transfers some of that context into the plot itself.
+
+## The Explanatory Shift
+
+The explanatory shift is the movement from:
+
+> "Here is what I plotted."
+
+to:
+
+> "Here is what the reader needs to notice."
+
+That shift affects titles, subtitles, captions, labels, colour, ordering, and layout. It also affects what Leo decides to leave out.
+
+A plot can be technically accurate and still fail because it asks the reader to do too much unpaid labour. The reader has to decode the legend, scan every bar, compare labels mentally, guess the point, and infer the limitation. Good explanatory design reduces that burden.
+
+The aim is not to oversimplify the evidence. The aim is to make the evidence easier to inspect.
+
+::: {.callout-note appearance="simple"}
+## A useful test
+
+Before polishing a plot, Leo should write one sentence:
+
+**"The main thing this visual should help the reader see is..."**
+
+If he cannot complete that sentence, the problem is not yet a design problem. It is still an analytical thinking problem.
+:::
+
+## A Before-and-After Redesign
+
+The easiest way to see the explanatory shift is to compare a quick exploratory chart with a more reader-facing version.
+
+In the next figure, the first plot is not wrong. It shows average project score by learner background. But it leaves too much work for the reader. The second version orders the categories, uses a clearer title, adds context, and turns the axis labels into a more readable comparison.
+
+```{r}
+#| label: fig-18-1-before-after-redesign
+#| lst-label: lst-fig-18-1-before-after-redesign
+#| lst-cap: "Code for a Quick Exploratory Bar Chart Redesigned as an Explanatory Visual"
+#| fig-cap: "A Quick Exploratory Bar Chart Redesigned as An Explanatory Visual."
+#| fig-alt: "Two bar charts comparing average project score by learner background. The redesigned chart orders backgrounds by score, uses clearer labels, and makes the comparison easier to read."
+#| fig-width: 8.5
+#| fig-height: 5.6
+
+background_summary <- df_story %>%
+  filter(!is.na(background)) %>%
+  group_by(background) %>%
+  summarise(
+    mean_project = mean(project_score, na.rm = TRUE),
+    learners = n(),
+    .groups = "drop"
+  ) %>%
+  filter(learners >= 5)
+
+p_exploratory <- ggplot(background_summary, aes(x = background, y = mean_project)) +
+  geom_col() +
+  labs(
+    title = "project_score by background",
+    x = NULL,
+    y = "Mean project score"
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1))
+
+p_explanatory <- background_summary %>%
+  mutate(background = forcats::fct_reorder(background, mean_project)) %>%
+  ggplot(aes(x = background, y = mean_project)) +
+  geom_col(width = 0.68, fill = "grey45") +
+  coord_flip() +
+  scale_y_continuous(
+    limits = c(0, 100),
+    labels = scales::label_number(suffix = "%")
+  ) +
+  labs(
+    title = "Prior analytical exposure is associated with stronger project scores",
+    subtitle = "Average project score by learner background; categories are ordered from lower to higher average score.",
+    x = NULL,
+    y = "Average project score",
+    caption = chapter18_caption_source
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title.position = "plot",
+    plot.caption.position = "plot"
+  )
+
+if (chapter18_has_pkg("patchwork")) {
+  p_exploratory + p_explanatory +
+    patchwork::plot_annotation(tag_levels = "A")
+} else {
+  p_explanatory
+}
+```
+
+The code in @lst-fig-18-1-before-after-redesign produces @fig-18-1-before-after-redesign.
+
+Notice what changed.
+
+The redesigned plot does not contain more data. It contains more guidance. The categories are ordered. The title makes the intended comparison visible. The subtitle tells the reader what has been summarized. The caption identifies the source. The y-axis uses a scale that matches the score range. The gridlines are quieter.
+
+This is not cosmetic improvement. It is communicative control.
+
+## Visual Hierarchy: Giving the Reader a Scanning Path
+
+A reader does not absorb a plot all at once. The eye lands somewhere first, then moves. Good visual design creates a scanning path.
+
+In a weak plot, everything competes for attention: title, axes, bars, gridlines, legend, labels, colours, captions, and annotations. The reader does not know where to begin.
+
+In a stronger plot, hierarchy is deliberate:
+
+1. The title tells the reader the main point.
+2. The subtitle explains the analytical frame.
+3. The main data mark carries the evidence.
+4. Labels and annotations clarify the important detail.
+5. Axes support interpretation without dominating.
+6. The caption gives source and scope information.
+7. Background elements stay quiet.
+
+Visual hierarchy is created through size, weight, contrast, spacing, position, and saturation.
+
+```{r}
+#| label: tbl-18-2-visual-hierarchy
+#| tbl-cap: "Practical Ways to Create Visual Hierarchy in R Plots."
+
+tibble::tribble(
+  ~`Design Element`, ~`What It Controls`, ~`Practical R Move`,
+  "Title", "First interpretive cue", "Use `labs(title = ...)` to state the message, not merely the variable names.",
+  "Subtitle", "Analytical context", "Use `labs(subtitle = ...)` to explain comparison, period, filter, or summary method.",
+  "Colour saturation", "Attention priority", "Use stronger colour only for the group or pattern that needs focus.",
+  "Line weight", "Importance of a trend", "Use `linewidth` to make focal lines stronger and background lines quieter.",
+  "Text size", "Reading order", "Use larger title text, moderate axis text, and smaller captions.",
+  "Gridlines", "Reference support", "Remove minor gridlines and reduce visual noise with `theme()`.",
+  "Spacing", "Legibility", "Use `coord_flip()`, margins, and uncluttered labels where category names are long.",
+  "Caption", "Source and limitation", "Use `labs(caption = ...)` to credit data and clarify scope."
+) %>%
+  knitr::kable()
+```
+
+@tbl-18-2-visual-hierarchy gives Leo a compact map of the design moves that create visual hierarchy.
+
+A useful principle is this:
+
+> The most important thing should be the easiest thing to find.
+
+If everything is equally loud, the plot has no hierarchy. If the important pattern is visually quiet while decorative features are visually strong, the chart is working against the reader.
+
+## Semantic Text Layers: Title, Subtitle, Tag, and Caption
+
+In beginner plots, text often appears as a label afterthought. Leo writes a title because the plot needs a title. He writes a caption because someone told him captions are professional.
+
+In explanatory visualization, text layers have different jobs.
+
+```{r}
+#| label: tbl-18-3-semantic-text-layers
+#| tbl-cap: "The Communication Roles of Titles, Subtitles, Tags, and Captions."
+
+tibble::tribble(
+  ~`Text Layer`, ~`Main Job`, ~`Weak Version`, ~`Stronger Version`,
+  "Title", "State the main message", "Project scores", "Project scores rise with weekly study time",
+  "Subtitle", "Provide analytical context", "By week", "Average scores by learning week; negative study-hour records removed during cleaning",
+  "Tag", "Orient the reader in a sequence", "Plot 1", "A",
+  "Axis label", "Name the measurement clearly", "score", "Average project score",
+  "Inline label", "Identify the focal group near the data", "Legend only", "Label the highlighted line directly",
+  "Caption", "Credit source and clarify scope", "Data: survey", "Source: df_analysis, the analysis-ready dataset created in Part 3; values shown after preparation for plotting"
+) %>%
+  knitr::kable()
+```
+
+@tbl-18-3-semantic-text-layers separates the communication jobs of titles, subtitles, tags, axis labels, inline labels, and captions.
+
+A good title does not need to be sensational. It needs to be useful.
+
+Compare these:
+
+- "Study Hours and Project Score"
+- "Learners who study more hours tend to record higher project scores"
+
+The first title names the variables. The second title tells the reader what relationship to inspect. It still uses careful language: "tend to" rather than "prove that." It points without overstating.
+
+::: {.callout-tip appearance="simple"}
+## A practical title pattern
+
+For explanatory plots, Leo can draft titles using this structure:
+
+**[Who or what] + [does what] + [under what condition or comparison].**
+
+Example: **Learners using project-based study show higher average project scores.**
+:::
+
+## Typographic Architecture
+
+Typography is not decoration. It is part of the reading system of a plot.
+
+A professional plot usually has a simple hierarchy:
+
+- title: largest and strongest;
+- subtitle: smaller and explanatory;
+- axis titles: clear but not dominant;
+- axis text: readable;
+- annotation: visible at the point of need;
+- caption: smaller but still legible.
+
+The point is not to use fancy fonts. The point is to make reading predictable.
+
+R can use system fonts through the graphics device, and packages such as `systemfonts` can help identify available fonts. The `showtext` package can also help render fonts consistently across devices, including fonts loaded from local files or online font services. Those workflows are useful, but they are also system-dependent. A beginner-facing chapter should therefore teach the principle without making the project depend on a font that may not exist on another machine.
+
+```{r}
+#| label: chapter18-systemfonts-check
+#| lst-label: lst-chapter18-systemfonts-check
+#| lst-cap: "Code for Inspecting Available System Fonts"
+#| eval: false
+
+# Optional: inspect fonts available on your system.
+# This requires the systemfonts package.
+
+library(systemfonts)
+
+systemfonts::system_fonts() |>
+  dplyr::select(family, style, path) |>
+  dplyr::distinct(family, style, .keep_all = TRUE) |>
+  dplyr::arrange(family)
+```
+
+The optional code in @lst-chapter18-systemfonts-check shows how Leo can inspect available system fonts before choosing a font family for a plot.
+
+```{r}
+#| label: fig-18-safe-typography-example
+#| fig-cap: "A Safe Typography Structure Using a Generic Sans Font"
+#| fig-alt: "A scatter plot of weekly study hours and project score with a linear trend line and controlled title, subtitle, axis, and caption text sizes."
+#| lst-label: lst-chapter18-safe-typography-example
+#| lst-cap: "Code for a Safe Typography Pattern That Does Not Require a Special Font"
+
+# Safe typography pattern.
+# Use a generic font family that should exist across systems.
+
+base_family <- "sans"
+
+ggplot(df_story, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.35) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Study time and project performance move together",
+    subtitle = "A simple linear smoother helps the reader see the overall direction.",
+    x = "Weekly study hours",
+    y = "Project score",
+    caption = chapter18_caption_source
+  ) +
+  theme_minimal(base_family = base_family, base_size = 11) +
+  theme(
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(size = 10),
+    plot.caption = element_text(size = 8)
+  )
+```
+
+The code in @lst-chapter18-safe-typography-example produces @fig-18-safe-typography-example.
+
+The key lesson is not "always use this font." The key lesson is:
+
+> Set a text system deliberately.
+
+A plot that changes fonts accidentally across devices can look less polished and may even render labels differently. This matters when a figure moves from RStudio to slides, Word documents, PDFs, journal manuscripts, or web pages.
+
+## Rich Text Formatting with `ggtext`
+
+Sometimes plain text is not enough. Leo may want part of a title to be bold, part of a subtitle to be coloured, or a caption to contain a small emphasis cue. The `ggtext` package makes this possible by allowing Markdown and limited HTML-style formatting in plot text elements through elements such as `element_markdown()`.
+
+This should be used with restraint. Rich text is useful when it clarifies structure. It becomes noise when it merely decorates.
+
+```{r}
+#| label: fig-18-2-rich-text-labels
+#| lst-label: lst-fig-18-2-rich-text-labels
+#| lst-cap: "Code for Rich Text Labels That Clarify the Message"
+#| fig-cap: "Rich Text Labels Can Add Emphasis When They Clarify the Message."
+#| fig-alt: "A scatter plot of weekly study hours and project score with a title that emphasizes study time and project score. A trend line shows the general upward relationship."
+#| fig-width: 7.4
+#| fig-height: 5
+
+rich_text_theme <- theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.title.position = "plot",
+    plot.caption.position = "plot"
+  )
+
+if (chapter18_has_pkg("ggtext")) {
+  rich_text_theme <- rich_text_theme +
+    theme(
+      plot.title = ggtext::element_markdown(face = "bold"),
+      plot.subtitle = ggtext::element_markdown(),
+      plot.caption = ggtext::element_markdown(size = 8)
+    )
+
+  plot_title <- "**Study time** and **project score** move in the same direction"
+  plot_subtitle <- "Each point represents a learner-week record; the smooth line summarizes the broad pattern."
+  plot_caption <- paste0("**Source:** ", chapter18_caption_source)
+} else {
+  plot_title <- "Study time and project score move in the same direction"
+  plot_subtitle <- "Each point represents a learner-week record; the smooth line summarizes the broad pattern."
+  plot_caption <- chapter18_caption_source
+}
+
+ggplot(df_story, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.28, colour = "grey45") +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.9, colour = "black") +
+  scale_x_continuous(labels = scales::label_number(suffix = " hrs")) +
+  scale_y_continuous(limits = c(0, 100), labels = scales::label_number(suffix = "%")) +
+  labs(
+    title = plot_title,
+    subtitle = plot_subtitle,
+    x = "Weekly study hours",
+    y = "Project score",
+    caption = plot_caption
+  ) +
+  rich_text_theme
+```
+
+The code in @lst-fig-18-2-rich-text-labels produces @fig-18-2-rich-text-labels.
+
+If `ggtext` is installed, the title and caption can interpret Markdown-style emphasis. If it is not installed, the plot still renders with plain text. That is a safe pattern: optional enhancement, not fragile dependency.
+
+::: {.callout-warning appearance="simple"}
+## Use rich text for meaning, not decoration
+
+Bold text, colour, and HTML-like styling can help guide attention. But if every label is styled, no label is special. Use rich text where it helps the reader understand the hierarchy of the message.
+:::
+
+## Dynamic Data Highlighting
+
+One of the strongest explanatory moves is to reduce background noise while preserving context.
+
+Suppose Leo wants to show how one preferred learning mode performs across weeks. He could plot only that group, but then the reader loses the comparison. He could plot all groups equally, but then the focal pattern may disappear.
+
+Highlighting solves the problem: keep the context, reduce its visual weight, and bring the focal group forward.
+
+The `gghighlight` package can automate this pattern for many plots. The next figure uses `gghighlight` when available and falls back to a manual highlighting approach when it is not.
+
+```{r}
+#| label: fig-18-3-dynamic-highlight
+#| lst-label: lst-fig-18-3-dynamic-highlight
+#| lst-cap: "Code for Dynamic Highlighting of One Focal Learning Mode"
+#| fig-cap: "Dynamic Highlighting Keeps the Comparison Visible While Directing Attention to One Focal Learning Mode."
+#| fig-alt: "A line chart showing average project score across weeks for preferred learning modes. One learning mode is emphasized while the other lines remain in the background."
+#| fig-width: 7.6
+#| fig-height: 5.2
+
+weekly_mode <- df_story %>%
+  filter(!is.na(preferred_learning_mode), !is.na(week)) %>%
+  group_by(preferred_learning_mode, week) %>%
+  summarise(
+    mean_project = mean(project_score, na.rm = TRUE),
+    learners = n(),
+    .groups = "drop"
+  ) %>%
+  filter(learners >= 2)
+
+target_mode <- weekly_mode %>%
+  group_by(preferred_learning_mode) %>%
+  summarise(last_score = mean_project[which.max(week)], .groups = "drop") %>%
+  arrange(desc(last_score)) %>%
+  slice(1) %>%
+  pull(preferred_learning_mode)
+
+highlight_plot <- ggplot(
+  weekly_mode,
+  aes(x = week, y = mean_project, group = preferred_learning_mode)
+) +
+  geom_line(aes(colour = preferred_learning_mode), linewidth = 0.8, alpha = 0.75) +
+  geom_point(aes(colour = preferred_learning_mode), size = 1.8, alpha = 0.75) +
+  scale_x_continuous(breaks = sort(unique(weekly_mode$week))) +
+  scale_y_continuous(limits = c(0, 100), labels = scales::label_number(suffix = "%")) +
+  labs(
+    title = paste0(target_mode, " stands out in the weekly project-score trend"),
+    subtitle = "Background lines remain visible so the highlighted trend can be read in context.",
+    x = "Learning week",
+    y = "Average project score",
+    caption = chapter18_caption_source
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    plot.title.position = "plot",
+    plot.caption.position = "plot"
+  )
+
+if (chapter18_has_pkg("gghighlight")) {
+  highlight_plot +
+    gghighlight::gghighlight(
+      preferred_learning_mode == target_mode,
+      unhighlighted_params = list(colour = "grey80", linewidth = 0.5, alpha = 0.6),
+      use_direct_label = FALSE
+    )
+} else {
+  weekly_mode %>%
+    mutate(is_target = preferred_learning_mode == target_mode) %>%
+    ggplot(aes(x = week, y = mean_project, group = preferred_learning_mode)) +
+    geom_line(
+      aes(linewidth = is_target, alpha = is_target),
+      colour = "grey45"
+    ) +
+    geom_point(
+      aes(size = is_target, alpha = is_target),
+      colour = "grey30"
+    ) +
+    scale_linewidth_manual(values = c(`FALSE` = 0.45, `TRUE` = 1.1), guide = "none") +
+    scale_size_manual(values = c(`FALSE` = 1.2, `TRUE` = 2.2), guide = "none") +
+    scale_alpha_manual(values = c(`FALSE` = 0.35, `TRUE` = 1), guide = "none") +
+    scale_x_continuous(breaks = sort(unique(weekly_mode$week))) +
+    scale_y_continuous(limits = c(0, 100), labels = scales::label_number(suffix = "%")) +
+    labs(
+      title = paste0(target_mode, " stands out in the weekly project-score trend"),
+      subtitle = "Background lines remain visible so the highlighted trend can be read in context.",
+      x = "Learning week",
+      y = "Average project score",
+      caption = chapter18_caption_source
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      panel.grid.minor = element_blank(),
+      plot.title.position = "plot",
+      plot.caption.position = "plot"
+    )
+}
+```
+
+The code in @lst-fig-18-3-dynamic-highlight produces @fig-18-3-dynamic-highlight.
+
+This is an important design habit. Leo should not delete context unless there is a reason. Often, he should quiet the context and foreground the evidence that answers the question.
+
+## Direct Visual Annotation
+
+Legends are useful when they are simple. But when a plot has only one or two important groups, a detached legend may force the reader's eye to travel back and forth.
+
+Direct annotation places the label close to the data. It reduces decoding.
+
+The next figure labels the focal trend at the end of the line. If `ggrepel` is available, the label uses collision-aware placement. If not, the plot still uses a plain `geom_text()` fallback.
+
+```{r}
+#| label: fig-18-4-direct-annotation
+#| lst-label: lst-fig-18-4-direct-annotation
+#| lst-cap: "Code for Direct Annotation of a Focal Trend"
+#| fig-cap: "Direct Annotation Can Replace a Detached Legend When the Plot Has a Clear Focal Pattern."
+#| fig-alt: "A line chart of average project score across weeks. One highlighted learning mode is labelled directly near the end of its line."
+#| fig-width: 7.6
+#| fig-height: 5.2
+
+annotated_weekly <- weekly_mode %>%
+  mutate(is_target = preferred_learning_mode == target_mode)
+
+last_label <- annotated_weekly %>%
+  filter(is_target) %>%
+  slice_max(week, n = 1, with_ties = FALSE)
+
+annotation_plot <- ggplot(
+  annotated_weekly,
+  aes(x = week, y = mean_project, group = preferred_learning_mode)
+) +
+  geom_line(
+    data = annotated_weekly %>% filter(!is_target),
+    colour = "grey78",
+    linewidth = 0.55
+  ) +
+  geom_line(
+    data = annotated_weekly %>% filter(is_target),
+    colour = "black",
+    linewidth = 1.1
+  ) +
+  geom_point(
+    data = annotated_weekly %>% filter(is_target),
+    colour = "black",
+    size = 2
+  ) +
+  scale_x_continuous(
+    breaks = sort(unique(weekly_mode$week)),
+    expand = expansion(mult = c(0.02, 0.16))
+  ) +
+  scale_y_continuous(limits = c(0, 100), labels = scales::label_number(suffix = "%")) +
+  coord_cartesian(clip = "off") +
+  labs(
+    title = "The focal trend is easier to read when the label moves to the line",
+    subtitle = "Direct annotation reduces the back-and-forth movement required by a separate legend.",
+    x = "Learning week",
+    y = "Average project score",
+    caption = chapter18_caption_source
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(5.5, 45, 5.5, 5.5),
+    plot.title.position = "plot",
+    plot.caption.position = "plot"
+  )
+
+if (chapter18_has_pkg("ggrepel")) {
+  annotation_plot +
+    ggrepel::geom_text_repel(
+      data = last_label,
+      aes(label = preferred_learning_mode),
+      nudge_x = 0.5,
+      direction = "y",
+      hjust = 0,
+      segment.colour = "grey70",
+      seed = 18,
+      show.legend = FALSE
+    )
+} else {
+  annotation_plot +
+    geom_text(
+      data = last_label,
+      aes(label = preferred_learning_mode),
+      nudge_x = 0.45,
+      hjust = 0,
+      show.legend = FALSE
+    )
+}
+```
+
+The code in @lst-fig-18-4-direct-annotation produces @fig-18-4-direct-annotation.
+
+A legend says, "Decode this colour over there, then come back to the data."
+
+A direct label says, "This line is this group."
+
+That small move can make a plot feel more humane.
+
+## Categorical Narrative Ordering
+
+Default category order is rarely the best story order.
+
+R may order character categories alphabetically. Alphabetical order is sometimes useful, but it is often accidental. If the question is about which group has the highest average score, the categories should be ordered by average score. If the question is about frequency, they should be ordered by count. If the question follows a process, the categories should follow that process.
+
+The `forcats` package gives Leo practical tools for this work.
+
+```{r}
+#| label: fig-18-5-factor-ordering
+#| lst-label: lst-fig-18-5-factor-ordering
+#| lst-cap: "Code for Reordering Categories by Value"
+#| fig-cap: "Reordering Categories by Value Creates a Clearer Comparison Than Default Ordering."
+#| fig-alt: "A horizontal bar chart showing average project score by preferred learning mode, ordered from lower to higher average score."
+#| fig-width: 7.2
+#| fig-height: 4.8
+
+mode_summary <- df_story %>%
+  filter(!is.na(preferred_learning_mode)) %>%
+  group_by(preferred_learning_mode) %>%
+  summarise(
+    mean_project = mean(project_score, na.rm = TRUE),
+    learners = n(),
+    .groups = "drop"
+  ) %>%
+  filter(learners >= 5) %>%
+  mutate(
+    preferred_learning_mode = forcats::fct_reorder(
+      preferred_learning_mode,
+      mean_project
+    )
+  )
+
+ggplot(mode_summary, aes(x = preferred_learning_mode, y = mean_project)) +
+  geom_col(fill = "grey45", width = 0.68) +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 100), labels = scales::label_number(suffix = "%")) +
+  labs(
+    title = "Ordering categories by value turns a list into a comparison",
+    subtitle = "Preferred learning modes are arranged by average project score.",
+    x = NULL,
+    y = "Average project score",
+    caption = chapter18_caption_source
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title.position = "plot",
+    plot.caption.position = "plot"
+  )
+```
+
+The code in @lst-fig-18-5-factor-ordering produces @fig-18-5-factor-ordering.
+
+Ordering is not a minor detail. It changes how quickly a reader understands the pattern.
+
+Common ordering choices include:
+
+```{r}
+#| label: chapter18-forcats-patterns
+#| lst-label: lst-chapter18-forcats-patterns
+#| lst-cap: "Code for Common forcats Ordering Patterns"
+#| eval: false
+
+# Order by a numeric summary:
+df_summary %>%
+  mutate(group = forcats::fct_reorder(group, average_score))
+
+# Order by frequency:
+df_analysis %>%
+  mutate(background = forcats::fct_infreq(background))
+
+# Reverse an order:
+df_summary %>%
+  mutate(group = forcats::fct_rev(group))
+
+# Move a category to the front:
+df_summary %>%
+  mutate(group = forcats::fct_relevel(group, "Completed"))
+```
+
+The optional code in @lst-chapter18-forcats-patterns shows common `forcats` ordering patterns Leo can adapt.
+
+Leo should choose the order that matches the reader's task. A chart about ranking needs value order. A chart about a process needs process order. A chart about a story may need the order in which the argument unfolds.
+
+## Multi-Plot Compositions
+
+Sometimes one plot is not enough. But more plots do not automatically create a better story.
+
+A multi-plot composition should have a reason. It may show:
+
+- context first, then detail;
+- group comparison, then trend;
+- trend first, then explanation;
+- before and after;
+- problem, evidence, and implication.
+
+The `patchwork` package lets Leo combine ggplot objects using a syntax that feels natural once he already understands ggplot2. The next figure creates a small visual sequence: who the learners are, how project scores change across weeks, and how study time relates to project score.
+
+```{r}
+#| label: fig-18-6-multi-plot-composition
+#| lst-label: lst-fig-18-6-multi-plot-composition
+#| lst-cap: "Code for a Three-Part Visual Sequence"
+#| fig-cap: "A Three-Part Visual Sequence Can Guide the Reader from Context to Trend to Relationship."
+#| fig-alt: "A composite figure with three plots: learner background counts, weekly average project score, and study hours against project score."
+#| fig-width: 9
+#| fig-height: 6.5
+
+background_count_plot <- df_story %>%
+  filter(!is.na(background)) %>%
+  count(background, sort = TRUE) %>%
+  mutate(background = forcats::fct_reorder(background, n)) %>%
+  ggplot(aes(x = background, y = n)) +
+  geom_col(fill = "grey55", width = 0.68) +
+  coord_flip() +
+  labs(
+    title = "Who is in the data?",
+    x = NULL,
+    y = "Learners"
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+weekly_score_plot <- df_story %>%
+  group_by(week) %>%
+  summarise(mean_project = mean(project_score, na.rm = TRUE), .groups = "drop") %>%
+  ggplot(aes(x = week, y = mean_project)) +
+  geom_line(linewidth = 0.9, colour = "black") +
+  geom_point(size = 1.9, colour = "black") +
+  scale_x_continuous(breaks = sort(unique(df_story$week))) +
+  scale_y_continuous(limits = c(0, 100), labels = scales::label_number(suffix = "%")) +
+  labs(
+    title = "What changes over time?",
+    x = "Learning week",
+    y = "Average score"
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(panel.grid.minor = element_blank())
+
+study_score_plot <- ggplot(df_story, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.25, colour = "grey40") +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", linewidth = 0.8) +
+  scale_y_continuous(limits = c(0, 100), labels = scales::label_number(suffix = "%")) +
+  labs(
+    title = "What relationship needs attention?",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(panel.grid.minor = element_blank())
+
+if (chapter18_has_pkg("patchwork")) {
+  (background_count_plot | weekly_score_plot) / study_score_plot +
+    patchwork::plot_annotation(
+      title = "A visual story can move from context to pattern to interpretation",
+      subtitle = "The sequence matters because it controls how the reader enters the evidence.",
+      caption = chapter18_caption_source,
+      tag_levels = "A"
+    )
+} else {
+  study_score_plot +
+    labs(
+      title = "A visual story can move from context to pattern to interpretation",
+      subtitle = "Install patchwork to combine this plot with the context and trend panels.",
+      caption = chapter18_caption_source
+    )
+}
+```
+
+The code in @lst-fig-18-6-multi-plot-composition produces @fig-18-6-multi-plot-composition.
+
+A multi-panel figure should not feel like a storage container for every plot Leo made. It should feel like a guided path.
+
+::: {.callout-tip appearance="simple"}
+## Ask before combining plots
+
+Before using `patchwork`, Leo should ask:
+
+**Do these plots answer one larger question together?**
+
+If the answer is no, they may belong in separate sections rather than one composite figure.
+:::
+
+## Clarity and Control Problems in R Visualization
+
+The following table is intentionally direct. It lists common clarity and control problems R users face in data visualization and practical ways out.
+
+```{r}
+#| label: tbl-18-4-clarity-control-problems
+#| tbl-cap: "Clarity and Control Problems in R Visualization and Practical Ways Out."
+
+tibble::tribble(
+  ~`Clarity or Control Problem`, ~`Way Out`,
+  "Cluttered plot", "Remove non-essential layers, reduce gridlines, simplify geoms.",
+  "Weak visual hierarchy", "Make title, focal data, labels, and caption visually distinct.",
+  "Detached legend slows reading", "Use direct labels or simplify legend placement.",
+  "Confusing category order", "Reorder factors with `forcats::fct_reorder()` or `forcats::fct_infreq()`.",
+  "Unreadable labels", "Shorten labels, flip coordinates, increase text size, or use `ggrepel`.",
+  "Inaccessible colour choices", "Use colour-blind aware palettes and avoid colour-only meaning.",
+  "Inconsistent fonts", "Set a deliberate base font and verify system font availability.",
+  "Overplotting", "Use transparency, jitter, binning, summaries, or sampling.",
+  "Poorly cropped exports", "Set width, height, units, and margins before saving.",
+  "Low-resolution images", "Use higher DPI for raster output or export vector formats.",
+  "Weak titles", "Write message-led titles that guide interpretation.",
+  "Unhelpful captions", "State source, scope, filters, and necessary limits.",
+  "Misleading scales", "Check axis limits, transformations, breaks, and removed data.",
+  "Different-looking plots across devices", "Use explicit theme settings, fonts, sizes, and export devices.",
+  "Too many highlighted groups", "Highlight fewer groups or split the story into separate plots.",
+  "Annotation covers the data", "Move labels, use `ggrepel`, or annotate outside the panel.",
+  "Colour used as decoration", "Assign colour only when it carries meaning.",
+  "Multi-panel plot feels crowded", "Reduce panels, align axes, or split into a sequence.",
+  "Plot does not answer the question", "Rewrite the visual question before editing the design.",
+  "Export does not fit slides or reports", "Use exact aspect ratios and destination-specific `ggsave()` settings."
+) %>%
+  knitr::kable()
+```
+
+@tbl-18-4-clarity-control-problems is a repair map. When a plot feels wrong, Leo should not guess randomly. He should name the failure, then choose a targeted fix.
+
+## Accessible and Inclusive Design
+
+Accessibility is not an optional finishing touch. It is part of responsible communication.
+
+A plot is accessible when more people can read it accurately. That includes people with colour-vision differences, low vision, screen-reader users, readers viewing a plot on a small screen, readers printing in grayscale, and readers who are not familiar with the analyst's context.
+
+Accessible design includes four habits.
+
+First, do not rely on colour alone. If colour distinguishes groups, consider adding direct labels, line types, shapes, or facets.
+
+Second, use sufficient contrast. Pale text on a pale background may look elegant on a designer's monitor and become unreadable in a classroom projector, printed handout, or compressed PDF.
+
+Third, keep text meaningful. A title like "Figure 3" is not accessible guidance. A title that states the main comparison helps everyone.
+
+Fourth, write alt text. Alt text should describe the chart type, the variables, the main pattern, and any important caution.
+
+```{r}
+#| label: tbl-18-5-alt-text-pattern
+#| tbl-cap: "A Practical Pattern for Writing alt Text for Data Visualizations."
+
+tibble::tribble(
+  ~`Alt Text Element`, ~`Question to Answer`, ~`Example`,
+  "Chart type", "What kind of visual is this?", "A line chart...",
+  "Variables", "What is being compared or measured?", "...showing average project score by learning week...",
+  "Main pattern", "What should the reader notice?", "...with scores generally increasing across the weeks...",
+  "Focal detail", "Is any group highlighted?", "...and the project-based learning mode highlighted as the strongest final trend.",
+  "Limit", "What should not be overclaimed?", "The chart shows association over time, not proof that the learning mode caused the score increase."
+) %>%
+  knitr::kable()
+```
+
+@tbl-18-5-alt-text-pattern gives Leo a practical pattern for writing alt text.
+
+Good alt text is not a decorative description. It is a compressed explanation of the visual evidence.
+
+::: {.callout-note appearance="simple"}
+## A simple alt-text formula
+
+**Chart type + variables + main pattern + highlighted detail + limit.**
+
+Example: *A scatter plot showing weekly study hours and project score. Points trend upward, suggesting that learners who report more study hours tend to have higher project scores. The plot shows association, not causation.*
+:::
+
+## Responsible Claims: Description, Interpretation, and Claim
+
+A visual story can become dangerous when Leo lets the plot say more than the evidence supports.
+
+He should separate three layers:
+
+```{r}
+#| label: tbl-18-6-description-interpretation-claim
+#| tbl-cap: "Separating Description, Interpretation, and Claim in Visual Communication."
+
+tibble::tribble(
+  ~`Layer`, ~`What It Does`, ~`Example`,
+  "Description", "States what is visible in the plot.", "Average project scores are higher among learners who report more weekly study hours.",
+  "Interpretation", "Offers a careful reading of what the pattern may mean.", "This may suggest that sustained practice is associated with stronger project performance.",
+  "Claim", "Connects the evidence to an argument or decision.", "The programme should treat structured study time as an important support condition, while testing other explanations before making causal claims."
+) %>%
+  knitr::kable()
+```
+
+@tbl-18-6-description-interpretation-claim separates description, interpretation, and claim.
+
+Description is closest to the plot. Interpretation adds meaning. Claim adds judgment.
+
+Leo should not jump from description to claim without acknowledging the bridge. A scatter plot can show association. It cannot, by itself, prove cause. A bar chart can show a group difference. It cannot, by itself, prove that the group identity produced the difference.
+
+This is not weakness. It is credibility.
+
+## Production-Grade Exporting
+
+A plot that looks good inside RStudio can fail when exported. It may appear blurry in a slide deck, too small in a Word document, badly cropped in a PDF, or inconsistent across computers.
+
+Exporting is part of the visualization workflow, not an afterthought.
+
+The main tool Leo will use is `ggsave()`. It saves the most recent plot by default, but a safer practice is to save a named plot object.
+
+```{r}
+#| label: chapter18-basic-ggsave
+#| lst-label: lst-chapter18-basic-ggsave
+#| lst-cap: "Code for Saving a Named Plot with ggsave()"
+#| eval: false
+
+final_plot <- ggplot(df_story, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Study time and project performance move together",
+    x = "Weekly study hours",
+    y = "Project score",
+    caption = chapter18_caption_source
+  ) +
+  theme_minimal(base_size = 11)
+
+ggsave(
+  filename = "figures/chapter-18-study-score.png",
+  plot = final_plot,
+  width = 7,
+  height = 5,
+  units = "in",
+  dpi = 300
+)
+```
+
+The code in @lst-chapter18-basic-ggsave shows the safer named-plot export pattern.
+
+For screen use, PNG is often convenient. For print and publication workflows, PDF or SVG may be better because vector graphics preserve sharp text and lines when resized.
+
+```{r}
+#| label: chapter18-vector-export
+#| lst-label: lst-chapter18-vector-export
+#| lst-cap: "Code for PDF and SVG Vector Export"
+#| eval: false
+
+# PDF vector export:
+ggsave(
+  filename = "figures/chapter-18-study-score.pdf",
+  plot = final_plot,
+  width = 7,
+  height = 5,
+  units = "in"
+)
+
+# SVG vector export:
+# This usually requires the svglite package.
+ggsave(
+  filename = "figures/chapter-18-study-score.svg",
+  plot = final_plot,
+  width = 7,
+  height = 5,
+  units = "in"
+)
+```
+
+The code in @lst-chapter18-vector-export shows PDF and SVG export patterns.
+
+For slides, Leo should think in aspect ratios. A widescreen slide usually uses a 16:9 ratio. A common export size is 13.333 by 7.5 inches.
+
+```{r}
+#| label: chapter18-slide-export
+#| lst-label: lst-chapter18-slide-export
+#| lst-cap: "Code for Exporting a Plot at a 16:9 Slide Ratio"
+#| eval: false
+
+ggsave(
+  filename = "figures/chapter-18-slide-visual.png",
+  plot = final_plot,
+  width = 13.333,
+  height = 7.5,
+  units = "in",
+  dpi = 300
+)
+```
+
+The code in @lst-chapter18-slide-export shows a widescreen slide export pattern.
+
+Colour profiles require care. A typical R plotting workflow is usually designed around screen-oriented colour. Professional print workflows may require CMYK conversion or publisher-specific colour handling. Leo should not assume that `ggsave()` alone solves every print production requirement. When a publisher requests CMYK, he should check the publisher's figure instructions and, where necessary, export a high-quality vector or high-resolution raster file for conversion in an appropriate design or prepress workflow.
+
+```{r}
+#| label: tbl-18-7-export-decisions
+#| tbl-cap: "Choosing Export Settings for Common Visualization Destinations."
+
+tibble::tribble(
+  ~`Destination`, ~`Recommended Format`, ~`Typical Settings`, ~`Main Concern`,
+  "Web page", "PNG or SVG", "Moderate width; readable text; compressed responsibly", "Fast loading and screen clarity",
+  "Slide deck", "PNG", "16:9 ratio such as 13.333 × 7.5 inches; 150-300 DPI", "Readable from a distance",
+  "Word document", "PNG or PDF", "Match document column width; 300 DPI for raster images", "Avoid blurry resizing",
+  "Academic manuscript", "PDF, TIFF, PNG, or EPS depending on publisher", "Follow journal or publisher instructions exactly", "Submission compliance",
+  "Print layout", "PDF or high-resolution raster", "Confirm colour, size, and resolution requirements", "Sharpness and colour reproduction",
+  "Reproducible report", "Generated inside Quarto", "Let the document render the figure from source code", "Keeping code, result, and explanation together"
+) %>%
+  knitr::kable()
+```
+
+@tbl-18-7-export-decisions summarizes common export decisions for different destinations.
+
+Exporting is where visual communication meets delivery. A strong plot should not become weak at the final step.
+
+## A Practical Story Workflow
+
+By now, Leo has many tools: grammar of graphics, scales, themes, labels, annotations, ordering, highlighting, accessibility, and export settings. The challenge is not knowing that these tools exist. The challenge is knowing what order to use them in.
+
+A practical workflow looks like this:
+
+```{r}
+#| label: tbl-18-8-visual-story-workflow
+#| tbl-cap: "A Practical Workflow for Turning a Plot Into a Visual Story."
+
+tibble::tribble(
+  ~`Step`, ~`Question`, ~`Action`,
+  "1. Name the purpose", "What should the reader see?", "Write the one-sentence message before polishing.",
+  "2. Choose the evidence", "Which variables and summaries support the message?", "Select the plot type that matches the analytical question.",
+  "3. Create the basic plot", "Is the evidence visible?", "Build a simple correct ggplot first.",
+  "4. Order the reading path", "Where should the eye go first?", "Use title, ordering, contrast, and layout.",
+  "5. Reduce noise", "What distracts from the evidence?", "Remove clutter, quiet background lines, and simplify legends.",
+  "6. Add guidance", "Where might the reader need help?", "Use subtitles, direct labels, annotations, and captions.",
+  "7. Check responsibility", "What can the plot support?", "Separate description, interpretation, and claim.",
+  "8. Check accessibility", "Who might struggle to read this?", "Review colour, contrast, text, and alt text.",
+  "9. Export for destination", "Where will this visual be used?", "Use format, size, and resolution that match the final medium."
+) %>%
+  knitr::kable()
+```
+
+@tbl-18-8-visual-story-workflow turns the visual-story process into a practical workflow.
+
+This workflow prevents random polishing. Leo does not need to ask, "How do I make this look better?" That question is too vague. He can ask, "What is blocking the reader from seeing the point?" That question leads to better design decisions.
+
+## A Weak Explanation Revised
+
+A plot is only part of the story. The surrounding prose matters too.
+
+Weak explanation:
+
+> The chart above shows study hours and project score. As can be seen, there is a relationship between them.
+
+This is not wrong, but it is thin. It names the variables and gestures toward the pattern. It does not help the reader understand why the chart matters or how far the evidence goes.
+
+Stronger explanation:
+
+> The scatter plot suggests that learners who report more weekly study hours tend to record higher project scores. The fitted line helps show the overall direction of the association, while the spread of points reminds us that study time is not the only factor shaping performance. This visual supports a practical interpretation: study time matters, but it should be read alongside other programme conditions such as learning mode, prior experience, and support.
+
+The stronger version does four things:
+
+- names the visible pattern;
+- avoids causal overclaiming;
+- acknowledges variation;
+- connects the plot to a practical interpretation.
+
+This is visual storytelling as evidence discipline, not storytelling as exaggeration.
+
+## What a Data Story Is and Is Not
+
+A data story is not a slogan attached to a chart. It is not a dramatic narrative imposed on weak evidence. It is not a way to make ordinary results sound bigger than they are.
+
+A data story is a guided movement through evidence.
+
+It helps the reader understand:
+
+- what question is being asked;
+- what evidence is being shown;
+- what pattern is visible;
+- what interpretation is reasonable;
+- what limitation remains;
+- what the next analytical or practical step might be.
+
+The word "story" can mislead beginners if it suggests fiction. In this book, story means structure. It means sequence, emphasis, and responsible interpretation.
+
+::: {.callout-important appearance="simple"}
+## Story does not replace evidence
+
+A visual story should make evidence easier to understand. It should never make evidence say what it does not support.
+:::
+
+## Common Beginner Mistakes
+
+### Mistake 1: Starting with decoration
+
+Leo may be tempted to start with colours, fonts, and themes. But decoration cannot rescue an unclear question. The first design decision is the message.
+
+### Mistake 2: Keeping the exploratory title
+
+A title such as "project_score vs study_hours" may be useful during analysis. It is weak for communication. A reader-facing title should guide interpretation.
+
+### Mistake 3: Letting the legend do too much work
+
+If the reader keeps moving from legend to data and back again, direct labels may be better.
+
+### Mistake 4: Highlighting everything
+
+If too many groups are highlighted, nothing is highlighted. Focus requires restraint.
+
+### Mistake 5: Using category order accidentally
+
+Alphabetical order is not neutral when the reader needs comparison. Order categories by the logic of the question.
+
+### Mistake 6: Forgetting the caption
+
+Captions are not only for formal publishing. They are a place to name source, scope, filters, and limitations.
+
+### Mistake 7: Exporting only at the end
+
+If Leo designs a plot at one size and exports it at another, labels may become too small, crowded, or misplaced. He should design with the destination in mind.
+
+### Mistake 8: Overclaiming because the plot looks convincing
+
+A polished plot can make a weak claim feel strong. The more professional the visual looks, the more careful the claim must be.
+
+## Try It Yourself
+
+### Practice 1: Rewrite a title
+
+Start with this exploratory title:
+
+> Study Hours and Project Score
+
+Rewrite it as an explanatory title that states the main pattern without claiming causation.
+
+### Practice 2: Add a subtitle
+
+Write a subtitle for a plot showing average project score by preferred learning mode. The subtitle should tell the reader what is being summarized.
+
+### Practice 3: Replace a legend
+
+Create a line plot of average project score by week and preferred learning mode. Choose one learning mode to label directly. Remove or quiet the legend.
+
+### Practice 4: Reorder categories
+
+Create a bar chart of average project score by learner background. Use `forcats::fct_reorder()` so that the bars follow the values rather than alphabetical order.
+
+### Practice 5: Write alt text
+
+Write alt text for a scatter plot showing weekly study hours and project score. Include the chart type, variables, main pattern, and limitation.
+
+### Practice 6: Choose an export setting
+
+Decide how you would export one plot for:
+
+- a lecture slide;
+- a journal manuscript;
+- a Quarto HTML report.
+
+Write the file format, size, and reason for each choice.
+
+## A Small Practice Lab
+
+Use the project dataset and build a three-step visual story.
+
+```{r}
+#| label: chapter18-practice-lab
+#| lst-label: lst-chapter18-practice-lab
+#| lst-cap: "Code for a Three-Step Visual Story Practice Lab"
+#| eval: false
+
+# Step 1: Context
+# How many learners are in each background group?
+
+context_plot <- df_story %>%
+  count(background, sort = TRUE) %>%
+  mutate(background = forcats::fct_reorder(background, n)) %>%
+  ggplot(aes(x = background, y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Learner backgrounds are unevenly represented",
+    x = NULL,
+    y = "Number of learners"
+  ) +
+  theme_minimal()
+
+# Step 2: Comparison
+# Which background groups have higher average project scores?
+
+comparison_plot <- df_story %>%
+  group_by(background) %>%
+  summarise(mean_project = mean(project_score, na.rm = TRUE), .groups = "drop") %>%
+  mutate(background = forcats::fct_reorder(background, mean_project)) %>%
+  ggplot(aes(x = background, y = mean_project)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Average project scores differ by learner background",
+    x = NULL,
+    y = "Average project score"
+  ) +
+  theme_minimal()
+
+# Step 3: Relationship
+# How does study time relate to project score?
+
+relationship_plot <- ggplot(df_story, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Study time is associated with project performance",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  theme_minimal()
+
+# Optional: combine with patchwork.
+library(patchwork)
+
+(context_plot | comparison_plot) / relationship_plot
+```
+
+The optional lab code in @lst-chapter18-practice-lab sketches the three-plot sequence learners can build independently.
+
+After building the three plots, answer these questions:
+
+1. What is the main message of the sequence?
+2. Which plot should come first, and why?
+3. What should be highlighted?
+4. What should the caption disclose?
+5. What claim would be too strong?
+6. What would the reader need next?
+
+## Short Recap
+
+In this chapter, Leo learned that a plot becomes communicative when it is designed for a reader, not only produced by code. He moved from exploratory plots to explanatory visuals. He learned how visual hierarchy guides attention, how titles and subtitles shape interpretation, how captions provide source and scope, how rich text can clarify emphasis, how highlighting reduces noise without deleting context, how direct annotation can replace legends, how factor ordering creates narrative flow, how multi-plot compositions can guide a reader through evidence, and how accessibility and exporting affect whether a visual survives beyond RStudio.
+
+Most importantly, he learned that visual storytelling is not about making data dramatic. It is about making evidence understandable and responsible.
+
+## Leo's Notebook
+
+- A plot for me can be rough. A plot for others needs guidance.
+- Before polishing, I should write the message the plot is meant to communicate.
+- Titles should do more than name variables. They should help the reader see the point.
+- Subtitles explain context. Captions give source, scope, and limits.
+- Colour should carry meaning, not decoration.
+- Highlighting works best when the background remains visible but quiet.
+- A direct label can sometimes do the job of a legend more clearly.
+- Category order should match the analytical question.
+- Multi-plot figures need sequence, not just arrangement.
+- Accessibility is part of professional visualization.
+- Export settings are part of the design, not a final technical chore.
+
+## Glossary
+
+**Accessibility**  
+The practice of designing visuals so that more people can read and interpret them accurately, including readers with colour-vision differences, low vision, or screen-reader needs.
+
+**Alt text**  
+A short textual description of a visual that communicates the chart type, variables, main pattern, highlighted detail, and important limitation.
+
+**Annotation**  
+Text or marks added to a plot to explain a specific point, trend, threshold, or comparison.
+
+**Caption**  
+A text layer that gives source, scope, notes, and sometimes limitations for a figure.
+
+**Direct labeling**  
+Placing labels near the relevant data marks rather than relying only on a separate legend.
+
+**Explanatory visual**  
+A plot designed to communicate a known message or interpretation to a reader.
+
+**Exploratory plot**  
+A plot used during analysis to discover possible patterns, questions, or problems.
+
+**Highlighting**  
+A design technique that foregrounds selected data while keeping other data visible as context.
+
+**Semantic text layer**  
+A text element whose role is defined by meaning, such as a title, subtitle, tag, axis label, annotation, or caption.
+
+**Visual hierarchy**  
+The ordered structure of attention in a plot, created through size, contrast, position, colour, spacing, and line weight.
+
+**Visual story**  
+A guided sequence of evidence that helps a reader understand a question, pattern, interpretation, limitation, and possible next step.
+
+## Chapter Outcome
+
+Leo can now move beyond making plots that are merely correct. He can design visuals that communicate.
+
+He can distinguish exploratory plots from explanatory visuals. He can use titles, subtitles, annotations, captions, factor ordering, highlighting, and layout to guide the reader's attention. He can think about accessibility before publication. He can export figures with the final destination in mind. He can also protect the integrity of the evidence by separating description, interpretation, and claim.
+
+This closes Part 4.
+
+Leo can now see patterns, refine plots, and turn visual evidence into communication.
+
+But one problem remains.
+
+A polished plot still has to live somewhere.
+
+If Leo copies it manually into a slide, a Word document, or an email, the plot begins to separate from the code that created it. If the data change, the plot may not update. If the analysis is rerun, the explanation may fall out of sync. If someone asks how the result was produced, Leo may have to reconstruct the path.
+
+That is the next professional threshold.
+
+## What Comes Next
+
+Part 5 begins with a different kind of question.
+
+Not "Can Leo make the plot?"
+
+Not even "Can Leo explain the plot?"
+
+But:
+
+> Can Leo place code, evidence, interpretation, and output inside one document that can be rerun, checked, shared, and trusted?
+
+Chapter 19 introduces reproducible reports with Quarto. The plot will no longer be a loose image copied out of R. It will become part of a living analytical document, where code and explanation travel together.

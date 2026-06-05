@@ -1,0 +1,1113 @@
+---
+title: "Packages and the R Ecosystem in Practice: From Tools to Reproducible Workflows"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{11.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{11.\arabic{table}}
+\setcounter{table}{0}
+```
+
+## Opening Scene: When R Becomes Bigger Than Base R
+
+Leo has just finished Part 2 with a new kind of confidence.
+
+R no longer looks like a wall of strange symbols. He can read code as structured meaning. He knows that operators help R calculate, compare, assign, extract, and decide. He knows that built-in functions are ready-made actions. He has learned to write small functions of his own when repeated code starts to feel like a warning sign. He has also learned that errors are not signs of failure. They are signals that help him find where the conversation between his code and R has broken down.
+
+For a moment, it feels as if base R might be enough.
+
+Then he opens a real data analysis tutorial and sees this near the top:
+
+```{r}
+#| eval: false
+library(dplyr)
+library(readr)
+library(ggplot2)
+```
+
+A few lines later, he sees something like this:
+
+```{r}
+#| eval: false
+df_r_migration |>
+  filter(project_score >= 80) |>
+  summarise(mean_hours = mean(study_hours, na.rm = TRUE))
+```
+
+Leo pauses.
+
+He recognises parts of the code. He knows the pipe. He knows the comparison operator. He knows `mean()`. He can guess that the code is selecting learners with strong project scores and calculating their average study hours.
+
+But something has changed.
+
+Some of these tools do not come from base R. They come from packages.
+
+This is the doorway into Part 3.
+
+Part 1 helped Leo make first contact with R. Part 2 helped him understand how R thinks and speaks. Part 3 now moves him into workflow: the organised sequence of actions that turns raw data into trustworthy analysis.
+
+Leo’s next lesson is not simply how to install packages. That would be too small.
+
+The deeper lesson is this:
+
+> Leo does not only need to know R. He needs to know how R gains new tools without losing workflow control.
+
+Packages are not mysterious add-ons. They are purposeful extensions of R. But reproducible analysis depends on knowing which tools are being used, where they come from, when they enter the workflow, and why they are needed.
+
+That is where real R work begins to feel less like typing commands and more like building a dependable system.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+In this chapter, Leo will learn:
+
+- why packages exist;
+- how packages extend R;
+- the difference between base R, recommended packages, and external packages;
+- the difference between installing and loading a package;
+- why package commands belong in a clear setup section;
+- what namespaces are;
+- why function conflicts happen;
+- how to use `package::function()` for clarity;
+- why documentation and package versions matter;
+- how packages support reproducible workflows.
+
+This chapter does not teach data importing, cleaning, transformation, or summarising in full. Those begin in the next chapters. Here, Leo learns how the tools of the R ecosystem enter the worksite.
+:::
+
+## Part 3 Begins: From Commands to Workflows
+
+Part 3 is the point where Leo’s R learning changes shape.
+
+Until now, many examples have been small. A value here. A vector there. A function call. A comparison. A short script. These examples were necessary because Leo first needed to understand R’s basic grammar.
+
+But real analysis does not usually happen in single commands.
+
+Real analysis has sequence.
+
+A researcher may begin by loading packages, importing data, checking the structure, cleaning names, handling missing values, selecting useful variables, creating new variables, grouping observations, summarising patterns, visualising results, and writing the final report.
+
+That movement is a workflow.
+
+A workflow is not just a list of commands. It is an organised path from raw material to analytical meaning.
+
+Part 3 begins here:
+
+```text
+PART 3: DATA WORKFLOWS
+From Isolated Commands to Reproducible Analysis
+```
+
+The early arc of Part 3 is simple:
+
+```text
+Chapter 11: Packages and the R Ecosystem in Practice
+Chapter 12: Importing Data
+Chapter 13: Cleaning and Preparing Data
+Chapter 14: Selecting, Filtering, and Transforming Data
+Chapter 15: Summarising and Grouping Data
+```
+
+Chapter 11 comes first in Part 3 because Leo needs tools before he can use them responsibly.
+
+But a tool is not useful simply because it exists. It becomes useful when Leo understands its purpose, its place in the workflow, and its effect on reproducibility.
+
+That is why packages matter.
+
+## Why Packages Exist
+
+R already contains many useful tools.
+
+Leo has already met functions such as these:
+
+```{r}
+mean(c(70, 82, 91, 64))
+```
+
+```{r}
+round(3.14159, digits = 2)
+```
+
+```{r}
+str(c("Nigeria", "Ghana", "Kenya"))
+```
+
+He has also seen base R functions such as `summary()`, `as.Date()`, and `read.csv()`.
+
+Base R is not empty. It is already a serious working environment.
+
+But no standard R installation can contain every possible tool for every possible field, project, data format, research design, statistical method, visualisation style, or reporting workflow.
+
+One researcher may need to import Excel files. Another may need to clean survey labels. Another may need to draw advanced plots or work with spatial data. Another may need dashboards, databases, or specialised statistical models. Another may need tools for reproducible package environments.
+
+If base R tried to contain everything, it would become too large, too slow, and too difficult to maintain.
+
+So R grows through packages.
+
+A package is a collection of related functions, documentation, examples, and sometimes datasets, arranged for a particular purpose. It is one way R gains new abilities without forcing every user to carry every tool all the time.
+
+The key word is purpose.
+
+`readr` helps with reading rectangular data. `readxl` helps with Excel files. `dplyr` helps with data manipulation. `ggplot2` helps with visualisation. `lubridate` helps with dates and times. `stringr` helps with text.
+
+Each package extends what Leo can do.
+
+But each package also asks Leo to become more deliberate.
+
+## Packages as Specialist Toolboxes
+
+In Chapter 2, Leo first met packages through the aircraft metaphor.
+
+R was the engine. RStudio was the cockpit. Scripts were the flight plan. Projects were the hangar. Packages were specialist systems, like avionics, that extended what the aircraft could do.
+
+That metaphor still works.
+
+But Chapter 11 brings the idea closer to Leo’s hands.
+
+A package is also a toolbox.
+
+Not every toolbox belongs on every worksite. A plumber, carpenter, electrician, mechanic, and surveyor may all use tools, but they do not all carry exactly the same set. The responsible worker does not collect tools randomly. The responsible worker knows which tools are needed for the task.
+
+The same principle applies in R.
+
+Leo does not need to install every package mentioned in a tutorial. He needs to understand what each package is for, whether the workflow needs it, and how to make its use visible in the script.
+
+::: {.callout-tip appearance="simple" title="Mental Model: Avionics and Toolboxes"}
+In Chapter 2, packages were introduced as specialist systems because they extend the R ecosystem with new capabilities.
+
+In Chapter 11, Leo looks at the same idea more practically: each package is a specialist toolbox that can be installed, loaded, documented, versioned, and used inside a workflow.
+
+The concept is the same. The view is closer.
+:::
+
+A purposeful map makes this clearer:
+
+| Aircraft metaphor | R package idea | Practical example |
+|---|---|---|
+| Navigation system | Helps Leo move through data clearly | `dplyr` supports selecting, filtering, transforming, and summarising data |
+| Display system | Helps Leo see important patterns | `ggplot2` supports structured visualisation |
+| Communication system | Helps R connect with external sources | `httr2`, `rvest`, and `DBI` support web and database connections |
+| Import system | Helps bring external data into the workflow | `readr` and `readxl` support CSV and Excel import |
+| Monitoring and safety system | Helps detect problems earlier | `janitor`, `testthat`, and related tools support checking names, data, and code behaviour |
+| Time and calendar system | Helps R work with dates and times more clearly | `lubridate` supports date and time handling |
+| Text handling system | Helps R work with character data | `stringr` supports text cleaning and pattern work |
+: Package metaphors and workflow roles {#tbl-package-metaphors}
+
+This table is not asking Leo to install everything.
+
+It is showing him that packages are not decoration. They are purposeful extensions. Each one should earn its place in the workflow. Packages should enter a workflow for a reason.
+
+## Base R, Recommended Packages, and External Packages
+
+Not all tools enter Leo’s workflow in the same way.
+
+Some tools are available as soon as R starts. Some come with R as standard or recommended components. Some must be installed separately.
+
+A beginner-friendly map looks like this:
+
+| Category | What it means | Examples | Beginner guidance |
+|---|---|---|---|
+| Base R | Core functions available when R starts | `mean()`, `sum()`, `c()`, `data.frame()` | Learn these as foundational tools |
+| Recommended or standard packages | Packages commonly shipped with R | `stats`, `utils`, `graphics` | Often available without extra installation |
+| External packages | Packages installed separately | `dplyr`, `ggplot2`, `readr`, `readxl` | Install when the workflow needs them |
+: Types of R package tools Leo may encounter {#tbl-package-types}
+
+Leo does not need to master the technical history of how R organises every package category.
+
+He needs the practical distinction:
+
+> Some tools come with R. Some specialist systems must be added. A package is one way R gains new abilities.
+
+This matters because error messages often point to different problems.
+
+If R says it cannot find a function, several things may be true. Leo may have misspelled the function name. He may not have loaded the package. He may not have installed the package. Or he may be using a function from a package that is not part of his current workflow.
+
+These are not the same problem.
+
+A careful user learns to diagnose them calmly.
+
+## Installing a Package
+
+Installing a package places it on Leo’s computer.
+
+The common function is `install.packages()`.
+
+```{r}
+#| eval: false
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("readr")
+```
+
+These examples are not evaluated in this book because installing packages changes the user’s computer setup. In a Quarto book, it is safer to show installation commands without running them automatically.
+
+Notice the quotation marks:
+
+```{r}
+#| eval: false
+install.packages("dplyr")
+```
+
+The package name is written as text because Leo is telling R the name of the package to install.
+
+Installation answers one question:
+
+> Is this package available on this computer?
+
+It does not answer whether the package is ready for use in the current R session. That second question belongs to loading.
+
+A useful habit is:
+
+```text
+Install when the computer needs the toolbox.
+Load when the current session needs to use it.
+```
+
+This habit keeps analysis scripts from repeatedly changing the user’s system.
+
+## Loading a Package
+
+Loading a package makes it available in the current R session.
+
+The common function is `library()`.
+
+```{r}
+#| eval: false
+library(dplyr)
+library(readr)
+library(ggplot2)
+```
+
+After loading `dplyr`, Leo can use functions such as:
+
+```{r}
+#| eval: false
+filter()
+select()
+mutate()
+summarise()
+group_by()
+```
+
+Loading answers this question:
+
+> Is this package available to my current R session right now?
+
+If Leo closes R and opens it again, he usually needs to load the package again. The package may still be installed on the computer, but the new session has not opened it yet.
+
+This is why many scripts begin with a package section:
+
+```{r}
+#| eval: false
+# Packages
+library(readr)
+library(dplyr)
+library(ggplot2)
+```
+
+That section tells the reader which toolboxes the script depends on. A script that clearly loads its required packages tells the reader which tools the workflow expects. It also tells future Leo how to prepare the session before the workflow begins.
+
+## Installing Is Not Loading
+
+This distinction prevents many beginner problems.
+
+Installing and loading are related, but they are not interchangeable.
+
+| Action | Main question it answers | Where it matters | Typical command |
+|---|---|---|---|
+| Install | Is the package available on this computer? | Computer setup | `install.packages("dplyr")` |
+| Load | Is the package available in this R session right now? | Current analysis session | `library(dplyr)` |
+: Installing and loading packages serve different purposes {#tbl-install-load}
+
+Compare the two actions:
+
+```{r}
+#| eval: false
+install.packages("dplyr")
+library(dplyr)
+```
+
+The first line adds the package to the computer. The second line opens it for the current session.
+
+If Leo installs `dplyr` but does not load it, R may still complain that it cannot find a function such as `filter()`.
+
+That does not mean the installation failed. It may simply mean the toolbox is on the computer, but it has not been opened for the session Leo is using now.
+
+The simplest memory aid is:
+
+```text
+install.packages() stores the toolbox on the computer.
+library() opens the toolbox for the current session.
+```
+
+::: {.callout-important appearance="simple" title="Reliable Workflow Rule"}
+Installation is setup. Loading is session preparation.
+
+A clean analysis script usually loads the packages it needs near the top. It does not repeatedly install packages while the analysis is running.
+:::
+
+Once Leo understands this, many package errors become easier to interpret.
+
+## A Responsible Package Section
+
+A script becomes harder to trust when package commands are scattered through many sections.
+
+A cleaner structure is to gather them near the beginning:
+
+```{r}
+#| eval: false
+# Packages
+library(readr)    # importing CSV files
+library(dplyr)    # data manipulation
+library(ggplot2)  # visualisation
+```
+
+The comments are optional, but they are helpful in learning materials, shared scripts, and early research projects.
+
+A reproducible script should make its tools visible, not repeatedly rebuild the toolbox. A clear package section tells the reader:
+
+- which external tools are required;
+- where the workflow begins;
+- which package families shape the script;
+- what may need to be installed before the analysis runs.
+
+A script should not feel like a room where tools are lying everywhere. It should feel like a worksite where tools are arranged before the task begins.
+
+This is one of the first habits that turns R code from a private experiment into a readable workflow.
+
+Before Leo treats packages as a collection of tools, he needs one important clarification.
+
+Many beginners quietly wonder whether they are learning two different versions of R when they encounter the tidyverse.
+
+They are not.
+
+Base R gives Leo the language structure. The tidyverse gives him a workflow grammar.
+
+Base R teaches objects, vectors, functions, indexing, inspection, and the underlying behaviour of the language itself. The tidyverse provides a coordinated style for common workflow tasks such as importing, transforming, reshaping, and visualising data.
+
+This book uses both because real R practice uses both.
+
+Leo is not choosing sides. He is learning how language structure and workflow fluency support each other.
+
+## The Tidyverse as a Package Family
+
+Leo will often see this command:
+
+```{r}
+#| eval: false
+library(tidyverse)
+```
+
+The `tidyverse` is a collection of packages designed to work together. It is common in data science teaching because it supports a readable style of data workflow.
+
+Some common tidyverse packages include:
+
+| Package | Main purpose |
+|---|---|
+| `readr` | import rectangular data such as CSV files |
+| `dplyr` | manipulate data frames |
+| `tidyr` | reshape and tidy data |
+| `ggplot2` | create graphics |
+| `stringr` | work with character data |
+| `forcats` | work with factors |
+| `tibble` | use a modern data frame format |
+| `purrr` | work with lists and repeated operations |
+: Common tidyverse packages and their main purposes {#tbl-tidyverse-family}
+
+Leo does not need to master all of them now.
+
+He only needs to understand why they appear together. The tidyverse does not replace the need to understand R itself. It provides a consistent grammar for expressing common workflow tasks clearly.
+
+A script might use `readr` to import data, `dplyr` to transform it, `tidyr` to reshape it, and `ggplot2` to visualise it. That does not mean `library(tidyverse)` is always required.
+
+Sometimes Leo may load the whole family. Sometimes he may load only the packages he needs:
+
+```{r}
+#| eval: false
+library(readr)
+library(dplyr)
+```
+
+The responsible question is not, “Which command do other people use?”
+
+The better question is, “Which tools does this workflow actually need?”
+
+## Namespaces: Where Functions Live
+
+A namespace is the place where a package keeps its objects and functions.
+
+Leo can think of it as the labelled drawer inside a toolbox. The function has a name, but the package also has a name. When both are visible, the code becomes more explicit.
+
+For example:
+
+```{r}
+#| eval: false
+dplyr::filter(df_r_migration, project_score >= 80)
+```
+
+The pattern is:
+
+```text
+package::function()
+```
+
+It means:
+
+> Use this function from this package.
+
+More examples:
+
+```{r}
+#| eval: false
+readr::read_csv("data/raw/df_r_migration_messy.csv")
+dplyr::select(df_r_migration, learner_id, country, project_score)
+ggplot2::ggplot(df_r_migration)
+```
+
+This style is longer than writing only `filter()` or `select()`. But sometimes longer code is clearer code.
+
+When Leo writes `dplyr::select()`, he is not leaving the reader to guess which `select()` he means. He is telling the reader where the function lives.
+
+That is not just technical precision. It is workflow communication.
+
+## Function Conflicts
+
+A function conflict happens when two packages contain functions with the same name.
+
+This can surprise beginners. Leo may load a package and see a message saying that one object masks another. The word “masks” can sound alarming, but the message is often information rather than disaster.
+
+It means that a name is shared.
+
+For example, more than one package may contain a function called `filter()`. If Leo writes only `filter()`, R must decide which one to use based on what has been loaded and in what order.
+
+When clarity matters, Leo can be explicit:
+
+```{r}
+#| eval: false
+dplyr::filter(df_r_migration, project_score >= 80)
+stats::filter(x)
+```
+
+The first line asks for `filter()` from `dplyr`. The second line asks for `filter()` from `stats`.
+
+The names are the same. The namespaces are different.
+
+::: {.callout-warning appearance="simple" title="Common Beginner Trap"}
+A conflict message does not always mean the code is broken.
+
+Sometimes R is simply telling Leo that two loaded packages share a function name. When Leo wants to be precise, he can use `package::function()` to say exactly which function he means.
+:::
+
+The safe response to a conflict message is not panic. It is inspection and clarity. A conflict is not R failing. It is R revealing that names have locations.
+
+Once Leo understands namespaces, conflict messages become less frightening and more useful.
+
+## Using `package::function()` Without Loading Everything
+
+Leo can sometimes use a function from a package without attaching the whole package with `library()`.
+
+For example:
+
+```{r}
+#| eval: false
+raw_migration <- readr::read_csv("data/raw/df_r_migration_messy.csv")
+```
+
+This calls `read_csv()` directly from `readr`.
+
+Compare that with this style:
+
+```{r}
+#| eval: false
+library(readr)
+
+raw_migration <- read_csv("data/raw/df_r_migration_messy.csv")
+```
+
+Both styles can work.
+
+The `library()` style is common when the script uses many functions from the same package. It keeps the later code shorter after the package section.
+
+The `package::function()` style is useful when Leo wants extra clarity, when only one function from a package is needed, or when function conflicts might cause confusion.
+
+A careful user does not need to choose one style forever.
+
+He needs to understand what each style communicates.
+
+## Package Documentation
+
+A package is not only a collection of functions. It also brings documentation.
+
+Leo can ask R for help:
+
+```{r}
+#| eval: false
+?dplyr::filter
+```
+
+He can also use:
+
+```{r}
+#| eval: false
+help("filter", package = "dplyr")
+```
+
+And he can search more broadly:
+
+```{r}
+#| eval: false
+??filter
+```
+
+Documentation is part of responsible package use. At first, help pages may look dense. Leo should not try to read them like a novel. He should learn what to look for.
+
+A useful help page can show:
+
+- the purpose of the function;
+- required arguments;
+- optional arguments;
+- returned output;
+- examples;
+- package name;
+- warnings or important notes.
+
+This habit connects directly to Chapter 8.
+
+Chapter 8 taught Leo that functions perform reusable actions. Chapter 9 showed him how to name actions of his own. Chapter 10 taught him how to respond when code breaks. Chapter 11 now shows that many reusable actions live inside packages, and responsible users know how to investigate those tools.
+
+A professional R user does not memorise every function.
+
+A professional R user knows how to investigate tools responsibly.
+
+## Package Versions
+
+Packages change over time.
+
+A function may gain a new argument. A default may change. A warning may appear where none appeared before. A bug may be fixed. A feature may be retired.
+
+This does not mean packages are unreliable. It means software is alive.
+
+For casual learning, Leo may not worry much about versions. For research, reporting, and shared analysis, versions matter.
+
+Leo can check the version of a package:
+
+```{r}
+#| eval: false
+packageVersion("dplyr")
+```
+
+He can also record information about the current R session:
+
+```{r}
+#| eval: false
+sessionInfo()
+```
+
+This can be useful at the end of a serious analysis because it records the computational context in which the code was run. When an analysis matters, recording the session is part of responsible analytical practice.
+
+The deeper lesson is this:
+
+> Reproducibility depends not only on code, but also on the tools and versions used to run the code.
+
+> Later, Leo may meet tools designed to manage project-specific package environments, such as `renv`. Tools such as `renv` help projects remember package versions so workflows can be restored more reliably later. He does not need to learn `renv` yet. For now, he only needs to understand why package versions should not be invisible.
+
+Invisible tools can still change the result.
+
+## Updating and Removing Packages
+
+Leo may sometimes update installed packages:
+
+```{r}
+#| eval: false
+update.packages()
+```
+
+He may also remove a package:
+
+```{r}
+#| eval: false
+remove.packages("package_name")
+```
+
+Updating packages can be helpful. Updates may fix bugs, improve performance, or add useful features.
+
+But updates can also change behaviour.
+
+For ordinary learning, this may not be a major concern. For a research project, thesis, report, or publication workflow, package changes should be handled deliberately.
+
+A simple rule is:
+
+> Do not change the tools in the middle of analysis without recording what changed.
+
+This is not fear. It is discipline.
+
+Leo is learning that reproducibility is not only about saving a script. It is also about knowing the conditions under which that script ran.
+
+## A Package Workflow for This Book
+
+Part 3 will gradually build a workflow around the R migration dataset, beginning with the raw imported object and moving toward cleaner, analysis-ready forms.
+
+A simple script may begin like this:
+
+```{r}
+#| eval: false
+# Packages
+library(readr)
+library(dplyr)
+
+# Import data
+raw_migration <- read_csv("data/raw/df_r_migration_messy.csv")
+
+# Inspect data
+glimpse(raw_migration)
+```
+
+This small structure already tells a story.
+
+First, Leo loads the tools. Then he imports the data. Then he inspects what arrived.
+
+This order matters. He should not clean data before importing it. He should not transform data before inspecting it. He should not summarise data before knowing whether key variables have been read correctly.
+
+The workflow is easier to understand when Leo can see how packages support different stages of the analysis process.
+
+The figure below is not a complete data science pipeline. It is a beginner map of how packages enter the workflow introduced in Part 3.
+
+```{r}
+#| label: fig-package-workflow-map
+#| echo: false
+#| fig-width: 8.5
+#| fig-height: 3.8
+#| fig-align: center
+#| fig-cap: "Packages Supporting Different Stages of a Reproducible Workflow"
+
+old_par <- par(mar = c(0, 0, 1, 0))
+
+plot.new()
+plot.window(xlim = c(0, 15), ylim = c(0, 6))
+
+draw_box <- function(x, y, w, h, label,
+                     fill = "#dde7ff",
+                     cex = 0.72,
+                     font = 2) {
+
+  rect(
+    xleft = x,
+    ybottom = y,
+    xright = x + w,
+    ytop = y + h,
+    col = adjustcolor(fill, alpha.f = 0.45),
+    border = "#333333",
+    lwd = 1.2
+  )
+
+  text(
+    x + w / 2,
+    y + h / 2,
+    labels = label,
+    cex = cex,
+    font = font
+  )
+}
+
+draw_arrow <- function(x0, y0, x1, y1) {
+  arrows(
+    x0, y0, x1, y1,
+    length = 0.08,
+    lwd = 1.3
+  )
+}
+
+# Workflow row
+workflow_y <- 4.2
+
+stages <- c(
+  "Load\nPackages",
+  "Import\nData",
+  "Inspect\nData",
+  "Clean\nData",
+  "Transform\nData",
+  "Summarise\nData"
+)
+
+x_positions <- c(0.6, 2.9, 5.2, 7.5, 9.8, 12.1)
+
+for(i in seq_along(stages)) {
+
+  fill_col <- ifelse(i == 1, "#ffd8b5", "#dbe6ff")
+
+  draw_box(
+    x = x_positions[i],
+    y = workflow_y,
+    w = 1.8,
+    h = 0.9,
+    label = stages[i],
+    fill = fill_col,
+    cex = 0.66
+  )
+
+  if(i < length(stages)) {
+    draw_arrow(
+      x_positions[i] + 1.9,
+      workflow_y + 0.45,
+      x_positions[i + 1] - 0.1,
+      workflow_y + 0.45
+    )
+  }
+}
+
+# Package examples
+draw_box(
+  2.7, 2.1,
+  2.2, 0.7,
+  "readr / readxl",
+  fill = "#eeeeee",
+  cex = 0.62
+)
+
+draw_box(
+  7.3, 2.1,
+  2.2, 0.7,
+  "janitor / stringr",
+  fill = "#eeeeee",
+  cex = 0.60
+)
+
+draw_box(
+  10.0, 2.1,
+  2.2, 0.7,
+  "dplyr",
+  fill = "#eeeeee",
+  cex = 0.68
+)
+
+segments(3.8, 2.8, 3.8, 4.15, lwd = 1.0, col = "#666666")
+segments(8.4, 2.8, 8.4, 4.15, lwd = 1.0, col = "#666666")
+segments(11.1, 2.8, 11.1, 4.15, lwd = 1.0, col = "#666666")
+
+# Reproducibility layer
+draw_box(
+  3.2, 0.7,
+  8.6, 0.75,
+  "Reproducibility: clear package setup, stable versions, recorded session",
+  fill = "#d8f0d2",
+  cex = 0.62
+)
+
+par(old_par)
+```
+
+As shown in @fig-package-workflow-map, packages are not random additions to R. Different packages support different stages of the workflow. Some help data enter R. Some help clean or transform data. Others help maintain reproducibility across the analysis process.
+
+The movement of Part 3 will become:
+
+```text
+Load tools.
+Import data.
+Inspect data.
+Clean data.
+Select and transform data.
+Summarise and group data.
+```
+
+Packages are not the whole workflow.
+
+They make the workflow possible.
+
+## Common Beginner Mistakes
+
+Package problems are common because beginners often copy code from tutorials without understanding the setup behind it.
+
+Leo can avoid many problems by recognising a few patterns.
+
+### Mistake 1: Installing a package every time a script runs
+
+A beginner may write this at the top of every script:
+
+```{r}
+#| eval: false
+install.packages("dplyr")
+library(dplyr)
+```
+
+A cleaner daily analysis habit is usually:
+
+```{r}
+#| eval: false
+library(dplyr)
+```
+
+Install the package when the computer needs it. Load it when the session needs it.
+
+### Mistake 2: Loading a package before it is installed
+
+This will fail if `readxl` is not installed:
+
+```{r}
+#| eval: false
+library(readxl)
+```
+
+Install first:
+
+```{r}
+#| eval: false
+install.packages("readxl")
+```
+
+Then load:
+
+```{r}
+#| eval: false
+library(readxl)
+```
+
+The order matters because R cannot open a toolbox that has not been placed on the computer.
+
+### Mistake 3: Forgetting quotation marks in `install.packages()`
+
+This is wrong:
+
+```{r}
+#| eval: false
+install.packages(dplyr)
+```
+
+This is correct:
+
+```{r}
+#| eval: false
+install.packages("dplyr")
+```
+
+The package name is text, so it needs quotation marks.
+
+### Mistake 4: Putting quotation marks inside `library()` unnecessarily
+
+This can work in many cases:
+
+```{r}
+#| eval: false
+library("dplyr")
+```
+
+But the common style is:
+
+```{r}
+#| eval: false
+library(dplyr)
+```
+
+Leo should recognise both. In this book, the common style will be used.
+
+### Mistake 5: Ignoring conflict messages
+
+Conflict messages are not decorations. They are information.
+
+When Leo sees a conflict message, he should read it. If he is unsure which function is being used, he can write:
+
+```{r}
+#| eval: false
+dplyr::filter(df_r_migration, project_score >= 80)
+```
+
+The namespace makes the source of the function clear.
+
+### Mistake 6: Loading many packages without knowing why
+
+A script should not begin with a pile of packages copied from the internet.
+
+Each package should have a reason.
+
+If Leo cannot explain why a package is loaded, he should pause before adding it to the workflow.
+
+## Try It Yourself
+
+Try loading `dplyr`:
+
+```{r}
+#| eval: false
+library(dplyr)
+```
+
+If R says the package is missing, install it:
+
+```{r}
+#| eval: false
+install.packages("dplyr")
+library(dplyr)
+```
+
+Then check the version:
+
+```{r}
+#| eval: false
+packageVersion("dplyr")
+```
+
+Now use a function with an explicit namespace:
+
+```{r}
+#| eval: false
+dplyr::select(df_r_migration, learner_id, country, project_score)
+```
+
+Reflect on these questions:
+
+- Which action installs the package?
+- Which action loads the package?
+- What does `package::function()` make clear?
+- Why should a script not load packages without purpose?
+- Why might package versions matter in a research project?
+
+The aim is not to memorise package commands. The aim is to understand what each command is doing to the workflow.
+
+## A Small Practice Lab
+
+Create a package section:
+
+```{r}
+#| eval: false
+# Packages
+library(readr)
+library(dplyr)
+```
+
+Now write the same idea using namespaces:
+
+```{r}
+#| eval: false
+raw_migration <- readr::read_csv("data/raw/df_r_migration_messy.csv")
+
+dplyr::glimpse(raw_migration)
+```
+
+Compare the two styles.
+
+Ask:
+
+- Which is shorter?
+- Which is more explicit?
+- Which would be easier in a script that uses many `dplyr` functions?
+- Which would be clearer if only one function from a package is needed?
+
+There is no single answer that fits every project.
+
+The important point is that Leo now understands the difference between convenience and explicitness.
+
+## Short Recap
+
+Leo has learned that packages extend R by adding purposeful tools.
+
+He has also learned that packages are not just names to copy from tutorials. They belong to the discipline of workflow.
+
+The main points are:
+
+- base R already provides many useful tools;
+- external packages extend R for specific tasks;
+- installing and loading are different actions;
+- `install.packages()` stores a package on the computer;
+- `library()` opens a package for the current session;
+- package commands should usually appear in a clear setup section;
+- namespaces show where functions live;
+- function conflicts happen when names are shared;
+- `package::function()` can make code clearer;
+- documentation helps Leo investigate tools responsibly;
+- package versions matter for reproducibility.
+
+The core idea is simple:
+
+> Packages extend R, but reproducible analysis depends on knowing which tools are being used, where they come from, and when they enter the workflow.
+
+That sentence is the lightbulb.
+
+Leo is no longer just collecting tools. He is learning how to arrange them deliberately inside a reproducible workflow.
+
+## Leo’s Notebook
+
+Leo writes:
+
+> In Chapter 2, I first met packages as specialist systems, like avionics. Now I understand the practical side: each package is a specialist toolbox. I should know which toolbox I am opening and why.
+
+He adds:
+
+> Installing a package and loading a package are not the same. Installation puts the toolbox on my computer. Loading opens it for the current session.
+
+Then he writes one more note:
+
+> When two tools have the same name, I can use `package::function()` to tell R exactly which one I mean.
+
+He pauses after that final sentence.
+
+It is not just a package lesson.
+
+It is the beginning of workflow discipline.
+
+## Glossary
+
+**Package**  
+A collection of functions, documentation, data, and resources that extends what R can do.
+
+**Base R**  
+The core set of functions and tools available in a standard R installation.
+
+**External package**  
+A package that usually must be installed separately before it can be used.
+
+**Install**  
+To place a package on the computer so R can access it.
+
+**Load**  
+To make a package available in the current R session.
+
+**Session**  
+The current running instance of R.
+
+**Namespace**  
+The space where a package keeps its functions and objects.
+
+**Function conflict**  
+A situation where more than one package provides a function with the same name.
+
+**`package::function()`**  
+A way to call a function from a specific package without ambiguity.
+
+**Package version**  
+The specific release of a package being used.
+
+**Reproducibility**  
+The ability to rerun an analysis and obtain the same or equivalent result under a documented computational setup.
+
+## Chapter Outcome
+
+By the end of this chapter, Leo can:
+
+- define an R package;
+- explain why packages exist;
+- distinguish base tools from external packages;
+- install a package;
+- load a package;
+- explain the difference between installing and loading;
+- recognise namespace syntax;
+- respond calmly to function conflicts;
+- use `package::function()` when clarity is needed;
+- connect package use to reproducible workflows;
+- understand why package documentation and versions matter.
+
+These are not small skills.
+
+They are the habits that help Leo move from writing commands that work once to building workflows that other people can understand, rerun, and trust.
+
+## What Comes Next
+
+Leo now understands how R gains new tools.
+
+But tools are not the data.
+
+Before Leo can clean, transform, summarise, model, or visualise anything, the data must enter R. That sounds simple until the first real file appears.
+
+A file can sit neatly in a project folder and still be unreadable to R. A spreadsheet can look correct on the screen and still arrive with broken column names. A date can look like a date to Leo and behave like text inside R. A missing value can look blank in Excel and become something else during import.
+
+This is why importing is not merely opening a file. It is asking R to interpret the file as data.
+
+Chapter 12 begins at that threshold.
+
+Leo now knows how to arrange the tools. Next, he must learn how to bring data into R without mistaking a file on the screen for evidence R can trust.

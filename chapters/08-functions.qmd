@@ -1,0 +1,938 @@
+---
+title: "Built-in Functions: R’s Ready-Made Action System"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{8.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{8.\arabic{table}}
+\setcounter{table}{0}
+```
+
+## Opening Scene: When R Already Knows the Action  {#sec-8-buid-in-functions}
+
+Leo has just learned that R can make judgments. It can test whether a score is above a threshold, combine conditions, and return `TRUE` or `FALSE`.
+
+Then another pattern begins to appear.
+
+Some actions do not need to be built from scratch.
+
+```{r}
+project_scores <- c(72, 81, 65, 90)
+mean(project_scores)
+```
+
+```{r}
+length(project_scores)
+```
+
+```{r}
+round(82.567, digits = 2)
+```
+
+```{r}
+tolower("Nigeria")
+```
+
+Leo did not write the internal rules for these actions. R already knows how to calculate a mean, count values, round a number, and change text to lowercase. Leo only has to call the right action, give it the right input, and inspect what comes back.
+
+That is the doorway into functions.
+
+A function is not a mysterious command to memorise. It is a named action. It receives input, performs work, and returns output.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+This chapter teaches built-in functions as R’s ready-made action system. By the end, Leo should be able to read a function call, identify its input and arguments, inspect its output, and recognise the main beginner families of functions without trying to memorise a catalogue.
+:::
+
+## What Changed After Chapter 7
+
+Chapter 7 showed that logic helps R make judgments.
+
+```{r}
+score <- 82
+score >= 50
+```
+
+The expression asks a question. R returns a logical answer.
+
+Chapter 8 shifts from judgment to action. Instead of asking only, “Is this condition true?”, Leo now asks:
+
+> What action do I want R to perform?
+
+That action may inspect an object, summarise values, convert a type, clean simple text, handle missing values, or work with dates. R already provides many such actions in its standard system.
+
+The important move is not to memorise them all. The important move is to understand how a function call works.
+
+## From Judgment to Action
+
+A comparison operator asks a question:
+
+```{r}
+score > 80
+```
+
+A function performs an action:
+
+```{r}
+mean(project_scores)
+```
+
+Both are structured code, but they do different jobs. Operators helped Leo understand calculation, comparison, assignment, and logic. Functions now give him a larger system of named actions.
+
+::: {.callout-tip appearance="simple" title="Core Mental Model"}
+A function is a named action: it receives input, performs work, and returns output.
+:::
+
+The same idea can be written as a simple movement:
+
+```text
+input → function action → output
+```
+
+This small model protects Leo from treating functions as magic. Every time he sees a new function, he can ask: What goes in? What action happens? What comes back?
+
+The same idea can be seen as a simple movement. A function receives something, applies a named action, and returns something.
+
+The figure below uses `mean(project_scores)` as a small example. The values go into the ready-made action `mean()`, and one summary value comes back.
+
+```{r}
+#| label: fig-function-input-action-output
+#| echo: false
+#| fig-width: 8
+#| fig-height: 3.8
+#| fig-align: center
+#| fig-cap: "Input, Named Action, and Output"
+
+old_par <- par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i", lend = "round")
+plot.new()
+plot.window(xlim = c(0, 14), ylim = c(0, 6.5), asp = 1)
+
+draw_box <- function(x, y, w, h, label, fill_col = "#c9c8ff",
+                     cex = 0.85, font = 2, lwd = 1.3) {
+  border_col <- "#222222"
+  fill <- adjustcolor(fill_col, alpha.f = 0.28)
+
+  rect(
+    xleft = x,
+    ybottom = y,
+    xright = x + w,
+    ytop = y + h,
+    col = fill,
+    border = border_col,
+    lwd = lwd
+  )
+
+  text(
+    x = x + w / 2,
+    y = y + h / 2,
+    labels = label,
+    cex = cex,
+    font = font
+  )
+}
+
+draw_cell <- function(x, y, w, h, label, fill_col = "#c9c8ff",
+                      cex = 0.8, font = 2, lwd = 1.2) {
+  fill <- adjustcolor(fill_col, alpha.f = 0.30)
+
+  rect(
+    xleft = x,
+    ybottom = y,
+    xright = x + w,
+    ytop = y + h,
+    col = fill,
+    border = "#222222",
+    lwd = lwd
+  )
+
+  text(
+    x = x + w / 2,
+    y = y + h / 2,
+    labels = label,
+    cex = cex,
+    font = font
+  )
+}
+
+draw_arrow <- function(x0, y0, x1, y1) {
+  arrows(
+    x0 = x0,
+    y0 = y0,
+    x1 = x1,
+    y1 = y1,
+    length = 0.09,
+    lwd = 1.5
+  )
+}
+
+# Titles
+text(2.65, 5.85, "Input", cex = 1.05, font = 2)
+text(7.00, 5.85, "Named action", cex = 1.05, font = 2)
+text(11.45, 5.85, "Output", cex = 1.05, font = 2)
+
+# Input panel
+draw_box(
+  x = 0.75,
+  y = 3.35,
+  w = 3.80,
+  h = 1.20,
+  label = "",
+  fill_col = "#eeeeee",
+  lwd = 1.2
+)
+
+text(2.65, 4.80, "project_scores", cex = 0.80, font = 2)
+
+scores <- c(72, 81, 65, 90)
+cell_w <- 0.70
+x_start <- 1.25
+
+for (i in seq_along(scores)) {
+  draw_cell(
+    x = x_start + (i - 1) * cell_w,
+    y = 3.65,
+    w = cell_w,
+    h = 0.52,
+    label = scores[i],
+    fill_col = "#c9c8ff",
+    cex = 0.72
+  )
+}
+
+text(2.65, 2.92, "values sent into the function", cex = 0.68)
+
+# Function/action panel
+draw_box(
+  x = 5.30,
+  y = 3.25,
+  w = 3.40,
+  h = 1.40,
+  label = "mean()",
+  fill_col = "#ffd6b5",
+  cex = 1.05,
+  font = 2,
+  lwd = 1.5
+)
+
+text(7.00, 2.92, "ready-made action: summarise", cex = 0.68)
+
+# Output panel
+draw_box(
+  x = 10.05,
+  y = 3.35,
+  w = 2.80,
+  h = 1.20,
+  label = "77",
+  fill_col = "#c8efd2",
+  cex = 1.20,
+  font = 2,
+  lwd = 1.5
+)
+
+text(11.45, 2.92, "one returned result", cex = 0.68)
+
+# Arrows
+draw_arrow(4.75, 3.95, 5.10, 3.95)
+draw_arrow(8.90, 3.95, 9.85, 3.95)
+
+# Bottom reminder
+draw_box(
+  x = 3.10,
+  y = 1.35,
+  w = 7.85,
+  h = 0.60,
+  label = "A reliable analyst inspects what comes back.",
+  fill_col = "#eeeeee",
+  cex = 0.72,
+  font = 2,
+  lwd = 1.1
+)
+
+par(old_par)
+```
+
+As shown in @fig-function-input-action-output, a function call is not magic. `project_scores` supplies the input. `mean()` names the action. The output is the value returned by that action.
+
+This small model protects Leo from trying to memorise functions as isolated commands. Each time he meets a new function, he can ask three practical questions: What goes in? What action is being called? What comes back?
+
+## The Shape of a Function Call
+
+A function call has a recognisable shape.
+
+```{r}
+round(82.567, digits = 2)
+```
+
+In that line:
+
+- `round` is the function name;
+- `82.567` is the main input;
+- `digits = 2` is an argument that shapes the action;
+- the parentheses contain the information the function needs;
+- the returned output is the rounded value.
+
+The general form is:
+
+```text
+function_name(input, argument = value)
+```
+
+The name tells R which action to perform. The parentheses turn the name into a call. The input and arguments tell R what to act on and how the action should behave.
+
+A missing parenthesis, wrong argument, wrong input type, or unexpected missing value can change the result. Function literacy is not only knowing names. It is reading the structure of the call.
+
+## How R Thinks: Inputs, Action, Output
+
+When R meets a function call, it follows a practical sequence.
+
+::: {.callout-tip appearance="simple" title="How R Thinks"}
+R looks for the function name, evaluates the inputs inside the parentheses, sends those inputs to the function, and returns a result. Leo’s job is to inspect the result before he trusts it.
+
+If the required inputs are missing or incompatible, the function may return an error, warning, or unexpected result.
+:::
+
+For example:
+
+```{r}
+scores <- c(72, 81, 65, 90)
+mean(scores)
+```
+
+R first finds `mean()`. It then evaluates `scores`, sends the values into the function, and returns the average.
+
+Calling the function is not the end of the work. A reliable analyst checks what came back.
+
+## Arguments: Instructions Inside the Action
+
+Arguments tell a function how to behave.
+
+Some functions need only one main input:
+
+```{r}
+length(scores)
+```
+
+Some functions accept extra instructions:
+
+```{r}
+round(76.7525, digits = 2)
+```
+
+The argument `digits = 2` tells `round()` how many decimal places to keep.
+
+Named arguments are often clearer for beginners because they make the role of each value visible.
+
+```{r}
+round(x = 76.7525, digits = 2)
+```
+
+A positional version can also work:
+
+```{r}
+round(76.7525, 2)
+```
+
+The second version is shorter, but the first version is easier to read. In a serious workflow, clarity often matters more than saving a few keystrokes.
+
+When a function confuses Leo, one useful question is:
+
+> What is each argument doing?
+
+That question turns the call from a memorised spell into a readable instruction.
+
+## Predict Before You Run
+
+Prediction turns function use into reasoning.
+
+Before running the next chunk, pause and answer two questions:
+
+1. Which function returns a summary value?
+2. Which function counts how many values are present?
+
+```{r}
+project_scores <- c(72, 81, 65, 90)
+
+mean(project_scores)
+length(project_scores)
+```
+
+`mean()` summarises the values into an average. `length()` counts how many values are present. They both receive the same input, but they perform different actions.
+
+This is why function names matter. The input alone does not decide the result. The action also matters.
+
+## Inspect the Output Before You Trust It
+
+Output inspection is part of reliable R work.
+
+A function can return a number, text, a logical value, a vector, a table-like object, a date, a plot, or something more complex. The printed result may not tell the whole story.
+
+Use inspection functions when the output matters:
+
+```{r}
+average_score <- mean(project_scores)
+class(average_score)
+typeof(average_score)
+```
+
+For larger objects, Leo may use functions such as:
+
+```{r}
+str(project_scores)
+summary(project_scores)
+length(project_scores)
+is.na(project_scores)
+```
+
+summary() adapts its output to the kind of object it receives.
+
+These functions are small, but they create a serious habit: inspect before trust.
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+Calling a function is not the end of the work. A reliable analyst checks what came back.
+:::
+
+## A Beginner Core of Built-in Functions
+
+R contains many functions. Chapter 8 does not need to become a dictionary.
+
+For now, Leo needs a beginner core: functions that help him combine, inspect, check, convert, summarise, handle missing values, work with text, and work with dates. These are the functions that appear again and again in practical data work.
+
+The advanced families still matter, but they do not all belong in Leo’s everyday toolkit yet. They will make more sense when a real need appears.
+
+The next sections focus on this beginner core.
+
+## Combining and Measuring Values
+
+The function `c()` combines values.
+
+```{r}
+study_hours <- c(5, 7, 4, 8)
+study_hours
+```
+
+The function `length()` measures how many values are present.
+
+```{r}
+length(study_hours)
+```
+
+The function `seq()` creates a sequence.
+
+```{r}
+seq(from = 1, to = 5)
+```
+
+The function `rep()` repeats values.
+
+```{r}
+rep("practice", times = 3)
+```
+
+These functions are not dramatic, but they are foundational. They help Leo create and check small objects before working with larger data.
+
+## Summarising Values
+
+Summary functions reduce many values into a smaller result.
+
+```{r}
+project_scores <- c(72, 81, 65, 90)
+
+sum(project_scores)
+min(project_scores)
+max(project_scores)
+range(project_scores)
+mean(project_scores)
+median(project_scores)
+```
+
+Each function answers a different question.
+
+`sum()` asks for the total. `max()` asks for the highest value. `range()` asks for the lowest and highest values. It returns both values together as a vector. `mean()` asks for the average. `median()` asks for the middle value.
+
+Logical summaries connect directly to Chapter 7.
+
+```{r}
+passed <- project_scores >= 70
+any(passed)
+all(passed)
+```
+
+`any()` asks whether at least one value is `TRUE`. `all()` asks whether every value is `TRUE`.
+
+This is a useful bridge. Chapter 7 taught Leo how R makes judgments. Chapter 8 shows how functions can summarise those judgments.
+
+## Working with Missing Values
+
+Real data often contains `NA`.
+
+```{r}
+scores_with_na <- c(72, 81, NA, 90)
+mean(scores_with_na)
+```
+
+R returns `NA` because one value is missing. The function is not broken. It is being cautious because the average cannot be known completely from the available values unless Leo decides how to handle the missing value.
+
+One common argument is `na.rm = TRUE`.
+
+```{r}
+mean(scores_with_na, na.rm = TRUE)
+```
+
+The argument means: remove missing values before calculating.
+
+The same pattern appears in several summary functions:
+
+```{r}
+sum(scores_with_na, na.rm = TRUE)
+min(scores_with_na, na.rm = TRUE)
+max(scores_with_na, na.rm = TRUE)
+```
+
+But `na.rm = TRUE` is not an automatic repair. It is an analytical decision.
+
+::: {.callout-warning appearance="simple" title="Common Beginner Trap"}
+Do not treat `na.rm = TRUE` as a magic fix. It removes missing values from that calculation. It does not explain why the values are missing or whether excluding them is appropriate.
+:::
+
+Special values require special care. The function can help, but the analyst still owns the decision.
+
+## Checking and Converting Values
+
+Checking functions ask what an object is.
+
+```{r}
+is.numeric(25)
+is.character("Nigeria")
+is.logical(TRUE)
+is.na(NA)
+```
+
+Conversion functions attempt to change values.
+
+```{r}
+as.numeric("25")
+as.character(25)
+as.logical(1)
+```
+
+Numeric conversion to logical follows R’s coercion rules: 0 becomes FALSE, and non-zero values become TRUE.
+
+Conversion can also fail.
+
+Before running the next chunk, predict what will happen. Which conversion succeeds? Which one produces a warning?
+
+```{r}
+#| warning: true
+as.numeric("Leo")
+```
+
+R cannot turn the word `"Leo"` into a meaningful number, so it returns `NA` and warns the user. That warning is useful information. A failed conversion can introduce missing values into an analysis.
+
+A safer habit is:
+
+```text
+inspect → convert → inspect again
+```
+
+The habit is small. The protection is large.
+
+## Working with Text
+
+Text data appears constantly in real datasets: names, countries, categories, labels, comments, and identifiers.
+
+Create a small text value:
+
+```{r}
+country <- " Nigeria "
+```
+
+Remove leading and trailing spaces:
+
+```{r}
+trimws(country)
+```
+
+Standardise case:
+
+```{r}
+tolower(country)
+toupper(country)
+```
+
+Count characters:
+
+```{r}
+nchar(country)
+```
+
+Join text:
+
+```{r}
+paste("Hello", "Leo")
+paste0("ID_", 1001)
+```
+
+Find a pattern:
+
+```{r}
+grepl("Nig", country)
+```
+
+Replace text:
+
+```{r}
+gsub("Nigeria", "NG", trimws(country))
+```
+
+Text functions quickly become practical. `"Nigeria"`, `" Nigeria"`, `"nigeria"`, and `"NIGERIA"` may look like the same country to a human reader, but R does not automatically treat them as identical.
+
+For now, the action map is simple: trim, change case, count, join, find, and replace.
+
+## Working with Dates
+
+Dates may look like text, but R needs date objects to calculate time correctly.
+
+```{r}
+enrolment_date <- as.Date("2026-04-28")
+enrolment_date
+class(enrolment_date)
+```
+
+A date stored as text may print neatly, but it will not behave like a real date in ordering, comparison, filtering, or time differences.
+
+Calculate a time difference:
+
+```{r}
+start_date <- as.Date("2026-04-01")
+end_date <- as.Date("2026-04-28")
+
+end_date - start_date
+```
+
+Format a date for display:
+
+```{r}
+format(enrolment_date, "%B %d, %Y")
+```
+
+Create a short date sequence:
+
+```{r}
+seq.Date(
+  from = as.Date("2026-04-01"),
+  to = as.Date("2026-04-05"),
+  by = "day"
+)
+```
+
+The key lesson is not advanced date handling. The lesson is that functions can turn date-like text into date-aware values and then perform time-aware actions.
+
+## Simple Formatting and Sampling
+
+Formatting controls display.
+
+```{r}
+score_value <- 82.567
+round(score_value, digits = 2)
+```
+
+Some formatting functions return text.
+
+```{r}
+formatted_score <- sprintf("%.2f", score_value)
+formatted_score
+class(formatted_score)
+```
+
+This is useful for labels and reports, but it matters if Leo wants to calculate later. A value that looks numeric after formatting may be character text.
+
+Sampling creates selected values.
+
+Random sampling normally changes each time the code runs.
+
+```{r}
+learner_ids <- paste0("L", 1001:1005)
+set.seed(123)
+sample(learner_ids, size = 2)
+```
+
+set.seed() fixes the random starting point so the same sample can be reproduced.
+
+`set.seed()` makes this random-looking result reproducible. When randomness enters a workflow, reproducibility needs attention.
+
+## A Small Momentum Win
+
+Now Leo can use several built-in functions together without doing full data analysis.
+
+```{r}
+project_scores <- c(72, 81, 65, 90)
+study_hours <- c(5, 7, 4, 8)
+
+mean(project_scores)
+max(project_scores)
+length(project_scores)
+```
+
+He can round a summary:
+
+```{r}
+round(mean(project_scores), digits = 1)
+```
+
+He can use Chapter 7 logic and then summarise the judgments:
+
+```{r}
+high_scores <- project_scores >= 80
+high_scores
+sum(high_scores)
+```
+
+He can calculate a simple ratio and make it readable:
+
+```{r}
+score_per_hour <- project_scores / study_hours
+round(score_per_hour, digits = 2)
+```
+
+This is still a small example. But it is no longer only syntax practice. Leo has used ready-made actions to inspect, summarise, compare, and report a small set of learner values.
+
+That is a momentum win.
+
+## A Practical Map of Built-in Function Families
+
+This map is not a memorisation list.
+
+Leo does not need to master every function family in one sitting. The purpose of the map is to help him recognise that functions have jobs. Some inspect objects. Some summarise values. Some transform text. Some work with dates. Some help with randomness, formatting, matrices, graphics, files, or the R session itself.
+
+For now, Leo should focus on the beginner core: combining, inspecting, checking, converting, summarising, handling missing values, working with text, and working with dates. The remaining families are previews. They are included so that later chapters feel connected, not so that Leo has to memorise them immediately.
+
+| Tier | Function family | Examples | Beginner purpose |
+|---|---|---|---|
+| Beginner core | Combine and measure | `c()`, `length()`, `seq()`, `rep()` | Create and check small objects |
+| Beginner core | Inspect objects | `str()`, `class()`, `typeof()`, `summary()` | See what R sees |
+| Beginner core | Summarise values | `sum()`, `mean()`, `median()`, `min()`, `max()` | Reduce values into useful summaries |
+| Beginner core | Handle missing values | `is.na()`, `complete.cases()`, `na.rm = TRUE` | Find or manage missingness carefully |
+| Beginner core | Check and convert | `is.numeric()`, `as.numeric()`, `as.character()` | Confirm or change what R is working with |
+| Beginner core | Work with text | `trimws()`, `tolower()`, `paste()`, `grepl()`, `gsub()` | Clean and prepare simple text values |
+| Beginner core | Work with dates | `as.Date()`, `format()`, `seq.Date()` | Turn date-like values into date-aware values |
+| Useful soon | Format and sample | `round()`, `sprintf()`, `sample()`, `set.seed()` | Prepare output and make examples reproducible |
+| Preview only | Repeat actions | `lapply()`, `sapply()`, `apply()` | Repeat a function across objects or structures |
+| Preview only | Diagnose and protect workflows | `traceback()`, `debug()`, `tryCatch()`, `stop()`, `warning()` | Investigate or respond to problems later |
+| Preview only | Work with files, sessions, packages, and systems | `getwd()`, `list.files()`, `sessionInfo()`, `library()` | Manage larger workflows later |
+: A beginner map of useful built-in function families {#tbl-function-families}
+
+The table gives orientation. It is not a test.
+
+A learner who memorises names becomes anxious when a new function appears. A learner with a map asks a better question:
+
+> What job is this function trying to do?
+
+## Reference Preview: Functions for Later
+
+Some functions matter later but do not belong in Leo’s everyday beginner toolkit yet.
+
+These include tools for:
+
+- repeating actions across structures;
+- debugging workflows;
+- handling warnings and errors;
+- working with files and sessions;
+- producing graphics.
+
+Leo will learn these when the workflow creates a real need for them.
+
+## Functions, Operators, and Language Constructs Are Not the Same
+
+Before leaving Chapter 8, Leo needs one more boundary.
+
+Not every ready-made R tool is a function.
+
+Operators shape expressions:
+
+```r
+10 + 5
+score >= 50
+x <- 10
+```
+
+Language constructs control execution:
+
+```r
+if
+else
+for
+while
+next
+break
+```
+
+Functions perform named reusable actions:
+
+```r
+mean(project_scores)
+round(82.567, digits = 2)
+tolower("Nigeria")
+```
+
+These categories often work together. A function can receive a logical expression as an argument. An operator can appear inside a function call. A language construct can decide whether a function runs. But their roles are not identical.
+
+Chapter 7 taught operators and logic. Chapter 8 teaches functions. Chapter 9 will show how Leo can create small named actions of his own.
+
+## Built-in Functions Are Not the Whole R Ecosystem
+
+R also has package-based functions.
+
+Later, Leo will meet functions such as:
+
+```r
+filter()
+select()
+mutate()
+summarise()
+ggplot()
+```
+
+Those functions usually come from packages such as `dplyr` and `ggplot2`.
+
+This does not mean package functions rescue Leo from Base R. A better frame is:
+
+> Base R teaches the structure of the language. Tidyverse later provides a different grammar for expressing common data workflows. Many R users benefit from understanding both approaches.
+
+The package may change, but the basic function questions remain the same:
+
+- What is the function name?
+- What input goes in?
+- What arguments shape the action?
+- What output comes back?
+- Does the result make sense?
+
+Once that model is secure, package functions become less intimidating.
+
+## How to Ask for Help
+
+R has built-in help.
+
+```r
+?mean
+help(mean)
+??correlation
+```
+
+Documentation can look dense at first. Leo does not need to understand every line immediately. He can begin with practical questions:
+
+- What does the function do?
+- What arguments does it accept?
+- Which arguments have default values?
+- What kind of output does it return?
+- What examples appear near the bottom?
+
+::: {.callout-tip appearance="simple" title="Professional Function Literacy"}
+A professional R user does not remember everything. A professional R user knows how to investigate.
+:::
+
+That is how Leo becomes less dependent on copied code: inspect the help page, test a small example, and check the output.
+
+## Common Beginner Mistakes
+
+Mistakes with functions are normal. The goal is to recognise the pattern and repair it before it spreads.
+
+| Mistake | What goes wrong | Safer habit |
+|---|---|---|
+| Forgetting parentheses | R sees a name, not a function call | Use `mean(scores)`, not `mean scores` |
+| Supplying the wrong type | The function receives values it cannot use properly | Check with `class()` or `str()` |
+| Ignoring missing values | Summary functions may return `NA` | Inspect missingness before using `na.rm = TRUE` |
+| Confusing display with type | A formatted result may be character text | Check the class after formatting |
+| Treating every tool as a function | Operators and language constructs follow different rules | Ask what role the tool is playing |
+| Hiding errors too early | Error handling can conceal a problem | Understand the error before protecting against it |
+: Common beginner mistakes when using functions {#tbl-function-mistakes}
+
+One example is worth seeing again. This looks tidy:
+
+```{r}
+sprintf("%.2f", 82.567)
+```
+
+But the result is text.
+
+```{r}
+class(sprintf("%.2f", 82.567))
+```
+
+The screen shows appearance. Inspection reveals behaviour.
+
+## What Leo Is Expected to Know at This Point
+
+::: {.callout-note appearance="simple" title="Not Yet"}
+Leo is not expected to memorise the function catalogue, understand advanced evaluation, use `tryCatch()`, master the apply family, build package workflows, or write his own functions yet.
+
+He is expected to understand the function model: name, input, arguments, action, output, and inspection.
+:::
+
+That is enough for this chapter.
+
+## A Small Practice Lab
+
+Create these objects:
+
+```{r}
+scores <- c(70, 82, 91, 64, NA)
+country <- " Nigeria "
+```
+
+Before running each function, predict what kind of output it will return.
+
+```{r}
+length(scores)
+summary(scores)
+mean(scores, na.rm = TRUE)
+round(mean(scores, na.rm = TRUE), digits = 1)
+trimws(country)
+tolower(country)
+```
+
+Now reflect:
+
+- Which functions inspected?
+- Which functions summarised?
+- Which functions transformed display or text?
+- Which function needed a missing-value decision?
+- Which outputs would you inspect before using them in a report?
+
+The point is not speed. The point is recognition.
+
+## Chapter Outcome
+
+By the end of this chapter, Leo can:
+
+- explain a function as a named action;
+- read the basic shape of a function call;
+- distinguish function names, inputs, arguments, and outputs;
+- inspect returned results before trusting them;
+- use a beginner core of built-in functions for inspection, summaries, missing values, conversion, text, and dates;
+- recognise advanced function families as later tools rather than immediate memorisation tasks;
+- see why repeated actions lead naturally to user-defined functions.
+
+Leo no longer sees functions as scattered commands. He sees them as named actions in a larger system.
+
+## Transition to Chapter 9
+
+Leo now knows how to use many actions R already provides.
+
+But a new signal begins to appear: repetition.
+
+```r
+country <- tolower(trimws(country))
+background <- tolower(trimws(background))
+completion_status <- tolower(trimws(completion_status))
+r_experience_level <- tolower(trimws(r_experience_level))
+```
+
+Each line works. That is exactly why the danger is easy to miss. The same idea is scattered across several places, and each copy must remain consistent.
+
+If Leo later changes the rule in one place but forgets another, the workflow begins to drift. If one copied line contains a small typo, the error hides inside a pattern that looks familiar.
+
+This is the doorway into Chapter 9. Leo has learned to use R’s ready-made actions. Next, he will learn what to do when the action he needs is his own repeated idea.
+
+::: {.callout-tip appearance="simple" title="Ready for the Next Question"}
+Chapter 8 showed Leo how to call actions R already knows. Chapter 9 asks how Leo can name and build small actions of his own.
+:::

@@ -1,0 +1,1114 @@
+---
+title: "Summarising and Grouping Data: Turning Shaped Rows into Summary Evidence"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{15.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{15.\arabic{table}}
+\setcounter{table}{0}
+```
+
+
+```{r}
+#| label: setup-chapter-15-df-analysis-handoff
+#| include: false
+
+suppressPackageStartupMessages({
+  library(dplyr)
+})
+
+chapter15_find_first_existing <- function(paths) {
+  existing <- paths[file.exists(paths)]
+  if (length(existing) == 0) {
+    return(NA_character_)
+  }
+  existing[[1]]
+}
+
+chapter15_standardise_text <- function(x) {
+  x <- as.character(x)
+  x <- trimws(x)
+  x[x %in% c("", "NA", "N/A", "missing", "not available")] <- NA_character_
+  tools::toTitleCase(tolower(x))
+}
+
+chapter15_to_logical <- function(x) {
+  if (is.logical(x)) {
+    return(x)
+  }
+  x <- tolower(trimws(as.character(x)))
+  dplyr::case_when(
+    x %in% c("true", "yes", "y", "1", "completed", "complete") ~ TRUE,
+    x %in% c("false", "no", "n", "0", "not completed", "incomplete", "stopped", "in progress") ~ FALSE,
+    TRUE ~ NA
+  )
+}
+
+chapter15_to_number <- function(x) {
+  suppressWarnings(as.numeric(x))
+}
+
+chapter15_build_df_analysis <- function(source_df) {
+  source_df <- source_df |>
+    mutate(
+      across(
+        any_of(c(
+          "country", "region", "job_role", "industry", "background",
+          "r_experience_level", "completion_status",
+          "preferred_learning_mode", "monthly_income_band"
+        )),
+        chapter15_standardise_text
+      ),
+      across(
+        any_of(c(
+          "excel_years", "week", "study_hours", "lessons_completed",
+          "confidence_score", "pre_assessment_score", "project_score",
+          "payment_probability_score"
+        )),
+        chapter15_to_number
+      ),
+      across(
+        any_of(c(
+          "first_script_completed", "used_rstudio", "used_quarto",
+          "used_git", "used_renv", "manager_support"
+        )),
+        chapter15_to_logical
+      )
+    )
+
+  source_df |>
+    select(
+      any_of(c(
+        "learner_id", "country", "region", "job_role", "industry",
+        "background", "r_experience_level", "week", "study_hours",
+        "lessons_completed", "confidence_score", "pre_assessment_score",
+        "project_score", "completion_status", "first_script_completed",
+        "used_rstudio", "used_quarto", "used_git", "used_renv",
+        "preferred_learning_mode", "monthly_income_band",
+        "manager_support", "payment_probability_score"
+      ))
+    ) |>
+    filter(
+      !is.na(study_hours),
+      !is.na(pre_assessment_score),
+      !is.na(project_score),
+      study_hours >= 0,
+      project_score >= 0,
+      project_score <= 100
+    ) |>
+    mutate(
+      high_project_score = project_score >= 80,
+      score_gap = project_score - pre_assessment_score,
+      study_band = case_when(
+        is.na(study_hours) ~ NA_character_,
+        study_hours < 4 ~ "Low study time",
+        study_hours < 8 ~ "Moderate study time",
+        TRUE ~ "High study time"
+      )
+    )
+}
+
+if (!exists("df_analysis")) {
+  df_analysis_rds <- chapter15_find_first_existing(c(
+    "data/processed/df_analysis.rds",
+    "../data/processed/df_analysis.rds"
+  ))
+
+  df_analysis_csv <- chapter15_find_first_existing(c(
+    "data/processed/df_analysis.csv",
+    "../data/processed/df_analysis.csv"
+  ))
+
+  prepared_rds <- chapter15_find_first_existing(c(
+    "data/processed/df_r_migration_prepared.rds",
+    "data/processed/df_r_migration_clean.rds",
+    "../data/processed/df_r_migration_prepared.rds",
+    "../data/processed/df_r_migration_clean.rds"
+  ))
+
+  raw_csv <- chapter15_find_first_existing(c(
+    "data/raw/df_r_migration_messy.csv",
+    "../data/raw/df_r_migration_messy.csv"
+  ))
+
+  if (!is.na(df_analysis_rds)) {
+    df_analysis <- readRDS(df_analysis_rds)
+  } else if (!is.na(df_analysis_csv)) {
+    df_analysis <- read.csv(
+      df_analysis_csv,
+      stringsAsFactors = FALSE,
+      na.strings = c("", "NA", "N/A", "missing", "not available")
+    )
+  } else if (!is.na(prepared_rds)) {
+    df_analysis <- chapter15_build_df_analysis(readRDS(prepared_rds))
+  } else if (!is.na(raw_csv)) {
+    raw_for_analysis <- read.csv(
+      raw_csv,
+      stringsAsFactors = FALSE,
+      na.strings = c("", "NA", "N/A", "missing", "not available")
+    )
+    df_analysis <- chapter15_build_df_analysis(raw_for_analysis)
+  }
+}
+```
+
+## Opening Scene: When Many Rows Need to Speak Together
+
+Leo has reached the end of the first real data workflow.
+
+Chapter 11 prepared the tools. Chapter 12 brought the official raw CSV into R as imported evidence. Chapter 13 protected that evidence by creating a working copy and preparing it carefully. Chapter 14 shaped the prepared data into an analysis-ready object.
+
+That object is:
+
+```r
+df_analysis
+```
+
+It is not a new dataset. It is the next form of the same evidence trail. The raw import still has its place. The prepared dataset still has its place. `df_analysis` is the shaped version Leo can now use for early analytical questions.
+
+But even an analysis-ready table can still be too large to understand row by row.
+
+A table may contain many learner observations, countries, backgrounds, study-hour patterns, project scores, completion indicators, and tool-use fields. Leo can scroll through the rows, but scrolling is not analysis. A human eye can notice examples. It cannot reliably hear what many rows are saying together.
+
+So the question changes again.
+
+In Chapter 14, Leo asked:
+
+> Which variables, observations, and new meanings do I need for this question?
+
+In Chapter 15, he asks:
+
+> What evidence do these shaped rows produce when they are counted, summarised, and compared responsibly?
+
+That is the new movement in this chapter.
+
+Summarising reduces many values into meaningful evidence. Grouping decides the level at which that evidence should be compared.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+In this chapter, Leo learns how to turn analysis-ready rows into meaningful summary evidence that can be inspected, explained, and later visualised. He will count observations, summarise one variable, handle missing values carefully, group by one or two variables, calculate simple proportions, inspect summary tables, and prepare summary objects that Chapter 16 can visualise.
+
+This chapter closes Part 3. It does not teach visualisation yet. Chapter 16 begins that next stage.
+:::
+
+## What Changed After Chapter 14
+
+Chapter 14 shaped the prepared data into `df_analysis`.
+
+Leo selected variables that mattered for a focused question. He filtered observations with logical conditions. He created clearer analytical variables such as `high_project_score`, `score_gap`, and `study_band`. He learned that shaping data is not the same as cleaning it.
+
+Chapter 15 now works with that shaped object:
+
+```r
+df_analysis
+```
+
+If this chapter is read after Chapter 14, `df_analysis` should already exist. If Leo is reading this chapter on its own, the following bridge shows the expected continuity:
+
+```{r}
+#| eval: false
+# Chapter 15 continues from Chapter 14.
+# The analysis-ready object should already exist at this point.
+df_analysis
+```
+
+This is not a new dataset. It is the analysis-ready object passed forward from Chapter 14.
+
+The workflow chain now looks like this:
+
+```text
+raw_migration -> df_r_migration -> df_r_migration_prepared -> df_analysis
+```
+
+Each object has a purpose. `raw_migration` preserves the imported evidence. `df_r_migration` supports cleaning and preparation. `df_r_migration_prepared` carries prepared data forward. In Chapter 15, the main working object is `df_analysis`, the shaped object used for summary work.
+
+That trace matters because summaries can look confident even when the workflow behind them is unclear.
+
+## The Part 3 Workflow So Far
+
+Part 3 has followed a practical path:
+
+```text
+Packages -> Import -> Inspect -> Clean -> Transform -> Summarise
+```
+
+Chapter 15 completes that path.
+
+This does not mean the whole analysis is finished. It means Leo has learned how to move from file-based evidence to summary evidence in a reproducible way.
+
+The next part of the book can then ask a different question: how should evidence be communicated?
+
+Before visualisation can happen, however, summaries must be understood.
+
+## From Shaped Rows to Meaningful Summary Evidence
+
+A summary is not merely a smaller table. It is an answer shaped by a question.
+
+The same data can produce many summaries:
+
+```text
+How many learner observations are in the analysis object?
+What is the average project score?
+How does project score differ by background?
+What proportion of observations reached a high project score?
+How does study band relate to project performance?
+How many observations show that the first script was completed?
+```
+
+Each question points to a different summary move.
+
+Leo should not begin with code. He should begin with the question.
+
+A summary without a question is just a number looking for meaning.
+
+::: {.callout-tip appearance="simple" title="Core Mental Model"}
+A meaningful summary begins with a question. Summarising reduces many rows into a smaller answer, while grouping decides the level at which that answer is calculated.
+:::
+
+## A Small Visual Map of Summarising
+
+The movement from shaped rows to summary evidence can be made visible.
+
+```{r}
+#| label: fig-analysis-to-summary-evidence
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4.4
+#| fig-align: center
+#| fig-cap: "From Analysis-Ready Rows to Summary Evidence"
+
+old_par <- par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i", lend = "round")
+plot.new()
+plot.window(xlim = c(0, 14), ylim = c(0, 7.2), asp = 1)
+
+draw_box <- function(x, y, w, h, label, fill_col = "#c9c8ff",
+                     cex = 0.70, font = 2, lwd = 1.2,
+                     border_col = "#222222") {
+  fill <- adjustcolor(fill_col, alpha.f = 0.28)
+
+  rect(
+    xleft = x,
+    ybottom = y,
+    xright = x + w,
+    ytop = y + h,
+    col = fill,
+    border = border_col,
+    lwd = lwd
+  )
+
+  text(
+    x = x + w / 2,
+    y = y + h / 2,
+    labels = label,
+    cex = cex,
+    font = font
+  )
+}
+
+draw_arrow <- function(x0, y0, x1, y1, lwd = 1.3) {
+  arrows(
+    x0 = x0,
+    y0 = y0,
+    x1 = x1,
+    y1 = y1,
+    length = 0.08,
+    lwd = lwd
+  )
+}
+
+text(
+  x = 7,
+  y = 6.65,
+  labels = "Summaries turn shaped rows into compact evidence",
+  cex = 1.0,
+  font = 2
+)
+
+draw_box(
+  x = 0.55,
+  y = 4.65,
+  w = 2.25,
+  h = 0.82,
+  label = "Analysis-ready\nrows\n(df_analysis)",
+  fill_col = "#c8efd2",
+  cex = 0.56
+)
+
+draw_box(
+  x = 3.20,
+  y = 4.65,
+  w = 2.20,
+  h = 0.82,
+  label = "Group\nchoose comparison\nlevel",
+  fill_col = "#c9c8ff",
+  cex = 0.54
+)
+
+draw_box(
+  x = 5.85,
+  y = 4.65,
+  w = 2.20,
+  h = 0.82,
+  label = "Summarise\nreduce many\nvalues",
+  fill_col = "#ffd6b5",
+  cex = 0.54
+)
+
+draw_box(
+  x = 8.50,
+  y = 4.65,
+  w = 2.10,
+  h = 0.82,
+  label = "Summary table\ncompact answer",
+  fill_col = "#eeeeee",
+  cex = 0.56
+)
+
+draw_box(
+  x = 11.05,
+  y = 4.65,
+  w = 2.25,
+  h = 0.82,
+  label = "Chapter 16\nvisualise\nthe evidence",
+  fill_col = "#eeeeee",
+  cex = 0.54
+)
+
+draw_arrow(2.88, 5.06, 3.12, 5.06)
+draw_arrow(5.48, 5.06, 5.77, 5.06)
+draw_arrow(8.13, 5.06, 8.42, 5.06)
+draw_arrow(10.68, 5.06, 10.97, 5.06)
+
+draw_box(
+  x = 1.00,
+  y = 2.45,
+  w = 3.15,
+  h = 0.74,
+  label = "Rows stay traceable\nto the shaped object.",
+  fill_col = "#eeeeee",
+  cex = 0.56
+)
+
+draw_box(
+  x = 5.35,
+  y = 2.45,
+  w = 3.15,
+  h = 0.74,
+  label = "The group changes\nthe question level.",
+  fill_col = "#eeeeee",
+  cex = 0.56
+)
+
+draw_box(
+  x = 9.70,
+  y = 2.45,
+  w = 3.15,
+  h = 0.74,
+  label = "The summary must\nstill be inspected.",
+  fill_col = "#eeeeee",
+  cex = 0.56
+)
+
+draw_box(
+  x = 3.10,
+  y = 0.95,
+  w = 7.80,
+  h = 0.70,
+  label = "A shorter table is not automatically a better answer.",
+  fill_col = "#c8efd2",
+  cex = 0.64,
+  font = 2
+)
+
+par(old_par)
+```
+
+As shown in @fig-analysis-to-summary-evidence, Chapter 15 does not return to raw data and does not yet create analytical data plots. It reduces shaped rows into summary evidence. The summary table then becomes something Chapter 16 can visualise.
+
+The order matters. A chart built from a poor summary only makes the problem easier to see.
+
+## Summarising and Grouping Are Different Moves
+
+Summarising and grouping often appear together, but they are not the same action.
+
+| Move | Main question | Base R pattern | Tidyverse pattern |
+|---|---|---|---|
+| Count rows | How many observations are present? | `nrow(df)` | `summarise(n = n())` |
+| Count categories | How many observations per category? | `table(df$x)` | `count(x)` |
+| Summarise one variable | What is the centre or spread? | `mean(df$x, na.rm = TRUE)` | `summarise(mean_x = mean(x, na.rm = TRUE))` |
+| Grouped summary | How does a measure differ by group? | `aggregate(y ~ group, data = df, FUN = mean)` | `group_by(group)` then `summarise(...)` |
+| Logical proportion | What share meets a condition? | `mean(df$flag, na.rm = TRUE)` | `summarise(prop = mean(flag, na.rm = TRUE))` |
+| Ungroup or drop groups | Should later work return to ordinary rows? | Use an ungrouped object | `.groups = "drop"` or `ungroup()` |
+
+: Core summary and grouping moves in Chapter 15 {#tbl-summary-grouping-moves}
+
+The distinction in @tbl-summary-grouping-moves helps Leo avoid a common mistake.
+
+A summary function such as `mean()` reduces values. A grouping variable such as `background` or `study_band` decides where separate reductions should happen.
+
+So this question:
+
+```text
+What is the mean project score?
+```
+
+is not the same as this question:
+
+```text
+What is the mean project score by background?
+```
+
+The second question changes the level of analysis.
+
+## Summary Questions Come Before Summary Code
+
+Before writing summary code, Leo should name the question.
+
+That habit prevents empty calculation. It also makes the summary easier to inspect.
+
+A few useful questions for `df_analysis` are:
+
+```text
+How many observations are in the shaped data?
+What is the mean project score?
+What is the median project score?
+How many observations show that the first script was completed?
+What proportion reached a high project score?
+How does mean project score differ by background?
+How does mean project score differ by study band?
+```
+
+Each question requires a summary move.
+
+Some questions count. Some calculate a centre. Some compare groups. Some summarise a logical flag. Some need missing values handled deliberately.
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+A summary is not trustworthy because it is short. It becomes trustworthy when Leo can explain what was counted, what was grouped, what was excluded, and why the result answers the question.
+:::
+
+## Counting Rows
+
+The simplest summary asks how many observations are present.
+
+In Base R:
+
+```{r}
+#| eval: false
+nrow(df_analysis)
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::summarise(
+    observations = dplyr::n()
+  )
+```
+
+These two examples do similar work, but they return results in different forms. `nrow()` returns a single number. `summarise()` returns a small table.
+
+Leo should also remember that rows are observations, not always unique learners. If the shaped data contains repeated learner-week records, `nrow(df_analysis)` counts observations. To count unique learners, he would need a different summary:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::summarise(
+    unique_learners = dplyr::n_distinct(learner_id)
+  )
+```
+
+Leo should also remember that rows are observations, not always unique learners. If the shaped data contains repeated learner-week records, `nrow(df_analysis)` counts observations. To count unique learners, he would need a different summary:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::summarise(
+    unique_learners = dplyr::n_distinct(learner_id)
+  )
+```
+
+That difference matters later. A single number is useful in the console. A small table is often easier to carry forward into a workflow.
+
+## Summarising One Variable
+
+Leo may want to know the centre of a numeric variable such as `project_score`.
+
+In Base R:
+
+```{r}
+#| eval: false
+mean(df_analysis$project_score, na.rm = TRUE)
+median(df_analysis$project_score, na.rm = TRUE)
+min(df_analysis$project_score, na.rm = TRUE)
+max(df_analysis$project_score, na.rm = TRUE)
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::summarise(
+    mean_project_score = mean(project_score, na.rm = TRUE),
+    median_project_score = median(project_score, na.rm = TRUE),
+    min_project_score = min(project_score, na.rm = TRUE),
+    max_project_score = max(project_score, na.rm = TRUE)
+  )
+```
+
+The tidyverse version is longer, but it names each result. That naming matters because a summary table should explain itself.
+
+Leo can use the same pattern for `study_hours`, `lessons_completed`, or `score_gap`:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::summarise(
+    mean_study_hours = mean(study_hours, na.rm = TRUE),
+    mean_lessons_completed = mean(lessons_completed, na.rm = TRUE),
+    mean_score_gap = mean(score_gap, na.rm = TRUE)
+  )
+```
+
+The code is not just calculation. It is a set of named answers.
+
+## Missing Values in Summaries
+
+Missing values can change a summary immediately.
+
+If Leo writes:
+
+```{r}
+#| eval: false
+mean(df_analysis$project_score)
+```
+
+and `project_score` contains `NA`, R returns `NA`. R is following the logic of missingness. It will not pretend that an unknown value is known.
+
+A common response is to add `na.rm = TRUE`:
+
+```{r}
+#| eval: false
+mean(df_analysis$project_score, na.rm = TRUE)
+```
+
+That tells R to remove missing values for the purpose of that calculation.
+
+But this line needs a warning.
+
+> `na.rm = TRUE` tells R how to calculate around missing values. It does not explain why the values are missing.
+
+So Leo should inspect missingness before relying on the summary:
+
+```{r}
+#| eval: false
+sum(is.na(df_analysis$project_score))
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::summarise(
+    missing_project_score = sum(is.na(project_score)),
+    observed_project_score = sum(!is.na(project_score)),
+    mean_project_score = mean(project_score, na.rm = TRUE)
+  )
+```
+
+This is better than calculating the mean alone because it gives the summary some context. Leo can see how many values were available for the calculation.
+
+## Counting Categories
+
+Some variables are categorical. Leo may want to count them rather than average them.
+
+For example, `completion_status` is not a score. It is a category. The useful question is not:
+
+```text
+What is the mean completion status?
+```
+
+The useful question is:
+
+```text
+How many observations fall into each completion status?
+```
+
+In Base R:
+
+```{r}
+#| eval: false
+table(df_analysis$completion_status, useNA = "ifany")
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::count(completion_status)
+```
+
+Other useful category counts may involve `background`, `country`, `r_experience_level`, `study_band`, or `first_script_completed`.
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::count(background)
+
+df_analysis |>
+  dplyr::count(study_band)
+
+df_analysis |>
+  dplyr::count(first_script_completed)
+```
+
+Counting categories is often the first serious way to understand the shape of a dataset.
+
+It is also a check against assumptions. If a category count produces unexpected labels or missing values, Leo should not rush to explain them away. He should inspect them.
+
+## Grouping: Changing the Level of the Question
+
+Grouping is one of the most important mental shifts in data work.
+
+Without grouping, Leo asks one question about the whole analysis object:
+
+```text
+What is the mean project score overall?
+```
+
+With grouping, he asks the same question separately within categories:
+
+```text
+What is the mean project score by background?
+```
+
+The measure may be the same. The level of the question changes.
+
+That is why grouping matters.
+
+Grouping does not magically make the analysis deeper. It makes the comparison explicit.
+
+## Grouped Summaries with Base R
+
+Base R can produce grouped summaries with `aggregate()`.
+
+For example, to calculate mean project score by `background`:
+
+```{r}
+#| eval: false
+aggregate(
+  project_score ~ background,
+  data = df_analysis,
+  FUN = function(x) mean(x, na.rm = TRUE)
+)
+```
+
+The formula `project_score ~ background` can be read as:
+
+```text
+Summarise project_score by background.
+```
+
+This is a compact expression. It is useful, but beginners should read it slowly. The variable on the left is the measure. The variable on the right is the group.
+
+Leo can also use `tapply()` for simple grouped summaries:
+
+```{r}
+#| eval: false
+tapply(
+  df_analysis$project_score,
+  df_analysis$background,
+  mean,
+  na.rm = TRUE
+)
+```
+
+Both approaches are useful. The purpose here is not to memorise every Base R summary tool. The purpose is to see that grouped summaries are not exclusive to one style of R.
+
+## Grouped Summaries with Tidyverse
+
+In tidyverse style, Leo usually writes the grouping step explicitly:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::group_by(background) |>
+  dplyr::summarise(
+    observations = dplyr::n(),
+    mean_project_score = mean(project_score, na.rm = TRUE),
+    median_project_score = median(project_score, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+This code has a readable structure.
+
+`group_by(background)` tells R to create separate groups. `summarise()` tells R what to calculate inside those groups. `.groups = "drop"` tells R to return an ordinary ungrouped summary table after the calculation.
+
+That last part may look small, but it is a useful habit. Grouping can remain attached to a result in tidyverse workflows. Dropping groups when they are no longer needed helps avoid confusion later.
+
+::: {.callout-tip appearance="simple" title="How R Thinks"}
+In a grouped summary, R does not calculate one overall result first. It splits the data into groups, applies the summary action inside each group, and then returns a smaller table of results.
+:::
+
+## Two-Group Comparisons
+
+Sometimes one grouping variable is enough. Other times Leo may need two.
+
+For example, he may ask:
+
+```text
+How does project performance differ by background and study band?
+```
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::group_by(background, study_band) |>
+  dplyr::summarise(
+    observations = dplyr::n(),
+    mean_project_score = mean(project_score, na.rm = TRUE),
+    mean_score_gap = mean(score_gap, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+This can be useful, but it should be used carefully.
+
+Every extra grouping variable divides the data into smaller pieces. Some groups may become too small to interpret responsibly.
+
+Leo should inspect group sizes:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::count(background, study_band)
+```
+
+If a group has very few observations, the summary may be unstable. The number may still calculate, but that does not make it meaningful.
+
+## Proportions and Logical Summaries
+
+Chapter 7 taught Leo that logical values are real values: `TRUE` and `FALSE`.
+
+In summaries, that becomes powerful. In R, `TRUE` behaves like `1` and `FALSE` behaves like `0` inside numeric calculations such as `mean()`.
+
+That means Leo can calculate a proportion from a logical variable.
+
+For example, if `high_project_score` is `TRUE` when `project_score >= 80`, then:
+
+```{r}
+#| eval: false
+mean(df_analysis$high_project_score, na.rm = TRUE)
+```
+
+returns the proportion of observations with high project scores.
+
+The tidyverse version is:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::summarise(
+    proportion_high_project_score = mean(high_project_score, na.rm = TRUE)
+  )
+```
+
+The same idea works for logical fields such as `first_script_completed`, `used_quarto`, and `used_git`:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::summarise(
+    proportion_first_script_completed = mean(first_script_completed, na.rm = TRUE),
+    proportion_used_quarto = mean(used_quarto, na.rm = TRUE),
+    proportion_used_git = mean(used_git, na.rm = TRUE)
+  )
+```
+
+This is not a trick. It is Chapter 7 becoming useful inside a workflow. Logical judgments can become summary evidence.
+
+## Grouped Proportions
+
+Leo can also calculate proportions inside groups.
+
+In Base R, one simple option is `aggregate()`:
+
+```{r}
+#| eval: false
+aggregate(
+  high_project_score ~ background,
+  data = df_analysis,
+  FUN = function(x) mean(x, na.rm = TRUE)
+)
+```
+
+The result gives the proportion of TRUE values for `high_project_score` inside each background group.
+
+In tidyverse style:
+
+```{r}
+#| eval: false
+df_analysis |>
+  dplyr::group_by(background) |>
+  dplyr::summarise(
+    observations = dplyr::n(),
+    proportion_high_project_score = mean(high_project_score, na.rm = TRUE),
+    proportion_first_script_completed = mean(first_script_completed, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+This summary asks:
+
+```text
+Within each background group, what proportion reached a high project score and completed the first script?
+```
+
+That is more meaningful than one overall proportion if Leo wants to compare learner backgrounds.
+
+But the same warning still applies. A grouped proportion should be interpreted alongside group size.
+
+## Summary Tables Need Inspection
+
+A summary table is not automatically trustworthy.
+
+Leo should inspect it just as he inspected imported, cleaned, and shaped data.
+
+For example:
+
+```{r}
+#| eval: false
+summary_by_background <- df_analysis |>
+  dplyr::group_by(background) |>
+  dplyr::summarise(
+    observations = dplyr::n(),
+    mean_project_score = mean(project_score, na.rm = TRUE),
+    median_project_score = median(project_score, na.rm = TRUE),
+    mean_score_gap = mean(score_gap, na.rm = TRUE),
+    proportion_high_project_score = mean(high_project_score, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+Then inspect:
+
+```{r}
+#| eval: false
+summary_by_background
+dim(summary_by_background)
+names(summary_by_background)
+str(summary_by_background)
+```
+
+These checks may feel simple, but they keep the workflow honest.
+
+Leo should ask:
+
+```text
+Are the groups what I expected?
+Are the counts large enough to interpret?
+Are missing values handled deliberately?
+Do the column names explain the summary?
+Does this summary answer the question I asked?
+```
+
+If the answer is unclear, the solution is not to make a prettier table. The solution is to return to the question, the data, or the summary logic.
+
+## Summary Objects for Chapter 16
+
+Chapter 15 should leave Leo with one or two summary objects that can be visualised later.
+
+The first object is the summary already created and inspected:
+
+```r
+summary_by_background
+```
+
+That object compares project performance across learner backgrounds.
+
+A second useful object is:
+
+```r
+#| eval: false
+summary_by_study_band
+```
+For example:
+
+```r
+#| eval: false
+summary_by_study_band <- df_analysis |>
+  dplyr::group_by(study_band) |>
+  dplyr::summarise(
+    observations = dplyr::n(),
+    mean_project_score = mean(project_score, na.rm = TRUE),
+    mean_score_gap = mean(score_gap, na.rm = TRUE),
+    proportion_high_project_score = mean(high_project_score, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+These objects are not final conclusions. They are summary evidence. Chapter 16 will ask how to visualise evidence like this without distorting what it means.
+
+## Common Beginner Mistakes
+
+### Mistake 1: Summarising before asking a question
+
+A summary should answer something.
+
+If Leo calculates every possible mean, median, count, and proportion, he has not necessarily analysed the data. He has produced noise in numerical form.
+
+The question comes first.
+
+### Mistake 2: Treating `na.rm = TRUE` as a solution
+
+`na.rm = TRUE` helps R calculate around missing values. It does not explain why the missing values exist.
+
+Leo should count missing values before deciding how to summarise around them.
+
+### Mistake 3: Grouping by too many variables too soon
+
+A summary by `background`, `country`, `study_band`, and `completion_status` may produce many tiny groups.
+
+That can make the summary look detailed while weakening its interpretability.
+
+### Mistake 4: Forgetting that grouping changes the level of analysis
+
+An overall mean and a grouped mean answer different questions.
+
+Leo should be able to say what level each summary represents.
+
+### Mistake 5: Confusing filtering with grouping
+
+Filtering chooses which rows remain.
+
+Grouping keeps rows but organises them into comparison categories before summarising.
+
+### Mistake 6: Trusting a summary because it looks clean
+
+A clean summary table can still be misleading if the grouping, missing-value handling, or original question is unclear.
+
+### Mistake 7: Trying to visualise before understanding the summary
+
+Visualisation can make a weak summary more persuasive than it deserves.
+
+Chapter 16 will teach visualisation, but Chapter 15 must first make sure the summary evidence is worth visualising.
+
+## What Leo Is Expected to Know at This Point
+
+By the end of this chapter, Leo should be able to explain the difference between summarising and grouping. He should know how to count observations, calculate simple numeric summaries, count categories, calculate proportions from logical variables, and compare summaries across groups.
+
+He should also know that summaries need inspection. A summary table is smaller than the data, but it is not automatically more truthful.
+
+::: {.callout-note appearance="simple" title="Not Yet"}
+Leo is not expected to create visualisations in this chapter. He is not expected to model relationships, test hypotheses, or build reports.
+
+Chapter 15 ends when Leo knows how to turn shaped rows into summary evidence that can be inspected, explained, and later visualised.
+:::
+
+## Chapter Outcome
+
+Chapter 15 has shown Leo how to move from analysis-ready rows to summary evidence.
+
+He can now count observations, summarise numeric variables, count categories, calculate simple proportions, group by meaningful variables, and inspect the resulting summary tables.
+
+More importantly, he understands that summaries are choices.
+
+A summary depends on the question, the grouping level, the variables selected, the missing values removed or retained, and the logic used to create the shaped data. That makes summary work powerful, but it also makes it responsible.
+
+The object `df_analysis` gives Leo shaped rows. Summary objects such as `summary_by_background` and `summary_by_study_band` show how those rows can become compact evidence.
+
+## Closing Part 3
+
+Part 3 began with a practical problem: Leo needed to move from knowing R’s language to doing data work with discipline.
+
+The workflow was:
+
+```text
+Packages -> Import -> Inspect -> Clean -> Transform -> Summarise
+```
+
+Chapter 11 prepared the package tools. Chapter 12 brought the official dataset into R. Chapter 13 cleaned and prepared the evidence. Chapter 14 shaped it for analysis. Chapter 15 turned those shaped rows into summary evidence, with grouping making comparison possible.
+
+Leo has not merely learned commands. He has learned a workflow.
+
+He now knows that serious data work is not a single heroic calculation. It is a sequence of controlled moves: prepare the tools, import the evidence, inspect what arrived, clean without hiding changes, shape the data for a question, and summarise the result responsibly.
+
+That is the close of Part 3: Leo has moved from tools and raw files to prepared, shaped, and summarised evidence.
+
+
+## Saving `df_analysis` for Part 4
+
+Chapter 16 should not return to the raw CSV file as if Chapters 14 and 15 never happened. The raw file remains the source evidence, but the object that now belongs to visualisation is the shaped analysis object:
+
+```r
+df_analysis
+```
+
+That object carries the analytical decisions Leo has already made: selected variables, filtered observations, and derived variables such as `high_project_score`, `score_gap`, and `study_band`.
+
+So before Part 4 begins, Leo saves `df_analysis` as a reusable file.
+
+```{r}
+#| label: chapter15-save-df-analysis-for-part4
+
+if (!exists("df_analysis")) {
+  stop(
+    "Chapter 15 could not create df_analysis. ",
+    "Confirm that data/raw/df_r_migration_messy.csv exists, ",
+    "or provide data/processed/df_analysis.csv before rendering."
+  )
+}
+
+dir.create("data/processed", recursive = TRUE, showWarnings = FALSE)
+
+saveRDS(
+  df_analysis,
+  "data/processed/df_analysis.rds"
+)
+
+write.csv(
+  df_analysis,
+  "data/processed/df_analysis.csv",
+  row.names = FALSE
+)
+
+if (requireNamespace("writexl", quietly = TRUE)) {
+  writexl::write_xlsx(
+    df_analysis,
+    "data/processed/df_analysis.xlsx"
+  )
+}
+```
+
+For the online book, the reusable Part 4 dataset should be made available here:
+
+[Download `df_analysis.csv`](../data/processed/df_analysis.csv){download="df_analysis.csv"}
+
+[Download `df_analysis.xlsx`](../data/processed/df_analysis.xlsx){download="df_analysis.xlsx"}
+
+::: {.callout-important appearance="simple" title="Why this handoff matters"}
+Part 4 should visualise `df_analysis`, not the raw dataset. Visualisation should continue the evidence trail built across Part 3 rather than silently restarting the workflow from the raw file.
+:::
+
+
+## Transition to Chapter 16
+
+Leo now knows how to create summary tables that can be inspected, explained, and traced back to `df_analysis`.
+
+But summaries are still tables.
+
+Some patterns become clearer when they are visualised. Some comparisons are easier to understand when readers can see them. Some results become more persuasive when the visual form matches the evidence honestly and does not exaggerate it.
+
+That creates the next question:
+
+> How can Leo visualise evidence clearly without distorting what it means?
+
+::: {.callout-tip appearance="simple" title="Ready for Visualisation"}
+Chapter 15 has shown Leo how shaped rows become summary evidence. Chapter 16 begins the next stage: visualising that evidence clearly, responsibly, and without losing the trust built across Part 3.
+:::

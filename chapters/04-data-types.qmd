@@ -1,0 +1,978 @@
+---
+title: "Why Values Behave Differently: Data Types and the Hidden Identity of Data"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{4.\arabic{figure}}
+\setcounter{figure}{0}
+```
+
+## Opening Scene: The Value That Looks Right but Fails
+
+Leo types a line that looks harmless.
+
+```{r}
+#| error: true
+"10" + 5
+```
+
+He expects it to work.
+
+The value `"10"` looks like a number. The value `5` is a number. In ordinary reading, adding ten and five does not feel like a difficult request.
+
+But R refuses.
+
+Then Leo removes the quotation marks and tries again.
+
+```{r}
+10 + 5
+```
+
+This time, R answers immediately.
+
+The visible difference is small. One value is written as `"10"`. The other is written as `10`.
+
+To Leo, they look almost the same. To R, they are different kinds of values.
+
+That is the problem at the centre of this chapter.
+
+> Two values can look almost the same to a human reader and behave completely differently inside R.
+
+This is not R being stubborn. It is R being precise.
+
+R does not act only on what appears on the screen. R acts on what a value is.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+This chapter explains why values behave differently in R.
+
+Chapter 3 showed that R works with values, names, containers, and special signals. Chapter 4 adds the next layer: values have types, and those types shape what R can safely do with them.
+:::
+
+## What Changed After Chapter 3
+
+Chapter 3 helped Leo stop seeing code as symbols floating on the screen.
+
+He learned that R works with pieces of data, that values can be named, that several values can be held together, and that some values carry special signals such as `NA`, `NaN`, `Inf`, and `NULL`.
+
+Those special signals matter, but they are not ordinary data types in the same way that numeric, character, and logical values are.
+
+::: {.callout-note appearance="simple" title="Special Values Are Not Ordinary Data Types"}
+`NA`, `NaN`, `Inf`, and `NULL` are special signals in R.
+
+`NA` marks missingness.  
+`NaN` marks an undefined numerical result.  
+`Inf` marks infinity.  
+`NULL` marks absence.
+
+Some of these signals still have underlying storage when R inspects them, but their main role is not to name an ordinary data type. Their role is to tell R that something unusual is happening.
+:::
+
+A new question now becomes unavoidable:
+
+> Why do values behave differently even when they look similar?
+
+That question matters because many beginner errors begin here. A value may look numeric but behave as text. A date may look like a date but still be stored as character text. A yes/no response may look meaningful to a reader but fail to behave as a logical value inside R.
+
+## The First Confusion
+
+Return to the first surprise.
+
+```r
+"10" + 5
+# Error: non-numeric argument to binary operator
+```
+
+R does not accept this.
+
+But this works:
+
+```{r}
+10 + 5
+```
+
+The question is no longer simply:
+
+> What did Leo type?
+
+The better question is:
+
+> What did R think Leo typed?
+
+When Leo writes `10`, R sees a number.
+
+When he writes `"10"`, R sees text.
+
+The quotation marks are not decoration. They change how R interprets the value.
+
+The failure is not random. It is a clue.
+
+## The Hidden Difference
+
+Look closely:
+
+* `"10"`
+* `10`
+
+They look similar, but they are not the same.
+
+`"10"` is text. It can be printed, pasted, stored as a label, or combined with other text.
+
+`10` is numeric. It can be added, subtracted, averaged, compared, and used in calculations.
+
+R behaves differently because it sees different kinds of values.
+
+> What Leo sees is the brick. What R uses is the material.
+
+The brick is the visible value. The material is the type.
+
+A careful analyst does not trust appearance alone. The figure below puts the difference side by side.
+
+```{r}
+#| label: fig-same-appearance-different-material
+#| echo: false
+#| fig-width: 7
+#| fig-height: 2.8
+#| fig-align: center
+#| fig-cap: "Same Appearance, Different Material"
+
+old_par <- par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i")
+plot.new()
+plot.window(xlim = c(0, 8), ylim = c(0.7, 3.5), asp = 1)
+
+draw_brick <- function(x, y, label, material, behaviour, fill_col) {
+  width <- 1.8
+  height <- 0.85
+  depth_x <- 0.28
+  depth_y <- 0.28
+  border_col <- "#222222"
+
+  front_fill <- adjustcolor(fill_col, alpha.f = 0.35)
+  top_fill <- adjustcolor(fill_col, alpha.f = 0.22)
+  side_fill <- adjustcolor(fill_col, alpha.f = 0.28)
+
+  # Front face
+  polygon(
+    x = c(x, x + width, x + width, x),
+    y = c(y, y, y + height, y + height),
+    col = front_fill,
+    border = border_col,
+    lwd = 1.6
+  )
+
+  # Top face
+  polygon(
+    x = c(x, x + depth_x, x + width + depth_x, x + width),
+    y = c(y + height, y + height + depth_y,
+          y + height + depth_y, y + height),
+    col = top_fill,
+    border = border_col,
+    lwd = 1.6
+  )
+
+  # Side face
+  polygon(
+    x = c(x + width, x + width + depth_x,
+          x + width + depth_x, x + width),
+    y = c(y, y + depth_y, y + height + depth_y, y + height),
+    col = side_fill,
+    border = border_col,
+    lwd = 1.6
+  )
+
+  # Visible value
+  text(
+    x = x + width / 2,
+    y = y + height / 2,
+    labels = label,
+    cex = 1.35,
+    font = 2
+  )
+
+  # Hidden material and behaviour
+  text(
+    x = x + width / 2,
+    y = y - 0.45,
+    labels = material,
+    cex = 0.95,
+    font = 2
+  )
+
+  text(
+    x = x + width / 2,
+    y = y - 0.85,
+    labels = behaviour,
+    cex = 0.85
+  )
+}
+
+# Left: numeric value
+draw_brick(
+  x = 1.2,
+  y = 2.1,
+  label = "10",
+  material = "numeric material",
+  behaviour = "10 + 5 works",
+  fill_col = "#c9c8ff"
+)
+
+# Right: character value
+draw_brick(
+  x = 4.8,
+  y = 2.1,
+  label = "\"10\"",
+  material = "character material",
+  behaviour = "\"10\" + 5 fails",
+  fill_col = "#ffd6b5"
+)
+
+par(old_par)
+```
+
+As shown in @fig-same-appearance-different-material, the two values look similar on the screen, but R does not treat them the same way. The first has numeric material, so arithmetic works. The second has character material, so arithmetic fails unless the value is deliberately converted.
+
+This is why Chapter 4 keeps returning to inspection. The screen shows appearance. Inspection reveals behaviour.
+
+### The Core Idea: Type Is Behaviour
+
+Every value has a type.
+
+That type helps R decide:
+
+* what the value represents;
+* what operations are allowed;
+* how the value should behave when a function or operator uses it.
+
+A **data type** is not just a label to memorise. It is part of the value’s behaviour.
+
+When R knows that a value is numeric, it can use that value in arithmetic. When R knows that a value is character text, it treats that value as text. When R knows that a value is logical, it can use it in conditions and checks. When R knows that a value is a date, it can compare it with other dates and calculate time differences.
+
+So the reliable question is not only:
+
+> What does this value look like?
+
+It is:
+
+> What kind of value does R think this is?
+
+::: {.callout-tip appearance="simple" title="Brick and Material"}
+In the book’s working metaphor:
+
+* the value is the brick;
+* the data type is the material of the brick;
+* the data structure is how bricks are arranged;
+* coercion, later, is what happens when R changes material to make values fit together.
+
+This chapter is about the material of values. Chapter 5 will ask how those values are arranged.
+:::
+
+## A Small Example from Everyday Life
+
+A tuber of yam weighing `2` kg gives Leo a numeric value. The value represents a measurable quantity. It can be added to another weight, compared with another value, or used in calculation.
+
+A football jersey carrying the number `"10"` is different. The digits look numeric, but the jersey number functions as a label. Leo does not usually add jersey numbers as if they were kilograms or exam scores.
+
+The city name `"New York"` is also character data. It carries information, but not measurable quantity.
+
+This is why `"10"` is not always numeric. A value can contain digit characters and still function as a label.
+
+R needs to know the kind before it can decide what to do.
+
+## Seeing Types in Action
+
+R gives Leo tools for inspection.
+
+One useful function is `typeof()`.
+
+```{r}
+typeof("10")
+typeof(10)
+```
+
+The results confirm the hidden difference.
+
+`"10"` is stored as character text. `10` is stored as a numeric value.
+
+Leo does not have to guess. He can ask R what it sees.
+
+That habit matters because visual appearance can mislead him. A value can look numeric, date-like, or logical without being stored that way. R will not behave according to Leo’s hope. It will behave according to the value’s type.
+
+Some objects also carry a higher-level behaviour label called a **class**. That distinction becomes clearer when Leo compares ordinary values with dates and factors.
+
+For now, the point is simple: R gives Leo ways to inspect a value before trusting it.
+
+## Predict Before You Run
+
+Before moving further, pause and predict what R will see.
+
+Which lines reveal type or class? Which line calculates? Which line would fail if it were run?
+
+```r
+class(10)
+class("10")
+10 + 5
+"10" + 5
+```
+
+Now run the safe inspection lines first.
+
+```{r}
+class(10)
+class("10")
+```
+
+Then run the calculation that should work.
+
+```{r}
+10 + 5
+```
+
+The failing line has already appeared at the opening of the chapter. Here it is only a reminder, so it is shown without running again:
+
+```r
+"10" + 5
+# Error: non-numeric argument to binary operator
+```
+
+Prediction matters because it turns code reading into reasoning. Leo is not only waiting for R to answer. He is learning to expect how R should behave.
+
+## Three Behaviours That Reveal Type
+
+The easiest way to understand type is to watch values behave.
+
+### Behaviour 1: Calculation
+
+```{r}
+10 + 5
+```
+
+This works because both values can participate in numeric calculation. The `+` operator expects values that can be added, and there is no conflict.
+
+### Behaviour 2: Combination
+
+```{r}
+paste("10", 5)
+```
+
+This also works, but for a different reason.
+
+`paste()` combines values as text. It is not trying to perform arithmetic. It is joining pieces into a character result.
+
+A value that fails in one operation may work in another. The issue is not whether the value is good or bad. The issue is whether its type fits the operation being requested.
+
+### Behaviour 3: Conflict
+
+```r
+"10" + 5
+# Error: non-numeric argument to binary operator
+```
+
+This fails because the `+` operator expects numeric values.
+
+The value `5` is numeric. The value `"10"` is character text. R does not treat text as a number simply because it contains digit characters.
+
+::: {.callout-important appearance="simple" title="Key Insight"}
+R is not asking whether a value looks like it could work.
+
+R is asking whether the value’s type makes the operation valid.
+:::
+
+## Naming the Types
+
+Now the names can matter.
+
+Leo has already seen calculation work, text combination work, and type conflict fail. The labels now explain something he has experienced.
+
+This chapter introduces the kinds of values Leo needs first:
+
+* numeric values
+* integer values
+* character values
+* logical values
+* date values
+* factor values
+
+He does not need to master every detail immediately. The goal is to recognise the basic type of common values and understand why type affects behaviour.
+
+| What Leo sees | What R may see | Beginner meaning | Likely behaviour |
+|---|---|---|---|
+| `10` | numeric/double | A number for calculation | Can be added, averaged, compared, and measured |
+| `10L` | integer | A whole number stored explicitly as an integer | Useful for counts, indexes, and whole-number storage |
+| `"10"` | character | Text that happens to contain digit characters | Behaves like a label, not a quantity |
+| `TRUE` | logical | A truth value | Useful for conditions, checks, and filtering |
+| `"TRUE"` | character | Text spelling the word TRUE | Looks logical but behaves like text |
+| `as.Date("2026-04-28")` | Date class | A calendar-aware value | Can be compared and used in date arithmetic |
+| `factor(c("Beginner", "Advanced"))` | factor class | Structured category labels | Useful for grouping and category-aware work |
+
+The same screen can show values that look close to one another, but R may attach different types or classes to them. Once that happens, behaviour changes.
+
+## Numeric Values
+
+Numeric values are used for calculation.
+
+They are the ordinary numbers Leo will use for quantities, scores, measurements, counts, rates, prices, ages, hours, and other measurable information.
+
+```{r}
+10
+82.5
+typeof(10)
+typeof(82.5)
+```
+
+Both `10` and `82.5` can be used in arithmetic.
+
+```{r}
+10 + 82.5
+```
+
+They can be averaged.
+
+```{r}
+mean(c(10, 20, 30))
+```
+
+They can be compared.
+
+```{r}
+82.5 > 70
+```
+
+But a value is not numeric just because it looks numeric on the screen.
+
+```{r}
+typeof("82.5")
+```
+
+The digits are visible, but the type is character.
+
+That small difference can change the whole analysis.
+
+## Integer Values
+
+Integers are whole-number values.
+
+In everyday language, `10`, `25`, and `100` look like integers because they do not have decimal parts. In R, Leo can explicitly ask R to store a whole number as an integer by adding `L`.
+
+```{r}
+10L
+typeof(10L)
+```
+
+Compare that with ordinary `10`.
+
+```{r}
+typeof(10)
+```
+
+R stores ordinary `10` as a double, which is R’s common numeric storage type for numbers that may include decimals.
+
+Leo does not need to overthink this yet. Most beginner work can continue comfortably with ordinary numeric values. Some functions and datasets expect whole-number integers explicitly, so he does not need to obsess over integers now, but he should recognise them when they appear.
+
+For now, it is enough to know that `10L` and `10` are closely related but not identical in how R stores them.
+
+## Character Values
+
+Character values are text values.
+
+They are used for names, labels, countries, comments, descriptions, identifiers, and any value R should treat as text rather than as a number or logical condition.
+
+```{r}
+"Leo"
+"Nigeria"
+"New York"
+typeof("Leo")
+```
+
+Character values must be placed inside quotation marks.
+
+Without quotation marks, R assumes Leo is referring to an object name.
+
+```{r}
+name <- "Leo"
+name
+```
+
+Here, `"Leo"` is the text value. `name` is the object that stores it.
+
+If Leo writes `"country"`, R sees the word as text. If he writes `country` without quotation marks, R looks for an object called `country`.
+
+Character values can also create problems when numbers are accidentally stored as text.
+
+```{r}
+typeof("10")
+```
+
+The digits are visible, but the type is still character. This is why the football jersey example matters. The number `"10"` may look numeric, but it functions as a label.
+
+That is why `"10" + 5` fails.
+
+## Logical Values
+
+Logical values are truth values.
+
+They can only be `TRUE` or `FALSE`.
+
+```{r}
+TRUE
+FALSE
+typeof(TRUE)
+```
+
+Logical values help R answer yes-or-no questions.
+
+```{r}
+10 > 5
+```
+
+```{r}
+10 < 5
+```
+
+Data analysis often involves conditions:
+
+* Did the learner complete the first script?
+* Is the score above 70?
+* Is the country Nigeria?
+* Is the value missing?
+* Did the login happen after the enrolment date?
+
+Later, Leo will use logical values for filtering rows, checking assumptions, and creating new variables.
+
+For now, the key idea is simple: logical values help R represent conditions that are true or false.
+
+`TRUE` is not the same as `"TRUE"`.
+
+```{r}
+typeof(TRUE)
+typeof("TRUE")
+```
+
+The first is logical. The second is character text.
+
+Again, appearance is not enough.
+
+## Dates as Time-Aware Values
+
+Dates need careful handling because they can look simple while hiding an important distinction.
+
+This looks like a date:
+
+```{r}
+"2026-04-28"
+```
+
+But to R, it is character text unless Leo converts it into a date value.
+
+```{r}
+typeof("2026-04-28")
+```
+
+To make R treat it as a date, Leo can use `as.Date()`.
+
+```{r}
+enrolment_date <- as.Date("2026-04-28")
+
+enrolment_date
+class(enrolment_date)
+typeof(enrolment_date)
+```
+
+::: {.callout-note appearance="simple" title="Storage and Behaviour"}
+`typeof(enrolment_date)` answers a storage question: what basic material is R using underneath?
+
+`class(enrolment_date)` answers a practical behaviour question: how should R treat this object when functions operate on it?
+
+For dates, storage and behaviour are not the same thing. The object is stored on a numeric foundation, but R treats it as a calendar date because its class is `"Date"`.
+:::
+
+Leo does not need to go deeply into date internals yet. The practical point is more important: dates are not just decorative text. When parsed correctly, they become values R can compare and calculate with.
+
+```{r}
+enrolment_date + 7
+```
+
+R can also compare dates.
+
+```{r}
+first_login_date <- as.Date("2026-05-02")
+
+first_login_date > enrolment_date
+```
+
+This behaviour is possible because R is no longer treating the value as ordinary text. It is treating it as a date.
+
+## Factors as Category-Aware Values
+
+Factors represent categories.
+
+They are useful when values belong to a limited set of groups, such as beginner and advanced, urban and rural, completed and not completed, or low, medium, and high.
+
+```{r}
+experience_level <- factor(c("beginner", "developing", "confident", "beginner"))
+
+experience_level
+class(experience_level)
+typeof(experience_level)
+```
+
+`class(experience_level)` says the object is a factor. That tells R to treat it as categorical data.
+
+`typeof(experience_level)` shows that the underlying storage is integer. Those integers are connected to visible category labels.
+
+One small inspection makes the category memory visible.
+
+```{r}
+levels(experience_level)
+```
+
+Factors remember the possible categories attached to the values. That is the first behavioural difference to notice.
+
+Leo does not need to master all factor details here. Factors can surprise beginners later, especially when category order matters or when text is converted into factors unexpectedly.
+
+For now, the practical idea is enough: factors are special objects that store category labels in a structured way.
+
+## Short Recap: What the Types Are Doing
+
+At this point, Leo has met the first set of materials that R uses for common values.
+
+| Kind of value | What it helps R do |
+|---|---|
+| Numeric and integer | Calculate, measure, count, compare, and summarise |
+| Character | Store names, labels, identifiers, and descriptions |
+| Logical | Represent `TRUE` or `FALSE` conditions |
+| Date | Carry calendar meaning after correct parsing |
+| Factor | Carry category structure, not just loose text labels |
+
+The lesson is not that Leo must memorise every technical detail immediately. The lesson is that each type gives R a different permission. Some values can be calculated. Some should be treated as labels. Some carry time. Some carry category structure.
+
+That is why type shapes what analysis is safe.
+
+## Why Type Matters in Real Work
+
+The examples so far have been small on purpose.
+
+Small examples help Leo see the principle before he meets the full dataset.
+
+But this principle will matter every time Leo works with `df_r_migration`, the book’s main dataset.
+
+For example:
+
+* `study_hours` should behave like a number when stored correctly;
+* `country` may behave like text or as a category, depending on the task;
+* `first_script_completed` should behave like `TRUE` or `FALSE` when cleaned properly;
+* `enrolment_date` and `first_login_date` should behave like dates when parsed correctly.
+
+These variables are not interchangeable.
+
+Leo should not calculate an average country. He should not paste dates together when he needs to compare time. He should not treat `"TRUE"` as the same thing as `TRUE`. He should not assume that a column is numeric just because the values look like numbers.
+
+Type matters because it determines what R can do safely. When Leo imports a dataset, one of his first tasks is not to calculate. It is to inspect.
+
+## The Silent Failure Problem
+
+Some type problems announce themselves loudly.
+
+`"10" + 5` produces an error. Leo sees the problem immediately.
+
+Other type problems are quieter. They may produce warnings, missing results, strange summaries, or misleading outputs.
+
+Consider this example:
+
+```{r}
+#| warning: true
+mean(c("10", "20", "30"))
+```
+
+Leo may expect the mean to be `20`, but the values are character text.
+
+The function `mean()` is designed for numeric or logical values. It cannot calculate an ordinary numeric mean from character text, even if that text contains digit characters.
+
+::: {.callout-warning appearance="simple" title="Common Beginner Trap"}
+If values look numeric but are stored as text, Leo may trust the appearance and misunderstand the result.
+
+A column can look ready for calculation and still be the wrong type for calculation.
+:::
+
+An obvious error may interrupt Leo, but it also protects him by forcing attention.
+
+A quiet type problem may let the work continue while the interpretation becomes weak.
+
+Reliable analysis depends on catching these problems early.
+
+## Inspect Before You Trust
+
+Leo needs a simple inspection habit.
+
+Before trusting a value, he should check what R sees.
+
+Three useful tools are:
+
+* `typeof()`
+* `class()`
+* `str()`
+
+Start with a single value.
+
+```{r}
+x <- "10"
+
+typeof(x)
+class(x)
+str(x)
+```
+
+`typeof()` shows the low-level storage type. It answers: what is the object made from underneath?
+
+`class()` shows the higher-level behaviour that many R functions associate with an object. It answers: how should R treat this object when functions use it?
+
+`str()` gives a compact summary of structure, storage, and class information. It becomes especially useful when Leo works with larger objects later.
+
+Compare the character value with a date.
+
+```{r}
+x <- as.Date("2026-04-28")
+
+typeof(x)
+class(x)
+str(x)
+```
+
+Here, `typeof()` and `class()` do not tell the same story. That is not a contradiction. It is a layered view.
+
+For dates and factors, storage and behaviour are not always the same thing.
+
+::: {.callout-note appearance="simple" title="Storage and Behaviour"}
+`typeof()` answers a storage question.
+
+`class()` answers a practical behaviour question.
+
+`str()` gives a compact inspection view.
+:::
+
+Leo does not need to memorise every possible output. He needs to build the habit of inspection.
+
+The question is always:
+
+> What does R see here?
+
+That question is one of the foundations of careful analysis.
+
+## The First Rule of Reliable Analysis
+
+Here is the rule Leo should keep:
+
+> Never assume what a value is. Confirm what R sees.
+
+A fragile analysis begins with assumptions:
+
+> This looks like a number, so it must be numeric.
+
+> This looks like a date, so R must understand it as a date.
+
+> This looks like true or false, so it must be logical.
+
+A reliable analysis begins with inspection.
+
+```{r}
+x <- "10"
+
+typeof(x)
+```
+
+Then Leo can decide what to do next.
+
+If the value is already numeric, he can calculate. If the value is character text but should be numeric, he may need to convert it. If the value is character text and should remain text, he can treat it as text. If the value is a date written as text, he may need to parse it as a date.
+
+The rule is not about being slow. It is about being safe.
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+Never assume what a value is.
+
+Confirm what R sees before trusting what the value appears to be.
+:::
+
+## The Mental Shift
+
+At the beginning of this chapter, Leo’s old assumption was understandable:
+
+> Values that look similar behave the same.
+
+That assumption works in ordinary human reading. It does not work safely in R.
+
+The stronger understanding is:
+
+> Values behave according to their type, not their appearance.
+
+`"10"` and `10` are not the same because one is character text and the other is numeric.
+
+`"TRUE"` and `TRUE` are not the same because one is character text and the other is logical.
+
+`"2026-04-28"` and `as.Date("2026-04-28")` are not the same because one is text and the other is a date-aware value.
+
+A factor and a character value may print labels that look similar, but R can treat them differently because one carries category structure.
+
+Errors stop looking like personal failure. Warnings become signals. Strange outputs become clues. Inspection becomes part of the work.
+
+R is not being difficult. R is obeying the type of the value.
+
+## Leo’s Notebook
+
+Leo writes the lesson in his own words:
+
+> A value is not only what it looks like on the screen. A value is what R understands it to be. Before I calculate, compare, filter, or summarise, I should check what R sees.
+
+That note carries the heart of the chapter.
+
+## What Comes Next
+
+This chapter has focused on individual values.
+
+Leo now understands that every value has a type, and that some objects also carry a class that guides how R treats them. A number, a piece of text, a logical value, a date, and a factor may all appear quietly on the screen, but R does not treat them as interchangeable.
+
+Real analysis rarely works with one value at a time.
+
+Leo will soon work with many values together:
+
+* many scores;
+* many learner names;
+* many countries;
+* many enrolment dates;
+* many completion statuses;
+* many rows in a dataset.
+
+::: {.callout-tip appearance="simple" title="Bridge to Data Structures"}
+A single value has a type.
+
+A group of values needs an arrangement.
+
+That arrangement is where data structures begin.
+:::
+
+The next chapter will not simply ask how to store many values. It will ask what happens when values enter containers with rules. Some containers demand sameness. Some allow mixture. Some are shaped for calculation. Some are shaped for flexible representation. Some become the table-like form Leo will rely on throughout the book.
+
+## Chapter Outcome
+
+By the end of this chapter, Leo can:
+
+* recognise that values can look similar but behave differently;
+* explain that type drives behaviour in R;
+* use the brick/material metaphor to explain data types;
+* distinguish numeric, integer, character, logical, date, and factor values at a beginner level;
+* understand that dates and factors have special behaviour beyond ordinary text;
+* explain why `"10"` and `10` are not the same value to R;
+* detect simple type mismatch problems;
+* inspect values using `typeof()`, `class()`, and `str()`;
+* explain the difference between low-level storage type and higher-level object class;
+* explain why reliable analysis begins by checking what R sees.
+
+More importantly, Leo has gained a habit that will protect his work.
+
+He will no longer trust appearance alone.
+
+He will ask R what it sees.
+
+That habit will matter when values are placed inside larger structures, because a container does not only hold data. It also imposes rules on how values live together.
+
+Leo now knows that every value has a material. In the next chapter, he will discover that every container has an arrangement.
+
+## Key Terms
+
+**Value**: One piece of data that R can store, inspect, or use.
+
+**Data type**: The internal kind of a value. In this chapter’s metaphor, type is the material of the data brick.
+
+**Numeric**: A value used for calculation, measurement, comparison, and summary.
+
+**Integer**: A whole-number value stored explicitly as an integer, often written with `L`, as in `10L`.
+
+**Character**: Text data, usually written inside quotation marks.
+
+**Logical**: A truth value, either `TRUE` or `FALSE`.
+
+**Date**: A calendar-aware value created when date-like text is parsed correctly, often with `as.Date()`.
+
+**Factor**: A structured category value that stores category labels in a way R can use for category-aware work.
+
+**`typeof()`**: A function that shows the low-level storage type of an object.
+
+**`class()`**: A function that shows the higher-level behaviour R associates with an object.
+
+**`str()`**: A function that gives a compact view of an object’s structure, type, and class information.
+
+## Practice Lab
+
+This lab helps Leo turn the chapter’s ideas into action.
+
+### Task 1: Compare what looks similar
+
+Run the code below.
+
+```{r}
+typeof("10")
+typeof(10)
+
+class("10")
+class(10)
+```
+
+Then answer:
+
+* Why does `"10"` behave differently from `10`?
+* Which one is safe for arithmetic?
+* Which one behaves like text?
+
+### Task 2: Inspect truth values
+
+Run the code below.
+
+```{r}
+typeof(TRUE)
+typeof("TRUE")
+
+class(TRUE)
+class("TRUE")
+```
+
+Then answer:
+
+* Why is `TRUE` different from `"TRUE"`?
+* Which one can help R make a logical decision?
+
+### Task 3: Inspect dates and categories
+
+Run the code below.
+
+```{r}
+login_date <- as.Date("2026-04-28")
+experience_level <- factor(c("beginner", "developing", "confident", "beginner"))
+
+typeof(login_date)
+class(login_date)
+str(login_date)
+
+typeof(experience_level)
+class(experience_level)
+levels(experience_level)
+str(experience_level)
+```
+
+Then answer:
+
+* What does `typeof()` show for the date?
+* What does `class()` show for the date?
+* What does `class()` show for the factor?
+* What does `levels()` reveal about the factor?
+* Why do `typeof()` and `class()` not always tell the same story?
+
+### Task 4: Write the lesson in plain language
+
+Complete these sentences in your own words:
+
+```text
+A data type tells R...
+
+The difference between typeof() and class() is...
+
+Before I trust a value, I should...
+```
+
+The goal is not to memorise the terms. The goal is to build the habit: inspect first, then analyse.

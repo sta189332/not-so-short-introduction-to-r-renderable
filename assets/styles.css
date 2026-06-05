@@ -1,0 +1,165 @@
+:root {
+  --erm-blue: #1f4e79;
+  --erm-gray: #4f4f4f;
+  --erm-light: #f7f7f7;
+  --erm-accent: #edf7ed;
+}
+
+body {
+  font-family: "Georgia", "Times New Roman", serif;
+  line-height: 1.75;
+  color: #222;
+}
+
+h1, h2, h3, h4 {
+  color: var(--erm-blue);
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+.quarto-title-block .title {
+  font-size: 2.3rem;
+  font-weight: 700;
+}
+
+.quarto-title-block .subtitle {
+  color: var(--erm-gray);
+  font-size: 1.15rem;
+}
+
+.callout {
+  border-radius: 8px;
+}
+
+.callout-note {
+  border-left: 5px solid var(--erm-blue);
+}
+
+.callout-important {
+  border-left: 5px solid #b22222;
+}
+
+.callout-tip {
+  border-left: 5px solid #2e8b57;
+}
+
+.callout-warning {
+  border-left: 5px solid #d97706;
+}
+
+pre, code {
+  font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+}
+
+blockquote {
+  font-style: italic;
+  color: #444;
+  border-left: 4px solid #ddd;
+  padding-left: 1rem;
+}
+
+table {
+  width: 100%;
+}
+
+thead {
+  background-color: var(--erm-light);
+}
+
+.chapter-number {
+  color: var(--erm-gray);
+}
+
+.sidebar nav[role="doc-toc"] {
+  font-size: 0.95rem;
+}
+
+/* Keep the actual caption text normal */
+figcaption,
+.figure-caption {
+  font-weight: 400;
+}
+
+figcaption,
+.figure-caption,
+.quarto-float-caption {
+  font-weight: 400;
+}
+
+figcaption strong,
+.figure-caption strong,
+.quarto-float-caption strong {
+  font-weight: 700;
+}
+
+figcaption,
+.figure-caption,
+.quarto-float-caption {
+  font-weight: 400;
+}
+
+figcaption strong,
+.figure-caption strong,
+.quarto-float-caption strong {
+  font-weight: 700;
+}
+
+/* Keep the full figure caption normal */
+figcaption,
+.figure-caption,
+.quarto-float-caption {
+  font-weight: 400;
+}
+
+/* Bold only the automatic figure label inserted by the HTML script */
+.figure-label-bold {
+  font-weight: 700 !important;
+}
+
+/* Remove underline from Quarto cross-references while keeping colour and clickability */
+a.quarto-xref,
+a.quarto-xref:visited,
+a.quarto-xref:hover,
+a.quarto-xref:focus {
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+
+/* Keep keyboard accessibility visible without using an underline */
+a.quarto-xref:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Remove underline from downloadable file links while keeping colour and clickability */
+a[download],
+a[download]:visited,
+a[download]:hover,
+a[download]:focus,
+a[download] code {
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+
+/* Keep keyboard accessibility visible for downloadable links without using an underline */
+a[download]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Remove underline from reader-facing chapter/body links
+   while keeping colour, hover colour, focus accessibility, and clickability. */
+#quarto-document-content a,
+#quarto-document-content a:visited,
+#quarto-document-content a:hover,
+#quarto-document-content a:focus {
+  text-decoration: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep keyboard accessibility visible without restoring an underline. */
+#quarto-document-content a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

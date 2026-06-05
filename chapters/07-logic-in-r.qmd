@@ -1,0 +1,873 @@
+---
+title: "Logic in R: How Code Makes Judgments"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{7.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{7.\arabic{table}}
+\setcounter{table}{0}
+```
+
+## Opening Scene: When Code Has to Decide
+
+Leo can now read a simple line of R as structured code.
+
+He knows that values can be stored under names. He knows that structures hold values together. He knows that syntax gives code a readable shape.
+
+Then he writes this:
+
+```{r}
+study_hours <- 6
+study_hours > 5
+```
+
+The result is not another number.
+
+It is a judgment:
+
+```{r}
+TRUE
+```
+
+Something has changed. R is no longer only calculating a value or storing an object. It is evaluating a condition.
+
+That small judgment sits behind serious data work. Filtering rows, checking missing values, identifying learners who meet a rule, and deciding whether code should run all depend on logical thinking.
+
+A researcher may ask:
+
+- Which learners studied more than five hours?
+- Which project scores are at least 80?
+- Which rows contain missing values?
+- Which learners completed their first script?
+- Which observations should be kept, removed, grouped, or inspected?
+
+R cannot answer these questions by guessing. It needs expressions that turn questions into conditions.
+
+::: {.callout-note appearance="simple" title="Chapter Compass"}
+This chapter teaches logic as R's system of judgment. By the end, Leo should be able to:
+
+- recognise logical values such as `TRUE` and `FALSE`;
+- use comparison operators to ask questions;
+- use logical operators to combine or reverse judgments;
+- distinguish assignment from comparison;
+- explain why `&` differs from `&&`, and why `|` differs from `||`;
+- understand why `if` needs one logical answer;
+- see how vectorised logic produces many answers;
+- use `is.na()` to check missing values;
+- treat wider operator families as preview material rather than a memorisation list.
+:::
+
+## What Changed After Chapter 6
+
+Chapter 6 showed that code needs structure. A line of R is not a pile of symbols. Names, values, operators, function calls, commas, and parentheses must be arranged so R can read them.
+
+Chapter 7 moves from structure into judgment.
+
+The new question is not only:
+
+> Can R read this expression?
+
+It is also:
+
+> What judgment does this expression produce?
+
+::: {.callout-tip appearance="simple" title="Core Mental Model"}
+Syntax tells R how to read an expression.
+
+Logic tells R how to judge a condition.
+:::
+
+A calculation asks, "What value should be produced?"
+
+A logical test asks, "Is this condition true?"
+
+That difference matters because data work constantly asks R to decide what qualifies.
+
+## Logical Values: `TRUE` and `FALSE`
+
+R has two central logical values:
+
+```{r}
+TRUE
+FALSE
+```
+
+They are not text. They are not written inside quotation marks.
+
+Compare:
+
+```{r}
+class(TRUE)
+class("TRUE")
+```
+
+`TRUE` is a logical value. `"TRUE"` is character text.
+
+That distinction matters because logical values can guide decisions. They can be stored, counted, reversed, combined, and used to select data.
+
+Try a small condition:
+
+```{r}
+10 > 5
+10 < 5
+10 == 10
+```
+
+Each expression asks a question and returns a logical answer.
+
+The question may involve one value, as above. Later, the same idea can be applied across many values or many rows.
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+`TRUE` and `FALSE` are real values.
+
+They are the decision values behind filtering, checking, subsetting, and conditional execution.
+:::
+
+## From Calculation to Judgment
+
+Arithmetic operators calculate. Comparison operators judge.
+
+This is a calculation:
+
+```{r}
+10 + 5
+```
+
+This is a judgment:
+
+```{r}
+10 > 5
+```
+
+Both use symbols. They do different jobs.
+
+| Operator family | Main job | Examples |
+|---|---|---|
+| Arithmetic | calculate numeric results | `+`, `-`, `*`, `/`, `^`, `%%`, `%/%` |
+| Comparison | compare values and return logical results | `>`, `<`, `>=`, `<=`, `==`, `!=` |
+| Logical | combine or reverse logical results | `&`, `&&`, `\|`, `\|\|`, `!` |
+| Assignment | store values in names | `<-`, `=`, `->` |
+| Subsetting and access | select or access parts of objects | `[ ]`, `[[ ]]`, `$` |
+: Main operator families Leo meets in early R code {#tbl-operator-families}
+
+This map is deliberately small. Leo will meet other operator families later, but these are the ones that matter most for the logic chapter.
+
+## Comparison Operators: Asking Questions
+
+Comparison operators ask whether a relationship is true.
+
+| Operator | Meaning | Example |
+|---|---|---|
+| `>` | greater than | `score > 80` |
+| `<` | less than | `score < 80` |
+| `>=` | greater than or equal to | `score >= 80` |
+| `<=` | less than or equal to | `score <= 80` |
+| `==` | exactly equal to | `score == 80` |
+| `!=` | not equal to | `score != 80` |
+: Common comparison operators and their meaning {#tbl-comparison-operators}
+
+Use a small learner score:
+
+```{r}
+score <- 82
+score > 80
+score == 82
+score != 70
+```
+
+The first line stores a value. The remaining lines ask questions about that value.
+
+A comparison is not just a symbol between two values. It is a question written in a form R can evaluate.
+
+When R evaluates a condition, the result is a logical judgment. Sometimes the judgment is one value: `TRUE` or `FALSE`. Sometimes, when the same condition is applied across several values, R returns several judgments.
+
+The figure below gives a simple map of that idea.
+
+```{r}
+#| label: fig-condition-to-logical-judgment
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4.3
+#| fig-align: center
+#| fig-cap: "From Conditions to Logical Judgments"
+
+old_par <- par(mar = c(0, 0, 0, 0), xaxs = "i", yaxs = "i", lend = "round")
+plot.new()
+plot.window(xlim = c(0, 14), ylim = c(0, 7.2), asp = 1)
+
+draw_box <- function(x, y, w, h, label, fill_col = "#c9c8ff",
+                     cex = 0.85, font = 2, lwd = 1.2) {
+  border_col <- "#222222"
+  fill <- adjustcolor(fill_col, alpha.f = 0.28)
+
+  rect(
+    xleft = x,
+    ybottom = y,
+    xright = x + w,
+    ytop = y + h,
+    col = fill,
+    border = border_col,
+    lwd = lwd
+  )
+
+  text(
+    x = x + w / 2,
+    y = y + h / 2,
+    labels = label,
+    cex = cex,
+    font = font
+  )
+}
+
+draw_arrow <- function(x0, y0, x1, y1) {
+  arrows(
+    x0 = x0,
+    y0 = y0,
+    x1 = x1,
+    y1 = y1,
+    length = 0.08,
+    lwd = 1.3
+  )
+}
+
+# Panel titles
+text(3.25, 6.55, "One value, one judgment", cex = 1.05, font = 2)
+text(10.50, 6.55, "Many values, many judgments", cex = 1.05, font = 2)
+
+text(3.25, 6.15, "one condition returns one logical value", cex = 0.70)
+text(10.50, 6.15, "one condition returns one answer per value", cex = 0.70)
+
+# ---------------------------
+# Left panel: one value, one judgment
+# ---------------------------
+
+draw_box(
+  x = 1.65,
+  y = 4.80,
+  w = 3.20,
+  h = 0.58,
+  label = "score = 82",
+  fill_col = "#c9c8ff",
+  cex = 0.80
+)
+
+draw_arrow(3.25, 4.70, 3.25, 4.25)
+
+draw_box(
+  x = 1.45,
+  y = 3.55,
+  w = 3.60,
+  h = 0.58,
+  label = "score >= 50",
+  fill_col = "#eeeeee",
+  cex = 0.80
+)
+
+draw_arrow(3.25, 3.45, 3.25, 3.00)
+
+draw_box(
+  x = 2.25,
+  y = 2.30,
+  w = 2.00,
+  h = 0.62,
+  label = "TRUE",
+  fill_col = "#c8efd2",
+  cex = 0.92
+)
+
+text(3.25, 1.82, "R can judge the condition.", cex = 0.68)
+
+rect(
+  xleft = 0.75,
+  ybottom = 1.45,
+  xright = 5.75,
+  ytop = 5.85,
+  border = "#777777",
+  lwd = 1,
+  lty = 2
+)
+
+# ---------------------------
+# Right panel: many values, many judgments
+# ---------------------------
+
+score_values <- c("45", "62", "80", "38", "91")
+judgments <- c("FALSE", "TRUE", "TRUE", "FALSE", "TRUE")
+
+x_start <- 7.40
+cell_w <- 1.05
+gap <- 0.10
+
+for (i in seq_along(score_values)) {
+  draw_box(
+    x = x_start + (i - 1) * (cell_w + gap),
+    y = 4.85,
+    w = cell_w,
+    h = 0.56,
+    label = score_values[i],
+    fill_col = "#c9c8ff",
+    cex = 0.72
+  )
+}
+
+draw_arrow(10.00, 4.68, 10.00, 4.25)
+
+draw_box(
+  x = 8.40,
+  y = 3.55,
+  w = 3.25,
+  h = 0.58,
+  label = "scores >= 50",
+  fill_col = "#eeeeee",
+  cex = 0.78
+)
+
+draw_arrow(10.00, 3.40, 10.00, 2.98)
+
+for (i in seq_along(judgments)) {
+  fill_col <- ifelse(judgments[i] == "TRUE", "#c8efd2", "#ffd6b5")
+
+  draw_box(
+    x = x_start + (i - 1) * (cell_w + gap),
+    y = 2.30,
+    w = cell_w,
+    h = 0.56,
+    label = judgments[i],
+    fill_col = fill_col,
+    cex = ifelse(judgments[i] == "FALSE", 0.50, 0.58)
+  )
+}
+
+text(10.00, 1.82, "R gives one judgment for each value.", cex = 0.68)
+
+rect(
+  xleft = 6.85,
+  ybottom = 1.45,
+  xright = 13.60,
+  ytop = 5.85,
+  border = "#777777",
+  lwd = 1,
+  lty = 2
+)
+
+par(old_par)
+```
+
+As shown in @fig-condition-to-logical-judgment, logic begins with a condition. In the first panel, one score is tested and R returns one judgment. In the second panel, the same kind of rule is applied across several scores, so R returns one judgment for each value.
+
+This is why logical values matter. They are not decorative outputs. They are the answers R produces when code asks a condition.
+
+## Predict Before You Run
+
+Before running the next chunk, pause and predict the output.
+
+Will each expression return `TRUE` or `FALSE`?
+
+```{r}
+score <- 82
+score > 80
+score == 80
+score != 70
+```
+
+The point is not speed. The point is to begin reading conditions as questions.
+
+In plain language:
+
+- `score > 80` asks whether the score is greater than 80;
+- `score == 80` asks whether the score is exactly 80;
+- `score != 70` asks whether the score is not 70.
+
+Prediction forces Leo to reason before the console answers for him.
+
+## Assignment Is Not Comparison
+
+One of the most common beginner mistakes is confusing storage with equality.
+
+These lines do different jobs:
+
+```{r}
+score <- 80
+score == 80
+```
+
+`<-` assigns. It stores `80` in the name `score`.
+
+`==` compares. It asks whether `score` is equal to `80`.
+
+The equals sign `=` can assign in some contexts, and it is commonly used to name function arguments:
+
+```{r}
+round(77.46, digits = 1)
+```
+
+For clarity in this book, Leo should use:
+
+- `<-` for ordinary assignment;
+- `=` mainly for naming function arguments;
+- `==` for equality tests.
+
+::: {.callout-warning appearance="simple" title="Common Beginner Trap"}
+Leo wants to test whether `score` is equal to 80.
+
+He writes:
+
+```{r}
+score = 80
+```
+
+That code runs, but it assigns. It does not test equality.
+
+The comparison he wanted is:
+
+```{r}
+score == 80
+```
+
+A single missing `=` changes the meaning of the line.
+:::
+
+This is a useful moment of friction. R is not punishing the learner. It is following the operator that was written.
+
+## Logical Operators: Combining Conditions
+
+Comparison operators create judgments. Logical operators combine or reverse those judgments.
+
+Suppose Leo has two learner indicators:
+
+```{r}
+study_hours <- 6
+project_score <- 85
+
+study_hours > 5
+project_score > 80
+```
+
+The first comparison asks whether study hours are greater than 5. The second asks whether project score is greater than 80.
+
+Now combine both conditions:
+
+```{r}
+study_hours > 5 & project_score > 80
+```
+
+This asks whether both conditions are true.
+
+Logical operators do not calculate new measurements. They combine or reverse logical judgments. They build rules from logical results.
+
+- `&` means AND, position by position when there are many values.
+- `|` means OR, position by position when there are many values.
+- `!` reverses a logical value.
+- `&&` means AND for a single control decision.
+- `||` means OR for a single control decision.
+
+Try the basic forms:
+
+```{r}
+study_hours <- 6
+project_score <- 85
+first_script_completed <- FALSE
+
+study_hours > 5 & project_score > 80
+study_hours > 10 | project_score > 80
+!first_script_completed
+```
+
+AND narrows. OR widens. NOT reverses.
+
+Together, they help R build conditions that can guide action.
+
+## `&` Versus `&&`, and `|` Versus `||`
+
+This is a high-risk distinction, so Leo should slow down.
+
+R often works with many values at once. For many values, use the element-wise operators `&` and `|`.
+
+```{r}
+study_hours <- c(3, 6, 8)
+project_score <- c(70, 85, 90)
+
+study_hours > 5
+project_score > 80
+study_hours > 5 & project_score > 80
+```
+
+R checks each position. The result has one logical answer for each learner.
+
+The single-decision operators `&&` and `||` are different. They are mainly useful when R needs one decision, often inside `if`.
+
+Do not use them for row-by-row filtering.
+
+Display-only example:
+
+```r
+study_hours > 5 && project_score > 80
+# Not appropriate for row-by-row logic: && uses a single decision, not one answer per value.
+```
+
+The same idea applies to OR:
+
+```{r}
+study_hours > 5 | project_score > 80
+```
+
+Display-only example:
+
+```r
+study_hours > 5 || project_score > 80
+# Not appropriate for row-by-row logic: || uses a single decision, not one answer per value.
+```
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+Use `&` and `|` when working across vectors or dataset rows.
+
+Use `&&` and `||` when writing one control decision, usually inside `if`.
+:::
+
+This distinction protects Leo from a common filtering mistake.
+
+## `if`: A Single Decision, Not a Filter
+
+So far, Leo has used logic to test conditions. Now he sees logic control whether code should run.
+
+```{r}
+score <- 82
+
+if (score >= 50) {
+  "pass"
+}
+```
+
+The condition inside `if` must resolve to one logical answer: one `TRUE` or one `FALSE`.
+
+Add an alternative path:
+
+```{r}
+score <- 42
+
+if (score >= 50) {
+  "pass"
+} else {
+  "not yet"
+}
+```
+
+If the condition is true, R runs the first block. Otherwise, it runs the second block.
+
+This is conditional execution.
+
+It is not the same as filtering.
+
+Filtering usually applies one condition across many values or many rows. `if` decides whether one block of code should run.
+
+Display-only mistake:
+
+```r
+scores <- c(45, 62, 80, 38, 91)
+
+if (scores >= 50) {
+  "pass"
+}
+# Error: the condition has length > 1
+```
+
+The problem is not the comparison itself. The comparison returns many logical values. `if` needs one.
+
+::: {.callout-tip appearance="simple" title="Mental Model"}
+`if` asks whether code should run.
+
+Filtering asks which values or rows should stay.
+:::
+
+Both depend on logic, but they use logic for different jobs.
+
+## Vectorised Logic: One Rule, Many Values
+
+R is built for working with many values at once.
+
+```{r}
+scores <- c(45, 62, 80, 38, 91)
+scores
+```
+
+Now ask one rule of all the values:
+
+```{r}
+scores >= 50
+```
+
+R does not test only the first value. It tests each value and returns one logical answer per score.
+
+R applies the same rule across many values automatically.
+
+This behaviour is called vectorised logic.
+
+In a spreadsheet, Leo might write a formula beside each row. In R, he can write one expression that applies across a whole vector.
+
+## Predict Before You Run: One Answer or Many?
+
+Before running the next chunk, predict the shape of the result.
+
+Will R return one logical value or many logical values?
+
+```{r}
+scores <- c(45, 62, 80, 38, 91)
+scores >= 50
+scores == 80
+scores != 38
+```
+
+Each expression compares one vector with one rule. The result is a logical vector.
+
+The rule is written once. R applies it to many values.
+
+## Using Logical Results to Select Values
+
+A logical result can select matching values.
+
+```{r}
+scores <- c(45, 62, 80, 38, 91)
+
+scores >= 50
+scores[scores >= 50]
+```
+
+The condition inside the square brackets produces logical answers. The square brackets keep the values whose matching logical positions are `TRUE`.
+
+This is the beginning of filtering.
+
+::: {.callout-tip appearance="simple" title="Mental Model"}
+Filtering is logic applied to a data structure.
+
+The condition decides what qualifies. The structure determines what can be selected.
+:::
+
+Leo does not need full filtering workflows here. He only needs the principle: a condition can become a selector.
+
+## Logic with Missing Values
+
+Real data contains missing values.
+
+```{r}
+scores <- c(45, 62, NA, 38, 91)
+scores
+```
+
+Now compare the scores with 50:
+
+```{r}
+scores >= 50
+```
+
+R returns `NA` where the comparison cannot be completed.
+
+Why?
+
+Because R cannot decide whether a missing value is greater than or equal to 50. `NA` marks uncertainty. It interrupts judgment.
+
+Leo may try this:
+
+```{r}
+scores == NA
+```
+
+This does not work the way many beginners expect. R cannot use ordinary equality to confirm an unknown value.
+
+To test missingness, use `is.na()`:
+
+```{r}
+is.na(scores)
+```
+
+::: {.callout-important appearance="simple" title="Reliable Analysis Rule"}
+Special values require special checks.
+
+Use `is.na()` to test missingness. Do not rely on `== NA`.
+:::
+
+This matters in real data cleaning. A missing value is not a blank decoration. It changes what R can know, compare, summarise, and decide.
+
+## A Small Repair Win: From Wrong Test to Reliable Check
+
+Leo wants to find which scores are missing.
+
+His first attempt is tempting:
+
+```{r}
+scores == NA
+```
+
+The result is not useful for identifying the missing position.
+
+He repairs the test:
+
+```{r}
+is.na(scores)
+```
+
+Now the missing value is visible.
+
+This is a small win, but it is an important one. Leo has not merely memorised a function. He has learned a diagnostic rule: when a value is special, use the special check designed for it.
+
+## Logic in `df_r_migration`
+
+Leo now connects logic to the book's recurring dataset, `df_r_migration`.
+
+He does not need to load the dataset here. He only needs to read the shape of expressions he will soon use.
+
+```{r}
+#| eval: false
+df_r_migration$study_hours > 5
+```
+
+This would test whether each learner studied more than five hours.
+
+```{r}
+#| eval: false
+df_r_migration$project_score >= 80
+```
+
+This would test whether each project score is at least 80.
+
+```{r}
+#| eval: false
+df_r_migration$first_script_completed
+```
+
+This logical column already contains `TRUE` and `FALSE` values.
+
+This would test whether each learner completed the first script.
+
+```{r}
+#| eval: false
+df_r_migration$completion_status == "completed"
+```
+
+This would test whether each learner has a completed status.
+
+Each expression would return a logical vector, one answer per row.
+
+Leo can read the movement:
+
+- access a column;
+- apply a comparison;
+- produce logical answers;
+- use those answers to guide selection.
+
+That is enough for now. Later chapters will teach full filtering workflows.
+
+## Other Operator Families Leo Will Meet Later
+
+Leo does not need to master every operator family now.
+
+The practical priority at this stage is smaller: arithmetic operators calculate, comparison operators produce logical judgments, logical operators combine or reverse those judgments, assignment stores results, and subsetting uses logical results to select values.
+
+The remaining operator families are introduced only so they will look less strange when they appear later.
+
+::: {.callout-note appearance="simple" title="Preview Only"}
+This is a recognition map, not a memorisation list.
+:::
+
+| Operator family | What Leo should know now | Examples |
+|---|---|---|
+| Namespace operators | used to call objects from a specific package | `package::function()` |
+| Formula operator | used later for modelling relationships | `y ~ x` |
+| Pipe operators | used later to pass output forward in workflows | `|>` and `%>%` |
+| Special binary operators | used for special relationships or operations | `%in%`, `%*%` |
+| Sequence operator | creates simple sequences | `1:5` |
+| Advanced access operator | appears in advanced object systems | `@` |
+| Help operators | open or search help pages | `?mean`, `??median` |
+: Operators introduced lightly for later chapters {#tbl-operator-preview}
+
+This preview should not interrupt the chapter's main lesson. Logic is the priority.
+
+## How R Thinks: Logic Errors Are Different from Syntax Errors
+
+::: {.callout-note appearance="simple" title="Debugging Lens"}
+When code gives the wrong logical result, Leo should ask what kind of problem he is facing:
+
+- syntax problem: R cannot read the expression;
+- object problem: a name does not exist;
+- type problem: the value is not the kind expected;
+- structure problem: the result has the wrong length or shape;
+- logic problem: the code runs, but the condition asks the wrong question.
+:::
+
+A logic problem can be more dangerous than a syntax problem. A syntax problem usually stops the code. A logic problem may run and still select the wrong cases.
+
+That is why Leo should inspect logical results before trusting them.
+
+## Common Beginner Mistakes
+
+| Mistake | Why it causes trouble | Better habit |
+|---|---|---|
+| Using `=` or `<-` when testing equality | assignment stores a value instead of asking a question | use `==` for equality tests |
+| Putting logical values in quotes | `"TRUE"` is text, not logical `TRUE` | write `TRUE` and `FALSE` without quotes |
+| Using `== NA` to find missing values | `NA` marks uncertainty and needs a special check | use `is.na()` |
+| Using `&&` or `||` for row-by-row rules | they are single-decision operators | use `&` and `|` for vectors and rows |
+| Giving `if` a vector condition | `if` needs one `TRUE` or `FALSE` | use `if` for one decision and filtering for many values |
+| Forgetting to inspect logical output | a condition may run but ask the wrong question | print or inspect the logical result first |
+: Common beginner mistakes with logic and operators {#tbl-logic-mistakes}
+
+These mistakes are not signs that Leo cannot code. They are signs that logic has rules, and those rules become clearer with practice.
+
+## What Leo Is Expected to Know at This Point
+
+::: {.callout-note appearance="simple" title="Not Yet"}
+Leo is not expected to master every operator in R.
+
+He is not expected to write complex filters, advanced control flow, loops, modelling formulas, or tidyverse pipelines yet.
+
+At this stage, he only needs the logic core: comparisons create judgments, logical operators combine judgments, missing values need special checks, and many-value logic behaves differently from single-decision logic.
+:::
+
+## Chapter Outcome
+
+Leo has now learned that logic is R's system for turning conditions into judgments.
+
+He can now:
+
+- recognise `TRUE` and `FALSE` as logical values;
+- use comparison operators to ask questions;
+- distinguish assignment from comparison;
+- combine and reverse conditions with logical operators;
+- explain why `&` and `|` differ from `&&` and `||`;
+- understand why `if` needs one logical answer;
+- recognise vectorised logic as one rule applied to many values;
+- use `is.na()` to check missing values;
+- treat wider operator families as preview material.
+
+More importantly, Leo has learned to inspect logical results before trusting them.
+
+## Leo's Notebook
+
+Leo writes:
+
+> Logic is how R answers conditions. A comparison asks a question. A logical operator combines answers. Assignment stores. Filtering keeps what matches. `if` decides whether code should run. Missing values need special checks.
+
+That note will matter later when the dataset becomes larger and the questions become more serious.
+
+## Transition to Chapter 8
+
+Leo can now read code structure and logical judgment.
+
+He knows that R can calculate, compare, store, combine conditions, select values, and make simple decisions.
+
+But he has also seen something else: many useful actions would be tiring to write from scratch every time.
+
+Checking missing values, calculating summaries, rounding numbers, joining text, finding lengths, and inspecting objects all require repeatable actions.
+
+The next question is practical:
+
+> What actions does R already know how to perform?
+
+Chapter 8 introduces built-in functions: R's ready-made action system.
+
+::: {.callout-tip appearance="simple" title="Ready for the Next Question"}
+Logic helps R judge conditions.
+
+Functions help R perform reusable actions.
+
+The next chapter shows how Leo can use actions R already knows.
+:::

@@ -1,0 +1,805 @@
+---
+title: "Data Connections: Moving Beyond Local Files"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{20.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{20.\arabic{table}}
+\setcounter{table}{0}
+```
+
+```{r}
+#| label: setup-chapter-20
+#| include: false
+
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(ggplot2)
+  library(tibble)
+  library(knitr)
+})
+
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>",
+  fig.align = "center"
+)
+
+chapter20_caption_source <- "Source: teaching examples created for Chapter 20."
+```
+
+## Opening Scene: When the Data Is Not Waiting in the Folder
+
+Leo has reached a different kind of confidence.
+
+In Chapter 19, he learned how to place code, output, and explanation inside one Quarto document. He no longer has to copy a table from the console, paste a figure into a report, and hope that every paragraph still matches the latest analysis. He can render the document and rebuild the evidence from the source.
+
+That is a serious professional threshold.
+
+But the next problem arrives before the analysis begins.
+
+The report may be reproducible, but where does the data come from?
+
+So far, Leo has worked with data that can be placed inside the project. A file can be stored in `data/raw/`, cleaned into `data/processed/`, and then used as `df_analysis` in a reproducible report. That is the right foundation. It teaches discipline before complexity.
+
+Professional data work, however, does not always begin with a neat file already waiting in `data/processed/`. The data may sit in a shared spreadsheet maintained by several colleagues. It may be exposed through a public URL. It may arrive from an API. It may live in a database. It may be stored in a cloud folder where permissions change. It may update every hour while Leo's report still needs to be defensible next month.
+
+The question is no longer only:
+
+> How do I import this file?
+
+The sharper question is:
+
+> How do I connect to data without making the analysis fragile?
+
+::: {.callout-important appearance="simple"}
+## The central lightbulb
+
+A data connection is not just a technical link to a source. It is a controlled doorway between R and evidence that lives outside the current project file.
+:::
+
+This chapter is about that doorway.
+
+The doorway matters because Chapter 20 is not a detour from the project structure Leo has already built. It extends that structure. The official working route remains `data/`: first captured evidence belongs in `data/raw/`, prepared analytical objects belong in `data/processed/`, and formal Quarto reports should state which evidence route they use.
+
+::: {.callout-tip appearance="simple"}
+## Keep the route stable
+
+Connected data may begin outside the project, but serious analysis should not remain scattered outside the project. Leo's task is to decide what should stay live, what should be captured, and where each captured object belongs inside `data/`.
+:::
+
+It does not try to turn Leo into a database administrator, web engineer, or API specialist. It gives him the mental model he needs before those tools become intimidating. The goal is controlled access to evidence: knowing where the data lives, how R reaches it, what can go wrong, and how to protect the reproducibility of the analysis when the source is outside the project.
+
+## What Changed After Chapter 19
+
+Chapter 19 changed the container of Leo's work.
+
+Before Chapter 19, analysis, output, and explanation could easily drift apart. A script created one thing, a document said another, and the connection between them depended on memory. Chapter 19 corrected that by placing the analytical logic and the reader-facing report inside one source document.
+
+Chapter 20 changes the starting point.
+
+A reproducible report can still become fragile if the data source is unstable, undocumented, or hidden behind a manual step. Leo can write a beautiful Quarto report and still fail to reproduce the result if the source spreadsheet has changed, if a URL is no longer available, if an API key has expired, or if the database query was never recorded.
+
+The lesson is direct: reproducibility does not begin at the first plot. It begins at the first contact with evidence.
+
+In Chapter 19, Leo asked whether the report could be rebuilt. In Chapter 20, he asks whether the data entering the report can be reached, inspected, documented, and preserved with enough care.
+
+## Why Local Files Are Not the Whole Data World
+
+Local files are not inferior. They are often the safest teaching foundation and, in many projects, the safest reproducibility choice.
+
+A local file has important advantages. It can be placed in a predictable folder. It can be inspected before analysis. It can be copied with the project. It can be versioned or archived. It can be rendered again without depending on an internet connection or a remote service.
+
+But local files also have limits.
+
+They can become stale. They may be manually downloaded without a record of where they came from. Two people may use different copies without noticing. A file saved on one machine may not exist on another. A report may appear reproducible because the `.qmd` file renders on Leo's laptop, while the underlying source file is actually a private download that nobody else can access.
+
+Connected data solves some of these problems and introduces others.
+
+A connection can reach current data. It can reduce manual downloading. It can pull only the needed rows from a larger source. It can support recurring reports. It can also fail, change, require permission, return a new structure, or silently update the evidence behind the same code.
+
+That is why this chapter does not celebrate connected data as automatically better. It teaches connected data as a responsibility.
+
+## Local Files and Connected Data
+
+The difference between a local file and connected data is not only technical. It changes the logic of trust.
+
+With a local file, Leo usually asks:
+
+- Where is the file?
+- Can R read it?
+- What columns and types did R create?
+- Should it live in `data/raw/` or `data/processed/`?
+
+With connected data, he must add further questions:
+
+- Who controls the source?
+- Can the source change between renders?
+- Does access require credentials?
+- Is the connection stable enough for a reproducible report?
+- Should the connected result be saved as a documented snapshot?
+- If the data updates, does the report need freshness or reproducibility more urgently?
+
+This last question is crucial.
+
+Freshness and reproducibility are related, but they are not the same.
+
+A live connection may give Leo the newest data. A saved snapshot may give him the same data each time the report is rendered. Neither choice is universally correct. The professional task is to decide which one the analysis requires and to state that decision clearly.
+
+This is where Leo must separate **source access** from **analytical evidence**. Source access means R can reach a place where data lives. Analytical evidence means the specific version of data used to support a claim has been identified, inspected, and controlled. A connection gives access. A documented workflow turns access into evidence.
+
+::: {.callout-note appearance="simple"}
+## Freshness is not the same as reproducibility
+
+A live connection asks, "What is the source saying now?" A saved snapshot asks, "What evidence did this analysis use?" Many professional workflows need both, but they should not be confused.
+:::
+
+## Different Doors Into Data
+
+Leo can now think of data sources as doors. Each door opens in a different way, carries different risks, and demands a different habit of control.
+
+The comparison in @tbl-20-data-doors gives him a first map. It is not a full catalogue of every possible source. It is a practical orientation for a learner who already understands local import and reproducible reporting.
+
+```{r}
+#| label: tbl-20-data-doors
+#| tbl-cap: "Common Data Doors Beyond the Current Project File."
+
+data_doors <- tibble::tribble(
+  ~`Data door`, ~`What Leo is accessing`, ~`Typical R pattern`, ~`Main reproducibility risk`, ~`Safe beginner habit`,
+  "Local project file", "A CSV, XLSX, or RDS file stored inside the project", "Read from `data/raw/` or `data/processed/`", "The file may be replaced without documentation", "Keep raw and processed files separate, and document the source",
+  "Public URL", "A file or table available through a web address", "Read from a URL, then inspect the result", "The address may change, disappear, or return different content", "Save a dated snapshot when the result supports analysis",
+  "Shared spreadsheet", "A table edited by one or more people online", "Read through an online spreadsheet package or exported CSV link", "Cells may change between renders and permissions may fail", "Agree on a snapshot point before formal analysis",
+  "API", "A service that returns data after a structured request", "Send a request, receive a structured response", "Responses can change, rate limits may apply, and keys may expire", "Record the request and cache important responses",
+  "Database", "Structured tables stored in a managed data system", "Open a connection, query, collect results, disconnect", "Queries may be undocumented or the database may change", "Save the query and preserve the extracted analytical result",
+  "Cloud file", "A file stored outside the local project in a shared location", "Sync or download into the project route", "Local and remote copies may drift apart", "Treat the project copy as the analytical evidence"
+)
+
+data_doors |>
+  knitr::kable()
+```
+
+The key word in @tbl-20-data-doors is not *external*. It is *controlled*. A URL is not useful because it is modern. A database is not trustworthy because it is large. An API is not professional because it sounds technical. Each source becomes useful only when Leo can explain how the data entered the project, what version of the evidence was analysed, and what might change later.
+
+## Reading Data from a URL
+
+A URL is often the first data connection learners meet after local files. It looks simple because it resembles file import. Instead of reading from a path such as `data/raw/example.csv`, R reads from a web address.
+
+Conceptually, the movement is familiar:
+
+1. identify the source;
+2. ask R to read it;
+3. inspect the object R creates;
+4. decide whether to save a local snapshot;
+5. analyse the controlled object, not the mystery of the web address.
+
+The template in @lst-20-read-url-csv shows the pattern. It is deliberately marked `eval: false` because live web sources can fail during rendering. That is not a weakness in the lesson. It is the lesson.
+
+```{r}
+#| label: ch20-read-url-csv
+#| lst-label: lst-20-read-url-csv
+#| lst-cap: "Template for Reading a CSV File from a Public URL"
+#| eval: false
+
+source_url <- "https://example.org/path/to/public-data.csv"
+
+url_data <- read.csv(
+  source_url,
+  stringsAsFactors = FALSE,
+  na.strings = c("", "NA", "N/A", "missing", "not available")
+)
+
+head(url_data)
+str(url_data)
+summary(url_data)
+```
+
+The most important part of @lst-20-read-url-csv is not the URL. It is the inspection after import. Leo does not treat connected data as trustworthy merely because R successfully read it. The same discipline from Chapter 11 still applies: inspect names, types, missing values, row counts, and obvious structural surprises before using the result as evidence.
+
+A useful beginner rule is this: if the connected result matters to the argument of the report, do not let it remain invisible. Name the source, inspect the object, and decide whether the result should be saved.
+
+The URL is only the access route. It is not, by itself, a method. The method begins when Leo records where the data came from, when it was accessed, what R received, what checks were performed, and which saved object became the basis of the analysis.
+
+::: {.callout-warning appearance="simple"}
+## Do not build a serious report on an invisible download
+
+If Leo reads from a URL and immediately creates conclusions, he has skipped the evidence checkpoint. A connection should be inspected before it becomes analysis.
+:::
+
+## A Safer Pattern: Connect, Inspect, Save Deliberately
+
+Connected data often needs a two-step professional pattern.
+
+First, Leo connects to the external source and inspects what arrives. Second, he saves a local copy only when doing so supports reproducibility, auditability, or careful downstream cleaning. This does not mean every live source must be copied every time. It means the choice must be deliberate.
+
+The pattern in @lst-20-save-snapshot-pattern shows a cautious route. It uses `data/raw/` for the first captured version of evidence because the connected result has not yet been cleaned or transformed. The file-writing lines are kept `eval: false` because a chapter render should not unexpectedly create or overwrite project files.
+
+```{r}
+#| label: ch20-save-snapshot-pattern
+#| lst-label: lst-20-save-snapshot-pattern
+#| lst-cap: "A Safe Connect, Inspect, and Snapshot Pattern"
+#| eval: false
+
+source_url <- "https://example.org/path/to/public-data.csv"
+
+connected_raw <- read.csv(
+  source_url,
+  stringsAsFactors = FALSE,
+  na.strings = c("", "NA", "N/A", "missing", "not available")
+)
+
+# Inspect before trusting.
+head(connected_raw)
+str(connected_raw)
+names(connected_raw)
+summary(connected_raw)
+
+# Save a documented raw snapshot when the data supports analysis.
+dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
+
+snapshot_date <- format(Sys.Date(), "%Y-%m-%d")
+snapshot_path <- paste0("data/raw/connected_source_", snapshot_date, ".csv")
+
+write.csv(connected_raw, snapshot_path, row.names = FALSE)
+
+# Save a small source note beside the snapshot.
+source_note <- tibble::tibble(
+  source_name = "Public learner progress CSV",
+  source_url = source_url,
+  extraction_date = snapshot_date,
+  raw_snapshot_path = snapshot_path,
+  notes = "Captured before cleaning or transformation."
+)
+
+write.csv(
+  source_note,
+  paste0("data/raw/connected_source_note_", snapshot_date, ".csv"),
+  row.names = FALSE
+)
+```
+
+The snapshot pattern in @lst-20-save-snapshot-pattern protects Leo from a common trap. A live source can change while the wording of a report stays the same. Saving a snapshot gives the analysis a known evidential base, while the source note records how that evidence entered the project. The source can still be updated later, but the report can state which version was used, when it was captured, and where the captured file lives.
+
+A source note does not need to be long, but it must answer the questions that protect the evidence trail. The minimum fields in @tbl-20-source-note-fields give Leo a practical checklist for documenting connected data before it becomes part of a serious report.
+
+```{r}
+#| label: tbl-20-source-note-fields
+#| tbl-cap: "Minimum Source-Note Fields for Connected Data."
+
+source_note_fields <- tibble::tribble(
+  ~`Field`, ~`Question it answers`, ~`Example`,
+  "Source name", "What source did the data come from?", "Public learner progress CSV",
+  "Source location", "Where was the source accessed?", "URL, sheet link, database name, or API endpoint",
+  "Extraction date", "When did this version enter the project?", "2026-06-02",
+  "Access method", "How did R or the analyst reach the source?", "CSV URL, shared spreadsheet, API request, SQL query",
+  "Raw snapshot path", "Where was the first captured version saved?", "data/raw/connected_source_2026-06-02.csv",
+  "Processed object path", "Where is the analysis-ready version stored?", "data/processed/connected_analysis.csv",
+  "Known limitations", "What should readers know before trusting the evidence?", "Columns may change in future source updates"
+)
+
+source_note_fields |>
+  knitr::kable()
+```
+
+This is not a retreat from connected data. It is a way to make connected data accountable. Once Leo can name the source, the access route, the capture date, and the saved project object, connected data begins to behave like evidence rather than a moving target.
+
+## A Small Workflow Map
+
+The workflow in @fig-20-connection-workflow shows the safest beginner movement from an outside source into a reproducible report. The source may be live, but the analytical evidence should become visible, inspected, and placed under project discipline before it carries a claim.
+
+```{r}
+#| label: fig-20-connection-workflow
+#| fig-cap: "A Controlled Workflow for Moving from Connected Data to a Reproducible Report."
+#| fig-alt: "A horizontal workflow diagram with six stages: external source, R connection, inspect structure, save snapshot or cache, analysis-ready data, and Quarto report. The figure emphasises that connected data should pass through inspection and project control before becoming report evidence."
+#| fig-width: 8
+#| fig-height: 3
+
+workflow_nodes <- tibble::tibble(
+  step = 1:6,
+  stage = factor(
+    c(
+      "External\nsource",
+      "R\nconnection",
+      "Inspect\nstructure",
+      "Snapshot\nor cache",
+      "Analysis-ready\ndata",
+      "Quarto\nreport"
+    ),
+    levels = c(
+      "External\nsource",
+      "R\nconnection",
+      "Inspect\nstructure",
+      "Snapshot\nor cache",
+      "Analysis-ready\ndata",
+      "Quarto\nreport"
+    )
+  ),
+  x = 1:6,
+  y = 0
+)
+
+workflow_arrows <- tibble::tibble(
+  x = 1:5,
+  xend = 2:6,
+  y = 0,
+  yend = 0
+)
+
+ggplot() +
+  geom_segment(
+    data = workflow_arrows,
+    aes(x = x + 0.18, xend = xend - 0.18, y = y, yend = yend),
+    arrow = grid::arrow(length = grid::unit(0.08, "inches"), type = "closed"),
+    linewidth = 0.4
+  ) +
+  geom_point(
+    data = workflow_nodes,
+    aes(x = x, y = y),
+    size = 7
+  ) +
+  geom_text(
+    data = workflow_nodes,
+    aes(x = x, y = y, label = stage),
+    nudge_y = -0.18,
+    size = 3.4,
+    lineheight = 0.9
+  ) +
+  coord_cartesian(xlim = c(0.6, 6.4), ylim = c(-0.55, 0.35)) +
+  labs(
+    title = "Connected data becomes report evidence only after control steps",
+    caption = chapter20_caption_source
+  ) +
+  theme_void() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.caption = element_text(hjust = 0.5)
+  )
+```
+
+@fig-20-connection-workflow is intentionally simple. It does not show every possible technology. It shows the habit that matters across technologies: external data should pass through a controlled pathway before it becomes a table, figure, or conclusion in a Quarto report.
+
+## Online Spreadsheets as Shared Data Sources
+
+Shared spreadsheets are attractive because they feel familiar. Many teams already use them to collect records, update categories, or review status fields. For Leo, this can feel like a bridge between Excel-based work and reproducible R workflows.
+
+The risk is that shared spreadsheets are easy to change.
+
+A colleague may correct a value. Another may rename a column. Someone may filter a view and mistake the view for the whole dataset. A sheet that rendered yesterday may require permission today. None of these problems make shared spreadsheets unusable. They make documentation essential.
+
+The optional pattern in @lst-20-google-sheets-template shows the idea without requiring credentials during rendering. It keeps the demonstration as a template because online spreadsheet access depends on package setup, permissions, and the sharing status of the sheet.
+
+```{r}
+#| label: ch20-google-sheets-template
+#| lst-label: lst-20-google-sheets-template
+#| lst-cap: "Optional Template for Reading a Shared Online Spreadsheet"
+#| eval: false
+
+# install.packages("googlesheets4") library(googlesheets4) # Use this only for public sheets that do not require private access. googlesheets4::gs4_deauth() sheet_url <- "https://docs.google.com/spreadsheets/d/example-sheet-id" shared_sheet <- googlesheets4::read_sheet(sheet_url)
+
+# Always inspect the result before using it.
+glimpse(shared_sheet)
+count(shared_sheet, completion_status)
+```
+
+The point of @lst-20-google-sheets-template is not that every reader must use Google Sheets. The point is broader: a shared spreadsheet is not automatically an analysis-ready dataset. A public sheet may be readable without authentication, while a private or institutional sheet may require approved access. In both cases, Leo should treat the sheet as a source, inspect what arrives, and decide whether a snapshot belongs in `data/raw/` before the cleaning and preparation workflow begins.
+
+A practical rule helps: a shared spreadsheet can be a collection space, but a documented project file should become the analytical evidence for serious reporting.
+
+## APIs Without the Mystery
+
+An API is often described in language that makes it sound more difficult than it is. Leo does not need to master web engineering to understand the basic idea.
+
+An API is a structured way for one system to ask another system for something.
+
+R sends a request. The service returns a response. The response may include data, metadata, status information, or an error message. Many APIs return JSON, a structured text format that can represent lists, names, values, and nested objects.
+
+For beginner purposes, Leo can hold four ideas:
+
+- A **request** is what R asks for.
+- A **response** is what the service sends back.
+- A **status code** tells whether the request succeeded, failed, or needs attention.
+- A **rate limit** controls how often the service allows requests.
+
+Some APIs are public. Others require keys or tokens. Those keys are not decoration. They are access credentials. Leo should never paste them directly into a Quarto chapter, Git repository, or shared script.
+
+The template in @lst-20-api-template keeps the pattern conceptual. It uses environment variables for credentials and keeps execution off because real APIs vary in endpoint structure, authentication rules, response formats, and rate limits.
+
+```{r}
+#| label: ch20-api-template
+#| lst-label: lst-20-api-template
+#| lst-cap: "Conceptual API Request Pattern Using an Environment Variable"
+#| eval: false
+
+# install.packages(c("httr2", "jsonlite"))
+library(httr2)
+library(jsonlite)
+
+api_key <- Sys.getenv("MY_SERVICE_API_KEY")
+
+if (identical(api_key, "")) {
+  stop("MY_SERVICE_API_KEY is not available. Set it outside the .qmd file before running this request.")
+}
+
+api_request <- httr2::request("https://api.example.org/v1/records") |>
+  httr2::req_headers(Authorization = paste("Bearer", api_key)) |>
+  httr2::req_url_query(limit = 100)
+
+response <- httr2::req_perform(api_request) # Stop early if the service returned an error response. httr2::resp_check_status(response) response_body <- httr2::resp_body_string(response) api_data <- jsonlite::fromJSON(response_body) str(api_data)
+```
+
+@lst-20-api-template should give Leo the shape of API work without pretending that all APIs behave identically. The safe habit is transferable: keep credentials out of the source file, record the request, check the response status, inspect the returned structure, and preserve the evidence used for analysis when the result matters. In API work, the endpoint, parameters, date of access, status outcome, and response structure are not background details. They are part of the method.
+
+::: {.callout-warning appearance="simple"}
+## Never hard-code secrets
+
+An API key, token, password, or private URL should not be typed directly into a `.qmd` chapter. If the file is shared, backed up, or committed to version control, the secret can travel with it.
+:::
+
+## Databases Without the Intimidation
+
+A database is a managed system for storing structured data. Leo can think of it as a place where many related tables may live, often with rules about access, consistency, and updates.
+
+The beginner mistake is to imagine that using a database means loading the whole database into R. That is usually the wrong mental model.
+
+A better model is:
+
+> connect, ask for the needed result, receive a table, close the connection.
+
+The asking is often done through SQL. Leo does not need to become fluent in SQL in this chapter. He only needs to understand that SQL is a query language, a way of specifying which columns, rows, or summaries should be returned from a database.
+
+The optional template in @lst-20-database-template uses `DBI` and `RSQLite` because they are common teaching tools for database workflows in R. It remains `eval: false` because optional packages should not be required for the chapter to render.
+
+```{r}
+#| label: ch20-database-template
+#| lst-label: lst-20-database-template
+#| lst-cap: "Optional Template for Connecting to a Small SQLite Database"
+#| eval: false
+
+# install.packages(c("DBI", "RSQLite"))
+library(DBI)
+library(RSQLite)
+
+connection <- DBI::dbConnect(
+  RSQLite::SQLite(),
+  "data/raw/learner_records.sqlite"
+)
+
+on.exit(DBI::dbDisconnect(connection), add = TRUE)
+
+learner_summary <- DBI::dbGetQuery(
+  connection,
+  "
+  SELECT completion_status,
+         COUNT(*) AS learners
+  FROM learner_records
+  GROUP BY completion_status
+  "
+)
+
+learner_summary
+```
+
+@lst-20-database-template carries one important discipline: the query is part of the method. If Leo extracts data from a database but does not preserve the query, the evidence trail is incomplete. A result table without the query that produced it is like a figure without the code that drew it.
+
+When the extracted result becomes the basis for a report, Leo should decide whether to save it as a snapshot in `data/raw/` or as a processed object in `data/processed/` after cleaning. The database remains the source system. The saved project file becomes the documented evidence used for a specific analysis.
+
+## Credentials, Privacy, and Access
+
+Connected data introduces access questions that local files may hide.
+
+Some sources are public. Some are restricted. Some are technically reachable but ethically inappropriate to use. Some contain personal, institutional, or sensitive information. A connection that works is not automatically a connection Leo should use.
+
+The first professional question is permission.
+
+Does Leo have the right to access the source? Does he have the right to analyse it? Does he have the right to store a local copy? Does he have the right to share the output? These questions belong before the code, not after the report is written.
+
+The second question is credential handling.
+
+A credential is a proof of access. It may be a password, token, API key, database username, service account, or private URL. Credentials should be stored outside the `.qmd` file and loaded securely at runtime. Environment variables are one common pattern.
+
+The conceptual pattern in @lst-20-env-var-template shows the idea. The secret is read from the environment. It is not written into the chapter.
+
+```{r}
+#| label: ch20-env-var-template
+#| lst-label: lst-20-env-var-template
+#| lst-cap: "Conceptual Pattern for Reading a Credential from an Environment Variable"
+#| eval: false
+
+api_key <- Sys.getenv("MY_SERVICE_API_KEY")
+
+if (identical(api_key, "")) {
+  stop("The API key is not available. Set MY_SERVICE_API_KEY before running this code.")
+}
+
+# Use api_key in the request, but do not print it.
+```
+
+@lst-20-env-var-template is intentionally small because the principle matters more than the mechanics here. Do not print secrets. Do not commit secrets. Do not hide a secret in a Quarto file and assume nobody will see it. If secrets are stored in a local `.Renviron` file, that file should not be casually shared or committed to a repository. Chapter 21 will return to the danger from another angle when Leo learns that version control remembers changes.
+
+Privacy is broader than passwords. Even if Leo can connect to data, he must still ask what the data contains. Learner names, staff records, financial fields, locations, contact details, and identifiable notes require care. A connected workflow can move sensitive data quickly, which makes discipline more important, not less.
+
+## Connected Data and Reproducibility
+
+Connected data can strengthen a workflow, but it can also weaken reproducibility if Leo does not control the evidence path. The table in @tbl-20-reproducibility-risks names the main risks and the corresponding safeguards.
+
+```{r}
+#| label: tbl-20-reproducibility-risks
+#| tbl-cap: "Reproducibility Risks Introduced by Connected Data and Practical Safeguards."
+
+reproducibility_risks <- tibble::tribble(
+  ~`Risk`, ~`How it appears in practice`, ~`Practical safeguard`,
+  "Changing source", "The same URL, sheet, API, or query returns different data later", "Save a dated snapshot and record when it was captured",
+  "Broken access", "A render fails because permission, internet access, or credentials are unavailable", "Separate live retrieval from formal reporting when stability matters",
+  "Undocumented request", "A table exists but nobody knows which query or parameters produced it", "Store the URL, query, endpoint, parameters, and extraction date",
+  "Structure drift", "A column is renamed, removed, retyped, or moved", "Inspect names and types after retrieval, and fail early when required fields are missing",
+  "Hidden manual step", "A person downloads or edits data outside the recorded workflow", "Write the download, cleaning, and snapshot decisions into the project notes or code",
+  "Secret leakage", "Keys or passwords are placed inside scripts or reports", "Use environment variables or approved secret management practices",
+  "Confusion between live and fixed evidence", "A report claims one result but rerenders from newer data", "State clearly whether the report uses a live connection or a saved snapshot"
+)
+
+reproducibility_risks |>
+  knitr::kable()
+```
+
+@tbl-20-reproducibility-risks gives Leo a decision frame. The safest workflow is not always the most automated workflow. Sometimes the professional choice is to connect once, inspect carefully, save a snapshot, and render the formal report from that preserved evidence.
+
+::: {.callout-important appearance="simple"}
+## The evidence must be repeatable, not merely reachable
+
+A connection proves that R can reach a source at a particular moment. Reproducible analysis requires a stronger claim: the evidence used in the report can be identified, inspected, and rebuilt or recovered.
+:::
+
+## Where Connected Data Belongs in the Project
+
+The official route in this book remains `data/`.
+
+That matters because connected data can tempt Leo back into scattered habits. A file arrives from a browser download. A spreadsheet export lands in `Downloads`. An API response is saved to the desktop. A database extract is emailed as an attachment. The code works once because Leo knows where everything is on his own machine.
+
+Then the report is shared.
+
+The path breaks.
+
+The project route protects against this.
+
+A connected workflow can still use the same disciplined structure Leo already knows:
+
+- `data/raw/` can hold the first captured version of evidence from an external source;
+- `data/processed/` can hold cleaned, analysis-ready objects created from that raw evidence;
+- Quarto chapters and reports can read from `data/processed/` when the analytical question requires a stable prepared dataset;
+- source notes can document where the connected data came from, when it was captured, and what access conditions applied.
+
+This is how Chapter 20 extends Chapter 19 rather than replacing it. Chapter 19 made the report reproducible. Chapter 20 asks Leo to make the evidence route reproducible as well.
+
+For the continuing book workflow, `df_analysis` remains the analysis-ready object created earlier and used in Chapter 19. Readers who need the CSV version should place it in the working project route as `data/processed/df_analysis.csv`. Readers who created the RDS version during the Chapter 15 handoff can use `data/processed/df_analysis.rds`. Either way, the working route is `data/`, not a private downloads folder.
+
+## Live Connection or Saved Snapshot?
+
+Leo now needs language for a decision he will make often.
+
+A **live connection** means the report or script reaches outward when it runs. This can be appropriate when freshness matters and the source is stable enough for the task. A dashboard, monitoring report, or recurring operational summary may need this pattern.
+
+A **saved snapshot** means the retrieved data is stored inside the project at a specific point in time. This can be appropriate when the analysis must be audited, reviewed, submitted, or defended. A thesis chapter, journal article, policy brief, or formal report usually needs a clear evidential base.
+
+The choice is not moral. It is methodological.
+
+A live connection answers, "What does the source say now?" A saved snapshot answers, "What evidence did this analysis use?" Leo must know which question he is answering.
+
+A strong workflow may combine both. Leo might use a live connection to retrieve the latest data, save a dated snapshot to `data/raw/`, clean it into `data/processed/`, and render the formal Quarto report from the processed snapshot. That gives him current access at the beginning and reproducible evidence at the point of reporting.
+
+## Common Beginner Mistakes
+
+The mistakes in connected data often look harmless at the beginning.
+
+Leo should watch for these.
+
+First, he should not assume that a successful connection means the data are correct. R can read the wrong table just as smoothly as it can read the right one.
+
+Second, he should not build a formal report directly on a live source without deciding whether the report needs freshness or a fixed evidential base.
+
+Third, he should not keep URLs, queries, or extraction dates only in memory. If the source matters, the access route is part of the method.
+
+Fourth, he should not hard-code credentials in a `.qmd` file, script, or shared repository.
+
+Fifth, he should not confuse a cloud-synced folder with a reproducible project structure. Syncing can move files, but it does not explain how evidence was created.
+
+Sixth, he should not save every connected result into `data/processed/` immediately. Raw captures belong in `data/raw/`. Prepared analytical objects belong in `data/processed/`.
+
+Seventh, he should not let optional packages become invisible requirements. If a workflow needs `googlesheets4`, `httr2`, `jsonlite`, `DBI`, or `RSQLite`, the project setup should say so clearly.
+
+Eighth, he should not overwrite old snapshots without a reason. If a connected source is captured again, the new file should not silently erase the earlier evidence. A dated filename, source note, or versioned workflow helps Leo explain which capture supported which report.
+
+::: {.callout-tip appearance="simple"}
+## The beginner's control question
+
+Before using connected data in a report, Leo should ask: if this source changes tomorrow, can I still explain exactly what evidence today's result used?
+:::
+
+## Try It Yourself
+
+Choose one dataset source you have used before. It may be a CSV file, spreadsheet, public website, institutional database extract, or shared folder.
+
+Answer these questions in a short project note:
+
+1. Where did the data originally live?
+2. How did it enter your project?
+3. Did you preserve the first captured version?
+4. Did you clean it before analysis?
+5. Can another person identify the version of the data your report used?
+6. Would your result change if the source changed tomorrow?
+
+Then create a short source note with six fields: source name, source location, extraction date, access method, raw snapshot path, and known limitations. Finally, write one sentence that distinguishes the source from the analytical evidence. For example:
+
+> The source was the shared learner-tracking spreadsheet, but the evidence used in the report was the dated CSV snapshot saved in `data/raw/` and cleaned into `data/processed/df_analysis.csv`.
+
+That sentence is more than documentation. It is methodological clarity.
+
+## A Small Practice Lab
+
+This practice lab asks Leo to design a safe connected-data workflow without depending on a live web service during rendering. The scaffold in @lst-20-practice-lab is marked `eval: false` so readers can adapt it to their own controlled source.
+
+```{r}
+#| label: ch20-practice-lab
+#| lst-label: lst-20-practice-lab
+#| lst-cap: "Practice Lab Scaffold for a Controlled Connected-Data Workflow"
+#| eval: false
+
+# 1. Name the source.
+source_name <- "Public learner progress CSV"
+source_url <- "https://example.org/path/to/public-data.csv"
+extraction_date <- Sys.Date()
+
+# 2. Connect and import.
+connected_raw <- read.csv(
+  source_url,
+  stringsAsFactors = FALSE,
+  na.strings = c("", "NA", "N/A", "missing", "not available")
+)
+
+# 3. Inspect before trusting.
+head(connected_raw)
+str(connected_raw)
+names(connected_raw)
+summary(connected_raw)
+
+# Check that the expected fields are present before continuing.
+required_fields <- c(
+  "completion_status",
+  "study_hours",
+  "project_score"
+)
+
+missing_fields <- setdiff(required_fields, names(connected_raw))
+
+if (length(missing_fields) > 0) {
+  stop(
+    "The connected data is missing required field(s): ",
+    paste(missing_fields, collapse = ", ")
+  )
+}
+
+# 4. Save the raw snapshot deliberately.
+dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
+raw_snapshot <- paste0("data/raw/connected_raw_", extraction_date, ".csv")
+write.csv(connected_raw, raw_snapshot, row.names = FALSE)
+
+# 5. Clean and prepare in a separate object.
+connected_processed <- connected_raw |>
+  mutate(
+    completion_status = trimws(as.character(completion_status)),
+    study_hours = as.numeric(study_hours),
+    project_score = as.numeric(project_score)
+  ) |>
+  filter(!is.na(study_hours), !is.na(project_score))
+
+# 6. Save the analysis-ready version separately.
+dir.create("data/processed", recursive = TRUE, showWarnings = FALSE)
+write.csv(
+  connected_processed,
+  "data/processed/connected_analysis.csv",
+  row.names = FALSE
+)
+
+# 7. Write a source note in your project documentation:
+# Source name:
+# Source URL:
+# Extraction date:
+# Raw snapshot path:
+# Processed file path:
+# Known limitations:
+```
+
+@lst-20-practice-lab brings the chapter together. It does not ask Leo to use a fashionable tool. It asks him to protect the chain of evidence: source, connection, inspection, raw snapshot, processed object, and report-ready data.
+
+## Short Recap
+
+Chapter 20 extended Leo's workflow beyond local files without abandoning the discipline he already built.
+
+He learned that data connections are controlled doorways into evidence outside the current project file. He compared local files, URLs, shared spreadsheets, APIs, databases, and cloud files. He saw why live access can be useful but also fragile. He learned that a URL, API, spreadsheet, or database query should be inspected before it becomes evidence. He also learned why saved snapshots can protect reproducibility when formal reporting matters.
+
+Most importantly, he learned to separate the source from the evidence. The source is where data lives. The evidence is the version of data used in the analysis, documented and controlled well enough to support a claim.
+
+## Leo's Notebook
+
+- A data connection is a controlled doorway between R and evidence outside the current project file.
+- Local files are not outdated habits. They can be reproducibility safeguards when used transparently.
+- A live connection provides access to what a source returns now.
+- A saved snapshot preserves the evidence used for a specific analysis.
+- Freshness and reproducibility are related, but they are not the same.
+- URLs, shared spreadsheets, APIs, databases, and cloud files each create different risks.
+- Connected data should be inspected before it is trusted.
+- Credentials should not be written directly into `.qmd` files or scripts.
+- `data/raw/` is the right place for first captured evidence from an external source.
+- `data/processed/` is the right place for cleaned, analysis-ready data.
+- The query, URL, endpoint, extraction date, and access conditions can be part of the method.
+- A report is stronger when it can explain not only what it found, but how the evidence entered the project.
+
+## Glossary
+
+**API**  
+A structured interface that allows one system to request information or action from another system. In data work, APIs often return structured data such as JSON.
+
+**Analytical evidence**  
+The specific version of data used to support a claim in an analysis. Analytical evidence should be identifiable, inspected, documented, and recoverable.
+
+**Authentication**  
+The process of proving that a user or system has permission to access a source. Authentication may involve passwords, keys, tokens, or other credentials.
+
+**Cache**  
+A saved copy of data or results used to avoid repeatedly retrieving the same information from an external source.
+
+**Credential**  
+A secret or access value, such as a password, token, API key, or database login, that proves permission to use a source.
+
+**Data connection**  
+A controlled link between R and data that lives outside the current project file, such as a URL, API, database, shared spreadsheet, or cloud file.
+
+**Database**  
+A managed system for storing structured data, often organised into tables that can be queried.
+
+**Endpoint**  
+A specific API address that receives a request and returns a response.
+
+**Environment variable**  
+A value stored outside the source code and read by a program at runtime. Environment variables are often used to avoid writing credentials directly into scripts.
+
+**JSON**  
+A structured text format commonly used by APIs to send data between systems.
+
+**Live connection**  
+A workflow where R reaches the external source at the time the code runs.
+
+**Query**  
+A structured request for data. In database work, a query often specifies which table, columns, rows, or summaries should be returned.
+
+**Rate limit**  
+A restriction on how many requests a service allows within a period of time.
+
+**Snapshot**  
+A saved copy of data captured at a particular moment. A snapshot helps preserve the evidence used in an analysis.
+
+**Source access**  
+The ability of R or a user to reach a place where data lives. Source access is not the same as analytical evidence because the source may change, disappear, or return different data later.
+
+**Source system**  
+The place where data originally lives, such as a database, spreadsheet, web service, or cloud platform.
+
+## Chapter Outcome
+
+Leo can now explain what a data connection is and why it matters for professional analytical work.
+
+He can distinguish local files from connected sources. He can describe URLs, shared spreadsheets, APIs, databases, and cloud files as different doors into evidence. He can explain why connected data must still be inspected, documented, and often preserved as a snapshot. He can distinguish a live connection from a saved evidential copy. He can also write a basic source note that records where the data came from, when it entered the project, how it was accessed, and which project object became the basis of the analysis. He can explain why `data/raw/` and `data/processed/` remain central even when the original source lives outside the project.
+
+This chapter gives Leo a stronger starting point for serious reporting. The report is not trustworthy only because its tables and figures are generated in Quarto. It is trustworthy because the route from source to evidence is visible enough to inspect.
+
+## What Comes Next
+
+Chapter 20 showed Leo that data may live beyond the local project and that connections must be controlled. That raises a new problem.
+
+Once Leo begins saving snapshots, updating processed files, changing Quarto reports, revising code, and sharing work with others, the project itself develops a history. Files change. Reports improve. Data captures are replaced. Mistakes are corrected. Collaborators ask which version is current, what changed, and why.
+
+A clean project folder is helpful, but it is not enough. Leo now needs a way to make change traceable.
+
+That is the work of Chapter 21.
+
+Chapter 21 moves from connected evidence to project history. It introduces collaboration and version control as the next layer of professional discipline: not only making work reproducible, but making its changes visible, recoverable, and easier to trust.

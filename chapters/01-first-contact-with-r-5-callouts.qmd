@@ -1,0 +1,326 @@
+---
+title: "Before the First Command: Why R Changes the Way Data Work Thinks"
+---
+
+## Opening Scene: Leo Before the Prompt
+
+The problem is not that Leo cannot work with data.
+
+He can.
+
+He has cleaned spreadsheets late at night. He has copied formulas across rows. He has renamed workbooks carefully, then still wondered which version was correct. He has opened files called `final`, `final_updated`, and `use_this_one`, knowing that none of those names guarantees safety.
+
+He has repaired formulas that worked yesterday and failed today because one column moved.
+
+He has copied a useful tab into a new workbook, fixed a mistake by hand, and later struggled to remember exactly what changed.
+
+He has watched a neat final result emerge while the route behind that result became harder to explain.
+
+That is the pressure of spreadsheet-heavy work.
+
+The output may look controlled. The chart may be clean. The summary may be accepted. But beneath the result there may be a chain of actions that exists mostly in memory: the filter used, the rows removed, the formula extended, the duplicate corrected, the value copied from one place to another.
+
+Memory is a fragile place to store a method.
+
+So when Leo hears people talk about R as useful for serious data work, his caution is reasonable. He is not afraid of learning. He simply knows that a new tool can make a capable person feel slow at first.
+
+R will ask him to work differently.
+
+It will not begin with a familiar grid, ribbon, or visible cell. It will begin with written instructions.
+
+Before the first command, Leo needs to understand why that matters.
+
+::: {.callout-note appearance="simple" title="Chapter Focus"}
+This chapter is not about doing everything in R.
+
+It explains what kind of tool R is, why it changes the way data work is recorded, and why reproducible thinking matters before technical speed.
+:::
+
+## The Problem Was Never Leo
+
+Many people meet R after years of working with spreadsheets, forms, reports, dashboards, or exported files from other systems.
+
+That history matters.
+
+It means the beginner is not arriving empty. A person who has worked with data already knows that values can be messy, categories can be inconsistent, dates can behave strangely, and one small change in a source file can affect an entire report.
+
+The issue is not lack of intelligence.
+
+It is often a workflow problem.
+
+A spreadsheet can show a final number without clearly preserving every step that produced it. A workbook can contain formulas, hidden columns, copied sheets, pasted values, and manual corrections. Some of the logic is visible. Some of it is buried. Some of it exists only in the memory of the person who prepared the file.
+
+R matters because it changes that relationship.
+
+It gives the learner a way to write the work down.
+
+Not just the answer.
+
+The path.
+
+## What R Is
+
+R is a programming language built for data work. It is widely used for statistical computing, data analysis, and data visualisation.
+
+For this chapter, the simplest definition is enough:
+
+> R is a language for giving data-related instructions to a computer.
+
+That definition matters because it separates R from many tools that begin with clicking, dragging, filtering, and editing visible cells. In R, the work is expressed as instructions. Those instructions can be saved, inspected, corrected, rerun, and shared.
+
+R is not only an application that opens on a screen. It is not only a calculator. It is not only a statistics program.
+
+It is a way to describe data work so the process can be recovered later.
+
+::: {.callout-note appearance="simple" title="Plain Definition"}
+R is a language for working with data through written instructions.
+
+Those instructions may begin as simple commands, but they can grow into complete workflows for analysis, visualisation, reporting, and reproducible research.
+:::
+
+## Why R Exists
+
+R exists because serious data work often needs more than a visible result.
+
+It needs a recoverable process.
+
+Data work becomes fragile when it depends only on memory, manual calculations, copied formulas, and file versions with names like `final`, `final_updated`, or `use_this_one`. These habits can get work done for a while. But as the work grows, the risk grows with it.
+
+More files.
+
+More columns.
+
+More people.
+
+More updates.
+
+More chances for the method to drift away from the result.
+
+R gives the learner a way to describe the method as code. With R, a workflow can eventually store data, transform it, analyse it, create outputs, save the instructions behind the result, and run the same process again.
+
+The main idea is simple:
+
+> R does not only help produce an answer. It helps preserve the path to the answer.
+
+That path matters in research, teaching, business, public service, and any setting where results need to be checked or defended.
+
+::: {.callout-important appearance="simple" title="Workflow Principle"}
+A result without a recoverable process is fragile.
+:::
+
+## Why R Feels Different from Excel
+
+Excel gives the learner a visible surface. Rows, columns, cells, formulas, tabs, filters, charts, and menus are already on the screen. The workbook gives the hand somewhere to go.
+
+R feels different because it begins with language.
+
+In a spreadsheet, the data is often visible before the logic is written. In R, the logic is often written first so the computer can apply it to the data. That shift can feel strange at first. The screen may look plain. The instructions may feel strict. A missing quotation mark or a wrong capital letter can interrupt the work.
+
+This does not mean Excel is bad or R is automatically better.
+
+They solve different kinds of problems, and many professionals use more than one tool. Excel can sit beside R. Power BI can sit beside R. SQL can sit beside R. Python can sit beside R.
+
+The question is not which tool deserves loyalty.
+
+The better question is: which part of the work needs which tool?
+
+Excel is useful for quick inspection, familiar business processes, manual checking, and direct interaction with a table. R becomes important where reproducibility, scale, inspection, and workflow preservation become central.
+
+::: {.callout-tip appearance="simple" title="Excel Is Not the Enemy"}
+Learning R does not require rejecting Excel.
+
+The goal is to understand when spreadsheet work is enough and when written, repeatable instructions make the work safer, clearer, and easier to defend.
+:::
+
+## The Shift from Manual Work to Reproducible Work
+
+The deeper promise of R is reproducibility.
+
+A manual workflow can depend on steps that are hard to recover:
+
+* which file was opened
+* which rows were copied
+* which formulas were changed
+* which filters were applied
+* which chart was updated by hand
+
+Those actions may be familiar, but they can become invisible. If something changes, the process may need to be reconstructed from memory.
+
+R encourages a different pattern.
+
+```text
+manual work
+   ↓
+remembered steps
+   ↓
+fragile result
+```
+
+Written instructions create a stronger pattern.
+
+```text
+written instructions
+   ↓
+saved record of the method
+   ↓
+repeatable result
+```
+
+The shift is not from “non-technical” to “technical.”
+
+The shift is from hidden steps to visible steps.
+
+The work becomes less dependent on what someone remembers and more dependent on what the workflow records.
+
+::: {.callout-important appearance="simple" title="Workflow Principle"}
+Reproducibility begins when work stops depending on memory.
+:::
+
+## Three Different Things: Script, Session, and File
+
+One small distinction will prevent many future confusions.
+
+The learner does not need a full technical explanation yet. The first idea is enough: not everything in R lives in the same place.
+
+| Thing | Example | Purpose |
+|---|---|---|
+| Script | `analysis.R` | Stores instructions |
+| Session | current R session | Holds active objects while R is open |
+| File | `data.csv` | Stores external data |
+
+A script stores instructions that can be saved and reused.
+
+A session is the active working state while R is open. Later, R will hold named objects there while work is happening.
+
+A file stores data, outputs, or documents outside R so they can be kept, moved, opened, or shared.
+
+This is only a first map. Later chapters will make the distinction practical. For now, it is enough to see that written instructions, active work, and external files are related but not identical.
+
+## The First Lightbulb Moment
+
+At some point, the reason for R becomes clearer.
+
+R is not mainly about replacing Excel.
+
+It is not mainly about looking technical.
+
+It is not mainly about writing clever code.
+
+R matters because it makes the invisible steps of data work visible, repeatable, and defensible.
+
+That is the first lightbulb moment.
+
+A manual result may survive while the route disappears. A written workflow keeps the route available. It can be read, questioned, improved, corrected, and run again.
+
+This changes the kind of confidence a data worker can have.
+
+Not only:
+
+> Here is the answer.
+
+But also:
+
+> Here is the answer, and here is the process that produced it.
+
+That distinction matters wherever evidence has to be trusted.
+
+## A First Glimpse of Operational Thinking
+
+This book teaches R as operational thinking, not as isolated tricks.
+
+Operational thinking means asking practical questions about the work:
+
+* What instruction produced this result?
+* Can the instruction be found again?
+* Can the result be repeated?
+* Can another person understand the process?
+* Can an error be traced to a step rather than guessed from memory?
+
+These questions will become more technical later. They will involve objects, types, structures, logic, functions, packages, files, cleaning, transformation, summaries, visualisation, and reports.
+
+Not yet.
+
+For now, the principle is simple: serious data work needs a process that can be inspected.
+
+::: {.callout-important appearance="simple" title="Workflow Principle"}
+Saved instructions are more trustworthy than remembered steps.
+:::
+
+A future R project may eventually look something like this:
+
+```text
+project/
+├── data/
+├── scripts/
+├── output/
+└── report.qmd
+```
+
+This is only a preview. The chapter is not teaching project organisation yet. The point is smaller: professional data work benefits from having places for data, instructions, outputs, and reports.
+
+## What Leo Is Expected to Know at This Point
+
+At this point, Leo does not need to know RStudio, packages, data frames, importing, cleaning, visualisation, or reporting.
+
+He only needs to understand a few ideas:
+
+* R is a language for data work.
+* R exists to make data work more repeatable.
+* R feels different because it uses written instructions.
+* R is useful when work needs to be checked, repeated, explained, and improved.
+* Scripts, sessions, and files are different parts of the working picture.
+* Reproducible work depends less on memory and more on recoverable steps.
+
+The hands-on part begins in Chapter 2.
+
+That timing matters. Beginners often feel pressure to understand everything immediately. This chapter removes that pressure. It gives just enough orientation to make the first direct encounter with R meaningful.
+
+::: {.callout-note appearance="simple" title="Not Yet"}
+Leo is not expected to understand RStudio, packages, data frames, projects, importing, cleaning, or reporting yet.
+
+Those ideas will come later. For now, he only needs to understand why R is worth meeting.
+:::
+
+## Chapter Outcome
+
+By the end of this chapter, the reader should be able to:
+
+* explain what R is in simple terms;
+* explain why R matters for reproducible data work;
+* describe why manual workflows can become fragile;
+* understand why Excel and R can belong to the same broader data-work ecosystem;
+* distinguish, at a beginner level, between a script, a session, and a file;
+* explain why saved instructions are more reliable than remembered steps;
+* see why the first command in R matters.
+
+No code has been written yet.
+
+That is deliberate.
+
+Before learning commands, the learner needed to understand the problem those commands will help solve. R is not simply another software package to click through. It is a language for giving data-related instructions to a computer so that the path behind the result can be preserved.
+
+That understanding is enough for now.
+
+The first command will make more sense because of it.
+
+## Transition to Chapter 2
+
+Leo is now ready to meet R directly.
+
+In the next chapter, the idea becomes contact. He will install R, open the console, and face the plain prompt where every R user eventually begins:
+
+```text
+>
+```
+
+That small symbol will ask for one thing.
+
+An instruction.
+
+::: {.callout-tip appearance="simple" title="Ready for First Contact"}
+Chapter 1 gives the reason for learning R.
+
+Chapter 2 gives the first direct experience of using it.
+:::
+
+The system is waiting.

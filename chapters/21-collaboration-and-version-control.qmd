@@ -1,0 +1,774 @@
+---
+title: "Collaboration and Version Control: Making Work Traceable"
+---
+
+```{=latex}
+
+\renewcommand{\thefigure}{21.\arabic{figure}}
+
+\setcounter{figure}{0}
+
+\renewcommand{\thetable}{21.\arabic{table}}
+
+\setcounter{table}{0}
+
+```
+
+```{r}
+#| label: setup-chapter-21
+#| include: false
+
+suppressPackageStartupMessages({
+  library(knitr)
+})
+
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>",
+  fig.align = "center"
+)
+
+chapter21_caption_source <- "Source: teaching examples created for Chapter 21."
+```
+
+## Opening Scene: The Folder Called Final
+
+Leo opens an old project folder and sees the story immediately.
+
+There is `final_report.docx`.
+
+Then there is `final_report_new.docx`.
+
+Then `final_report_REAL_FINAL.docx`.
+
+Then `final_report_REAL_FINAL_with_comments.docx`.
+
+The scripts are not better. One is called `analysis.R`. Another is called `analysis_updated.R`. Another is called `analysis_updated_2.R`. One file has the plot that made it into the report. Another has a better version of the same plot, but Leo cannot remember whether it used the corrected dataset or the earlier one. A third script contains the line he removed last week because it produced a strange result, but now he is wondering whether that line was actually the correct one.
+
+Nothing in the folder is obviously broken.
+
+That is the danger.
+
+The folder looks busy, but it has no memory. It stores files, but it does not explain change. It preserves copies, but it does not tell Leo which copy matters. It shows activity, but it does not show history.
+
+This is the moment when a learner who can import data, clean it, transform it, summarise it, visualise it, report it, and connect it to external sources meets a more professional problem:
+
+> How can a project remember what changed?
+
+Chapter 20 taught Leo that connected data must be controlled before it becomes evidence. A dataset may come from a URL, spreadsheet, API, database, cloud file, or some other source beyond the project folder. Leo learned that source access is not the same as evidence. He must inspect, document, and often save a controlled snapshot through the official `data/` route.
+
+That solved one layer of fragility.
+
+Chapter 21 begins when the project itself starts changing. Raw snapshots are saved. Processed files are updated. Scripts improve. Quarto chapters are revised. Reports are corrected. Collaborators may ask questions, suggest changes, or work on the same material.
+
+A clean project folder helps, but it is no longer enough.
+
+Leo needs the project to remember.
+
+::: {.callout-important appearance="simple"}
+## The central lightbulb
+
+Version control is not only for programmers. It is a way of making analytical work traceable, recoverable, and safer to improve.
+:::
+
+This chapter is not a complete Git manual. It will not teach every command, every branching strategy, or every collaboration pattern. It gives Leo the mental model he needs to understand why version control belongs in serious analytical work.
+
+The goal is not to make him a Git expert in one chapter.
+
+The goal is to stop change from becoming invisible.
+
+## Why Professional Projects Need a History
+
+Professional data work does not fail only because code is wrong.
+
+It also fails when nobody can reconstruct the route from an earlier decision to a later result.
+
+A report may say the job-placement rate improved after cleaning. A plot may show a different pattern after filtering. A table may change because missing values were handled more carefully. A chapter may be rewritten after peer review. A collaborator may correct a line of code. Leo may delete a step and only later realise that the step explained the result.
+
+In each case, the question is not only:
+
+> What is the current version?
+
+The more serious questions are:
+
+- What changed?
+- Why did it change?
+- When did it change?
+- Who changed it, if more than one person is involved?
+- Can the project return to an earlier version if the new one is wrong?
+- Can someone else understand the history without relying on Leo's memory?
+
+A folder full of copies answers these questions badly. It may preserve many versions, but it does not explain them. File names become improvised memory aids. Comments disappear into email threads. Decisions are scattered across messages, notebooks, and renamed documents.
+
+Version control gives the project a structured memory.
+
+It does this by recording meaningful states of the project over time. Each recorded state can be accompanied by a message that explains the change. Instead of guessing whether `analysis_updated_2.R` is newer than `analysis_final.R`, Leo can inspect the project history and see a sequence of deliberate changes.
+
+That is why version control belongs in this book.
+
+It is not a programmer's decoration. It is part of analytical trust.
+
+## What Changes After Chapter 20
+
+Chapter 20 extended Leo's workflow beyond local files. He learned that connected data must be treated carefully because external sources can change, disappear, require credentials, or return different results across time. The safe beginner pattern was to connect, inspect, and save deliberately. Captured evidence belongs in `data/raw/`; prepared evidence belongs in `data/processed/`; source notes explain where the evidence came from and how it entered the project.
+
+Chapter 21 keeps that discipline and adds another layer.
+
+Now Leo asks:
+
+> How do I protect the history of the project after evidence enters it?
+
+The official `data/` route remains central. Version control does not replace `data/raw/` and `data/processed/`. It does not make undocumented data trustworthy. It does not remove the need for source notes. It does not make live connections reproducible by magic.
+
+Instead, it records how the project changes around those practices.
+
+When Leo edits a Quarto chapter, version control can record the change. When he improves a script, it can record the change. When he updates a source note, it can record the change. When he modifies a small configuration file, it can record the change. When he mistakenly removes something important, it can help him recover the earlier state.
+
+This is the professional shift:
+
+> Chapter 20 controlled the route from source to evidence. Chapter 21 controls the memory of the project as evidence, code, reports, and decisions change.
+
+The comparison in @tbl-21-memory-comparison gives Leo a practical way to separate familiar habits from version control.
+
+```{r}
+#| label: tbl-21-memory-comparison
+#| tbl-cap: "Saving, Backing Up, Syncing, and Version Control as Different Project Habits."
+#| echo: false
+
+memory_comparison <- data.frame(
+  Habit = c("Saving", "Backing up", "Syncing", "Version control"),
+  `What it does` = c(
+    "Writes the current state of a file to disk.",
+    "Keeps a spare copy of files in another location.",
+    "Keeps files updated across devices or a cloud folder.",
+    "Records meaningful changes to a project over time."
+  ),
+  `What it does not do well` = c(
+    "Explain what changed or why the change matters.",
+    "Explain the sequence of decisions inside the project.",
+    "Guarantee that changes are deliberate, documented, or recoverable.",
+    "Replace good project structure, ethical data handling, or source documentation."
+  ),
+  `Professional question it answers` = c(
+    "Did I store the current file?",
+    "Can I recover a copy if my machine fails?",
+    "Can I access the same file elsewhere?",
+    "Can I trace how the project changed?"
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(memory_comparison)
+```
+
+@tbl-21-memory-comparison is important because many beginners confuse these habits. Saving is necessary, but it is not traceability. Backing up is wise, but it is not a decision history. Syncing is convenient, but it can spread mistakes as quickly as it spreads corrections.
+
+Version control is different. It is designed to make change inspectable.
+
+## Version Control as Project Memory
+
+A version-controlled project does not merely contain the latest files.
+
+It contains a history of selected changes.
+
+Leo can think of this history as a project memory built from commits. A commit is a recorded snapshot of the project at a meaningful point in time. It usually includes two things:
+
+- the files or parts of files that changed;
+- a short message explaining why the change was recorded.
+
+That second part matters.
+
+A commit is not just another save. A save says, "The file now looks like this." A commit should say, "This change matters because of this."
+
+For example, weak commit messages look like this:
+
+```text
+update
+changes
+final
+fix
+more work
+```
+
+Stronger commit messages look like this:
+
+```text
+Add source note for downloaded learner dataset
+Correct negative study_hours values before analysis
+Revise Quarto report to cite processed data path
+Add project-history diagram to Chapter 21
+Ignore temporary render files
+```
+
+The better messages do not try to write a full essay. They give future Leo enough context to understand the purpose of the change.
+
+::: {.callout-tip appearance="simple"}
+## Commit as a decision note
+
+A good commit message should help future Leo answer a simple question: why did this change deserve to enter the project history?
+:::
+
+The project memory is not automatic wisdom. Leo still has to make good choices. He has to decide when a change is meaningful enough to record. He has to write messages that make sense. He has to avoid recording private credentials or huge files that do not belong in the repository.
+
+But once the habit is in place, version control gives him something a renamed folder cannot give:
+
+a traceable sequence of decisions.
+
+## Git as a Tracking System, Not a Magic Cloud Folder
+
+Git is the version control system most commonly used in modern software and data work.
+
+For Leo, the most useful first definition is simple:
+
+> Git is a local tracking system for the history of a project.
+
+The word **local** matters. Git can work on Leo's own computer. It can record changes in a project even before any remote platform is involved. It is not the same thing as a website. It is not the same thing as a cloud drive. It is not the same thing as GitHub.
+
+Git watches a project folder that has been turned into a repository. A repository is a project with a version-control history attached to it. Git can then report which files have changed, which changes are ready to be recorded, and what has already been recorded in the project history.
+
+The beginner does not need every Git command at once. He needs the basic cycle shown in @lst-21-basic-git-cycle.
+
+```{bash}
+#| lst-label: lst-21-basic-git-cycle
+#| eval: false
+#| lst-cap: "A Minimal Git Cycle for Inspecting and Recording Project Changes."
+
+git status
+git diff
+git add chapters/21-collaboration-and-version-control.qmd
+git commit -m "Revise Chapter 21 version control workflow"
+git log --oneline
+```
+
+@lst-21-basic-git-cycle should be read as a mental model, not as a full command reference. `git status` asks which files have changed. `git diff` helps Leo inspect what changed inside those files. `git add` chooses which change should be included in the next record. `git commit` records the chosen change with a message. `git log` inspects the recorded history.
+
+The power is not the command names themselves.
+
+The power is the discipline behind them:
+
+> inspect, choose, record, review.
+
+That discipline is the opposite of uncontrolled file copies.
+
+## GitHub as a Remote Collaboration Space
+
+Git and GitHub are often mentioned together, so beginners assume they are the same thing.
+
+They are not.
+
+Git is the tracking system. GitHub is a remote hosting and collaboration platform that can store a copy of a Git repository online and make collaboration easier. Other remote platforms exist, but GitHub is common enough that many learners meet it early.
+
+The distinction is practical:
+
+- Git can record history on Leo's own machine.
+- GitHub can host a remote copy of that history.
+- GitHub can help collaborators discuss issues, review proposed changes, and coordinate shared work.
+- GitHub does not remove the need to understand Git's basic logic.
+- GitHub should not be treated as a dumping ground for secrets, private data, or files that do not belong in version control.
+
+A cloud folder usually asks, "Can I access the file from another device?"
+
+A remote repository asks a stronger question:
+
+> Can collaborators inspect, discuss, and preserve the history of a project?
+
+That is why GitHub becomes useful in professional analytical work. It is not only a place to store code. It is a place where changes can be proposed, reviewed, discussed, and merged into a shared project.
+
+::: {.callout-note appearance="simple"}
+## Git and GitHub are different
+
+Git tracks project history. GitHub hosts repositories and supports collaboration around that history. A learner can use Git without GitHub, but GitHub depends on Git's logic.
+:::
+
+## What Git Tracks
+
+Git tracks files and changes.
+
+More precisely, Git notices how tracked files differ from the last recorded state of the project. It can show what was added, removed, or modified. It can then record a selected set of changes as a commit.
+
+For this book project, the most useful things to track usually include:
+
+- Quarto chapter files such as `.qmd`;
+- R scripts that import, clean, analyse, visualise, or report evidence;
+- small configuration files that define how the project is built;
+- documentation that explains the project;
+- source notes and data dictionaries when they are not confidential;
+- small teaching datasets when the project intentionally includes them;
+- reproducibility lock files such as `renv.lock` when the project deliberately uses them.
+
+The key word is **deliberately**.
+
+Git should not become a container for everything Leo's computer produces. It should track the files that help someone understand and rebuild the project. That includes source files, not every generated output.
+
+The comparison in @tbl-21-track-ignore gives a practical first map.
+
+```{r}
+#| label: tbl-21-track-ignore
+#| tbl-cap: "A Practical First Map of What Usually Belongs in Version Control and What Usually Does Not."
+#| echo: false
+
+track_ignore <- data.frame(
+  `Usually track` = c(
+    "Quarto source files such as `chapters/21-collaboration-and-version-control.qmd`",
+    "R scripts in `scripts/` that document the analytical workflow",
+    "Small project configuration files needed to render or rebuild the project",
+    "Source notes, README files, and data dictionaries that explain evidence routes",
+    "Small teaching datasets when the project intentionally distributes them",
+    "Reproducibility lock files such as renv.lock when the workflow deliberately uses them"
+  ),
+  `Usually do not track` = c(
+    "Passwords, tokens, API keys, and private credentials",
+    "Huge raw datasets that make the repository heavy or difficult to share",
+    "Temporary render outputs, cache folders, and machine-generated clutter",
+    "Confidential files or sensitive personal data",
+    "Machine-specific files that only make sense on one computer",
+    "Private notes that should not become part of a shared repository"
+  ),
+  `Reason` = c(
+    "Source files explain how the project is built; secrets create security risk.",
+    "Analytical scripts are reproducibility evidence; huge raw files often need storage rules outside Git.",
+    "Configuration matters; temporary output can be regenerated.",
+    "Documentation supports trust; confidential data requires controlled access.",
+    "Portable projects should not depend on one machine's local clutter.",
+    "Version history is durable, so shared repositories require deliberate judgment."
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(track_ignore)
+```
+
+@tbl-21-track-ignore is a first rule of thumb, not a law for every institution. Some teams use specialised tools for large files. Some journals or organisations require separate archives for data. Some projects cannot share raw data at all. The important point is that Leo must decide what belongs in the repository instead of letting every file enter by accident.
+
+::: {.callout-warning appearance="simple"}
+## Never commit secrets
+
+Passwords, API keys, database credentials, tokens, private certificates, and confidential data do not belong in Git history. Once a secret enters a repository, deleting it from the current file may not remove it from the past history.
+:::
+
+Chapter 20 already warned Leo not to hard-code credentials in scripts. Chapter 21 adds the reason this becomes even more serious under version control: Git remembers.
+
+A secret placed in a tracked file can become part of the project history. That is why secrets must be kept outside source code and outside version history. Environment variables and secure credential-management practices exist for this reason, but the beginner rule is already clear:
+
+A useful distinction is this: Leo may track a harmless example file such as `.Renviron.example` if it only shows the names of required variables. He should not track the real `.Renviron` file when it contains passwords, tokens, database credentials, API keys, or private local settings.
+
+## `.gitignore` as a Safety Tool
+
+A `.gitignore` file tells Git which files or patterns should usually be ignored.
+
+It is not a privacy shield after a file has already been committed. It is a prevention tool. It helps Leo avoid accidentally tracking temporary files, local workspace clutter, caches, private environment files, and generated outputs that do not belong in the project history.
+
+The starter pattern in @lst-21-gitignore-example is intentionally conservative. It is not a universal template for every project. It gives Leo the idea of `.gitignore` as a safety habit.
+
+```{bash}
+#| lst-label: lst-21-gitignore-example
+#| eval: false
+#| lst-cap: "A Starter .gitignore Pattern for a Small R and Quarto Project."
+
+# R session and workspace clutter
+.Rhistory
+.RData
+.Ruserdata
+
+# Local environment and credentials
+.Renviron
+.env
+*.key
+*.pem
+*.token
+*.secret
+
+# Quarto and render by-products
+/.quarto/
+/_freeze/
+/_book/
+
+# Temporary files
+*.tmp
+*.log
+
+# Operating-system clutter
+.DS_Store
+Thumbs.db
+
+# Large or private data should be handled deliberately
+data/private/
+data/large/
+```
+
+@lst-21-gitignore-example should not be copied without thought. The final two lines are especially project-dependent. Some projects may not use `data/private/` or `data/large/`; others may need stricter institutional rules. The habit is what matters: Leo should decide which files are safe to track before the repository history begins filling up.
+
+::: {.callout-important appearance="simple"}
+## Ignore before history remembers
+
+`.gitignore` works best before unwanted files enter version history. It is a gatekeeping habit, not a clean-up miracle.
+:::
+
+This is also why a project should be structured early. If private files are mixed beside public scripts, mistakes become more likely. If raw evidence, processed evidence, reports, scripts, outputs, and private materials have predictable homes, `.gitignore` can protect the project more effectively.
+
+## How Version Control Fits the Project Route
+
+Version control does not replace the project structure Leo has been building. It depends on it.
+
+A confused project under Git is still a confused project. Git will faithfully record the confusion.
+
+The structure matters because Git tracks files, not intentions. If the project has clear folders, the history becomes easier to read. If the project is chaotic, the history records chaos.
+
+For Leo's R and Quarto work, a practical project structure might look like @lst-21-project-structure.
+
+```{bash}
+#| lst-label: lst-21-project-structure
+#| eval: false
+#| lst-cap: "A Simple Project Structure That Works Well with Version Control."
+
+not-so-short-introduction-to-r/
+├── _quarto.yml
+├── index.qmd
+├── chapters/
+│   ├── 20-data-connections.qmd
+│   ├── 21-collaboration-and-version-control.qmd
+│   └── 22-from-functions-to-packages.qmd
+├── data/
+│   ├── raw/
+│   └── processed/
+├── scripts/
+├── reports/
+├── README.md
+└── .gitignore
+```
+
+@lst-21-project-structure is not the only possible structure, but it shows the principle. Source documents live where readers and render tools can find them. Data follows the official `data/` route. Scripts and reports have predictable homes. `.gitignore` sits at the project root so it can protect the repository from unwanted files.
+
+In this structure, Leo might track the chapter files, scripts, README, source notes, and small teaching data approved for sharing. He might exclude private credentials, bulky generated output, local caches, and confidential files. If a large dataset is essential but unsuitable for Git, the project should document where it lives, how it is accessed, and how a reproducible snapshot is produced.
+
+This connects directly to Chapter 20.
+
+A connected source may live outside the project. A controlled snapshot may enter `data/raw/`. A cleaned version may enter `data/processed/`. Version control then records the scripts, notes, and chapter changes that explain how the project uses that evidence. Depending on file size, sensitivity, and sharing rules, the actual data files may or may not be tracked.
+
+The professional question is not:
+
+> Can Git store this file?
+
+The better question is:
+
+> Should this file become part of the permanent project history?
+
+## The Version-Control Workflow
+
+Leo can now see version control as a flow.
+
+He changes the project. He inspects the change. He selects the meaningful parts. He records them with a message. Later, he or a collaborator reviews the history.
+
+@fig-21-version-control-flow shows this workflow as a small project-memory loop.
+
+```{r}
+#| label: fig-21-version-control-flow
+#| fig-cap: "A Simple Version-Control Flow for Analytical Project Work."
+#| fig-alt: "A left-to-right workflow diagram showing project changes moving through inspect, choose, commit, and review steps."
+#| echo: false
+
+op <- par(mar = c(0, 0, 0, 0))
+plot.new()
+plot.window(xlim = c(0, 10), ylim = c(0, 4))
+
+box_x <- c(0.5, 2.8, 5.1, 7.4)
+labels <- c("Change\nproject files", "Inspect\nchanges", "Choose\nwhat to record", "Commit\nwith message")
+sub_labels <- c("Edit .qmd,\nR scripts,\nnotes", "git status\nand diff", "stage selected\nchanges", "project\nmemory")
+
+for (i in seq_along(box_x)) {
+  rect(box_x[i], 1.55, box_x[i] + 1.6, 2.75, border = "black", lwd = 1.2)
+  text(box_x[i] + 0.8, 2.33, labels[i], cex = 0.82)
+  text(box_x[i] + 0.8, 1.87, sub_labels[i], cex = 0.65)
+  if (i < length(box_x)) {
+    arrows(box_x[i] + 1.68, 2.15, box_x[i + 1] - 0.08, 2.15, length = 0.08, lwd = 1.1)
+  }
+}
+
+arrows(8.2, 1.52, 1.3, 1.25, length = 0.08, lwd = 1.1, code = 2)
+text(4.8, 0.95, "Review history and improve the next change", cex = 0.75)
+
+par(op)
+```
+
+The key point in @fig-21-version-control-flow is that version control is not just the commit. The commit is one moment in a larger habit. Leo must first inspect what changed. Then he must choose what belongs together. Then he records the change. Later, the history becomes a resource for review, recovery, collaboration, and explanation.
+
+The smallest useful question before each commit is:
+
+> Do these changes belong together?
+
+If Leo corrected a typo in the chapter and also rewrote the data-cleaning script, those may be two different commits. If he updated a source note and the corresponding import script together, those may belong in one commit. The point is not perfection. The point is readable history.
+
+## Collaboration Without Chaos
+
+Version control becomes even more valuable when more than one person works on the project.
+
+Collaboration without version control often becomes an exchange of attachments:
+
+- "Please use the latest file."
+- "I think I edited the old one."
+- "Can you merge my comments?"
+- "Which report has the corrected table?"
+- "Who changed the filtering rule?"
+- "Why is my version different from yours?"
+
+Git-based collaboration introduces a more structured vocabulary.
+
+A **branch** is a parallel line of work. It lets a person make changes without immediately disturbing the main version of the project.
+
+A **pull request** is a proposed change submitted for review before it enters the shared main version. The name may sound technical, but the idea is familiar: "Here is my proposed improvement. Please inspect it before we adopt it."
+
+An **issue** is a structured note about something that needs attention: a bug, a missing task, a requested improvement, a discussion point, or a decision that should not disappear into private memory.
+
+A **review** is the act of checking proposed changes before they become part of the shared project.
+
+Leo does not need to master every collaboration feature at once. He needs the professional idea:
+
+> Collaboration improves when changes are proposed, discussed, reviewed, and recorded instead of silently overwritten.
+
+This is especially important for analytical projects. A small code change may alter a table. A changed filter may alter a claim. A revised figure may alter an interpretation. Version control gives collaborators a place to discuss the change before it enters the shared work.
+
+::: {.callout-note appearance="simple"}
+## Collaboration is not just access
+
+Giving collaborators access to files is not the same as coordinating analytical change. Collaboration needs shared structure, visible history, and reviewable decisions.
+:::
+
+This is why GitHub can be useful beyond storage. It gives a team a place to combine version history with issues, review, discussion, and remote coordination. But the beginner lesson remains grounded: no platform can replace disciplined project habits.
+
+## What Version Control Does Not Solve
+
+Version control is powerful, but it is not magic.
+
+It does not make bad analysis good. It does not explain an undocumented decision unless someone writes the explanation. It does not protect secrets if Leo commits them. It does not make a huge dataset easy to share if Git is the wrong storage tool. It does not make an unstable live connection reproducible unless the workflow controls the evidence.
+
+Git records history. It does not judge whether the history is wise.
+
+That distinction matters because beginners sometimes expect tools to replace judgment. A reproducible Quarto report still needs good code. A connected data workflow still needs source notes. A version-controlled repository still needs meaningful commits, safe file choices, and careful collaboration.
+
+::: {.callout-warning appearance="simple"}
+## Git records mistakes too
+
+Version control can help Leo recover from mistakes, but it can also preserve mistakes in the project history. This is why he should inspect changes before committing and avoid tracking files that should remain private.
+:::
+
+The safest mental model is this:
+
+- Quarto helps connect code, output, and explanation.
+- Chapter 20's data discipline helps control evidence entering the project.
+- Version control helps record how the project changes after that.
+- Collaboration tools help people review and coordinate those changes.
+
+Each layer supports the others. None replaces the others.
+
+## Common Beginner Mistakes
+
+The mistakes in this chapter are often quiet. They do not always break the project immediately. They make future work harder.
+
+One common mistake is treating Git as a backup system only. Backup matters, but version control is not merely a spare copy. Its value is in readable history.
+
+Another mistake is committing everything. Beginners may track caches, rendered books, large outputs, workspace files, private notes, credentials, and raw data without checking whether those files belong in permanent history.
+
+A third mistake is writing commit messages that say nothing. A history full of `update`, `fix`, and `final` does not help future Leo understand decisions.
+
+A fourth mistake is committing too rarely. If Leo works for three weeks and creates one huge commit, the history becomes difficult to inspect. Meaningful smaller commits are easier to review and recover.
+
+A fifth mistake is mixing unrelated work in one commit. A correction to the import script, a rewrite of the introduction, and a change to a plot label may not belong together.
+
+A sixth mistake is assuming GitHub and Git are the same. GitHub hosts and supports collaboration, but the tracking logic comes from Git.
+
+A seventh mistake is versioning secrets. This is serious because Git history can preserve what the current file no longer shows.
+
+An eighth mistake is using branches, pull requests, or issues as decorative terms without understanding their role. Their purpose is to make change visible, discussable, and reviewable.
+
+::: {.callout-tip appearance="simple"}
+## The beginner's control question
+
+Before recording a change, Leo can ask: "Would this commit help someone understand what changed, why it changed, and how to recover the earlier state if necessary?"
+:::
+
+That question is enough to improve most beginner version-control habits.
+
+## Try It Yourself
+
+Open a project folder from previous analytical work, but do not change anything yet.
+
+First, inspect the file names. Look for signs of hidden history:
+
+- `final`;
+- `new`;
+- `old`;
+- `updated`;
+- `copy`;
+- repeated dates;
+- initials from collaborators;
+- scripts with numbered suffixes;
+- reports with contradictory names.
+
+Then answer these questions in a notebook:
+
+1. Which files appear to be versions of the same work?
+2. Can you tell which version is authoritative?
+3. Can you tell what changed between versions?
+4. Can you tell why the change was made?
+5. Could someone else reconstruct the history without asking you?
+6. Which files would belong in version control?
+7. Which files should be ignored, archived elsewhere, or kept private?
+
+The purpose is not to shame old habits. Those habits were survival strategies. The purpose is to see why professional project history requires more than file names.
+
+Now imagine the same project under version control. What commit messages would have helped?
+
+Write three possible commit messages for past changes you can infer from the folder.
+
+For example:
+
+```text
+Add first cleaned version of learner dataset
+Revise report after correcting missing project scores
+Update figure labels for Chapter 18 communication section
+```
+
+If the message would have helped future you understand the project, it is already teaching the right habit.
+
+## A Small Practice Lab
+
+In this lab, Leo does not need to create a public repository or connect to GitHub. The focus is conceptual control.
+
+Start with a small local R or Quarto project. It can be a practice copy, not the only copy of important work.
+
+1. Identify the project root. Confirm where `_quarto.yml`, `.Rproj`, or the main scripts live.
+2. List the files that explain the project: `.qmd`, `.R`, `README`, source notes, configuration files, and approved small data files.
+3. List files that should not enter version history: credentials, private data, caches, huge generated outputs, and machine-specific clutter.
+4. Draft a `.gitignore` pattern before tracking files.
+5. Make one small project improvement, such as correcting a paragraph, improving a comment, or updating a source note.
+6. Inspect what changed. At minimum, Leo should know which files changed and what changed inside them before recording anything.
+7. Decide whether the change deserves its own commit.
+8. Write a commit message that explains the change.
+9. Repeat the exercise with a second, unrelated change and write a separate message.
+
+The lab has one central rule:
+
+> Do not record changes you have not inspected.
+
+This rule protects Leo from accidental commits. It also slows the workflow just enough to make the history meaningful.
+
+If Leo is working with collaborators, add three more questions:
+
+1. Should this change be discussed before it enters the main version?
+2. Would an issue help record the problem or task?
+3. Would a branch or pull request make review safer?
+
+Those questions are not bureaucracy. They are collaboration safety.
+
+## Short Recap
+
+A project folder can store files without remembering decisions. Version control solves that problem by recording meaningful changes over time.
+
+Git is a local system for tracking project history. GitHub is a remote collaboration platform that can host Git repositories and support shared work. They are related, but they are not the same.
+
+A commit is a meaningful snapshot of project change, ideally recorded with a message that explains why the change matters.
+
+Version control works best when the project is already structured. The official `data/` route still matters. Source notes still matter. Quarto reports still matter. Version control records how these pieces change.
+
+Not everything belongs in Git. Quarto source files, R scripts, documentation, source notes, small configuration files, and approved teaching data may belong. Credentials, secrets, huge files, private data, temporary outputs, and machine-specific clutter usually do not.
+
+`.gitignore` helps prevent unwanted files from entering the repository, but it works best before those files are committed.
+
+Collaboration becomes safer when changes are visible, proposed, reviewed, and discussed rather than silently overwritten.
+
+## Leo's Notebook
+
+Leo writes:
+
+> My old folders kept copies. They did not keep history.
+
+He underlines the distinction.
+
+A copy can preserve a file, but it cannot explain why the file changed. A synced folder can move changes between machines, but it cannot guarantee that the change was inspected. A backup can rescue files after a failure, but it does not automatically create a readable decision record.
+
+Version control gives the project memory.
+
+Leo also writes a warning to himself:
+
+> Git remembers. Do not give it secrets.
+
+That sentence changes how he thinks about credentials, private data, and large files. In Chapter 20, he learned that connected data needs controlled access. In Chapter 21, he learns that project history also needs controlled boundaries.
+
+His final note is practical:
+
+> A good commit should help future me understand the work faster.
+
+That is the habit he will carry forward.
+
+## Glossary
+
+**Backup**  
+A spare copy of files kept to reduce loss if a machine, drive, or storage location fails. A backup is useful, but it is not the same as a structured history of project changes.
+
+**Branch**  
+A parallel line of work in a Git repository. Branches allow changes to be developed without immediately altering the main version of the project.
+
+**Commit**  
+A recorded snapshot of selected project changes, usually accompanied by a message explaining the purpose of the change.
+
+**Commit message**  
+A short explanation attached to a commit. A useful commit message helps future readers understand why the change was made.
+
+**Git**  
+A version control system that tracks the history of files in a project repository.
+
+**GitHub**  
+A remote hosting and collaboration platform for Git repositories. It supports shared access, issues, pull requests, review, and other collaboration features.
+
+**Issue**  
+A structured note in a collaboration platform, often used to record a bug, task, question, proposed improvement, or discussion point.
+
+**Pull request**  
+A proposed change submitted for review before it is merged into a shared version of a repository.
+
+**Repository**  
+A project folder that has a version-control history attached to it.
+
+**Review**  
+The process of inspecting proposed changes before accepting them into the shared project.
+
+**Staging**  
+The act of selecting which changes should be included in the next commit.
+
+**Syncing**  
+Keeping files updated across devices or cloud locations. Syncing can support access, but it is not the same as version control.
+
+**Version control**  
+A system for recording, inspecting, and recovering the history of meaningful changes in a project.
+
+**`.gitignore`**  
+A file that tells Git which files or patterns should usually be ignored.
+
+## Chapter Outcome
+
+Leo can now explain why professional analytical projects need a traceable history. He can distinguish saving, backing up, syncing, and version control. He can explain Git as a local tracking system and GitHub as a remote collaboration space, without confusing the two.
+
+He understands commits as meaningful snapshots, not random saves. He can describe why commit messages matter, why `.gitignore` protects a project, and why secrets, credentials, huge files, temporary outputs, private data, and machine-specific clutter should not enter version history.
+
+He can also explain how version control fits the R and Quarto workflow. The official `data/` route remains the route for evidence. Scripts, Quarto chapters, documentation, and source notes help explain the work. Version control records how those pieces change over time.
+
+Most importantly, Leo now sees collaboration as more than shared access. Serious collaboration requires visible changes, reviewable decisions, and a project memory strong enough to survive correction.
+
+## What Comes Next
+
+Leo now has a project that can remember.
+
+Chapter 19 helped him turn analysis into a reproducible report. Chapter 20 helped him control evidence that enters from beyond local files. Chapter 21 has now helped him make project change traceable, recoverable, and safer to share.
+
+The next problem is not history.
+
+It is reuse.
+
+As Leo's work improves, he begins to notice repeated actions across scripts and reports. He cleans text fields again. He standardises yes-or-no values again. He creates score bands again. He writes small helper functions, then copies them from one script into another. At first, that feels efficient. Soon, it creates a new form of disorder: useful functions scattered across files, projects, and versions.
+
+Chapter 22 takes the next professional step.
+
+It asks what happens when reusable functions need an organised home, and why a traceable project history makes that organisation safer to build, revise, test, and share.
+
+That is where Leo moves from functions to packages.

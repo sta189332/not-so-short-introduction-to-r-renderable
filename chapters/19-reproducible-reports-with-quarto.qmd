@@ -1,0 +1,798 @@
+---
+title: "Reproducible Reports with Quarto: Turning Analysis into a Document"
+---
+
+```{=latex}
+\renewcommand{\thefigure}{19.\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{19.\arabic{table}}
+\setcounter{table}{0}
+```
+
+```{r}
+#| label: setup-chapter-19
+#| include: false
+
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(ggplot2)
+  library(tibble)
+  library(knitr)
+})
+
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>",
+  fig.align = "center"
+)
+
+chapter19_find_first_existing <- function(paths) {
+  existing <- paths[file.exists(paths)]
+  if (length(existing) == 0) {
+    return(NA_character_)
+  }
+  existing[[1]]
+}
+
+chapter19_standardise_text <- function(x) {
+  x <- as.character(x)
+  x <- trimws(x)
+  x[x %in% c("", "NA", "N/A", "missing", "not available")] <- NA_character_
+  tools::toTitleCase(tolower(x))
+}
+
+chapter19_to_number <- function(x) {
+  suppressWarnings(as.numeric(x))
+}
+
+if (!exists("df_analysis")) {
+  rds_path <- chapter19_find_first_existing(c(
+    "data/processed/df_analysis.rds",
+    "datasets/processed/df_analysis.rds",
+    "../datasets/processed/df_analysis.rds"
+  ))
+
+  csv_path <- chapter19_find_first_existing(c(
+    "data/processed/df_analysis.csv",
+    "datasets/processed/df_analysis.csv",
+    "../datasets/processed/df_analysis.csv"
+  ))
+
+  if (!is.na(rds_path)) {
+    df_analysis <- readRDS(rds_path)
+  } else if (!is.na(csv_path)) {
+    df_analysis <- read.csv(
+      csv_path,
+      stringsAsFactors = FALSE,
+      na.strings = c("", "NA", "N/A", "missing", "not available")
+    )
+  } else {
+    stop(
+      "Chapter 19 requires the analysis-ready dataset created during the Chapter 15 handoff. ",
+      "Place df_analysis.rds or df_analysis.csv in data/processed/ or datasets/processed/ before rendering this chapter."
+    )
+  }
+}
+
+chapter19_required_columns <- c(
+  "learner_id", "study_hours", "project_score", "confidence_score",
+  "completion_status", "preferred_learning_mode", "week",
+  "lessons_completed", "pre_assessment_score"
+)
+
+chapter19_missing_columns <- setdiff(chapter19_required_columns, names(df_analysis))
+if (length(chapter19_missing_columns) > 0) {
+  stop(
+    "Chapter 19 cannot run because df_analysis is missing these columns: ",
+    paste(chapter19_missing_columns, collapse = ", ")
+  )
+}
+
+df_report <- df_analysis |>
+  transmute(
+    learner_id = as.character(learner_id),
+    week = chapter19_to_number(week),
+    study_hours = chapter19_to_number(study_hours),
+    lessons_completed = chapter19_to_number(lessons_completed),
+    confidence_score = chapter19_to_number(confidence_score),
+    pre_assessment_score = chapter19_to_number(pre_assessment_score),
+    project_score = chapter19_to_number(project_score),
+    completion_status = chapter19_standardise_text(completion_status),
+    preferred_learning_mode = chapter19_standardise_text(preferred_learning_mode)
+  ) |>
+  filter(
+    !is.na(study_hours),
+    !is.na(project_score),
+    !is.na(confidence_score),
+    study_hours >= 0,
+    project_score >= 0,
+    project_score <= 100
+  )
+
+chapter19_caption_source <- "Source: analysis-ready dataset df_analysis, created during the Part 3 handoff and used throughout Part 4."
+```
+
+## Opening Scene: When the Plot Is Right but the Report Is Fragile
+
+Leo has just completed Part 4.
+
+He can now make plots that show patterns. He can refine them so readers are not forced to fight clutter, weak labels, confusing legends, or accidental colour choices. He can write titles that guide interpretation, captions that clarify scope, and explanations that separate description from interpretation and claim.
+
+That is a major professional step.
+
+But now a new problem appears.
+
+The plot lives in one R script. The explanation lives in a Word document. The table was copied from the console. The figure was exported manually. The caption was edited after the plot was saved. Then the dataset changes.
+
+A few rows are corrected. A missing value is fixed. A category label is cleaned. A learner record is removed because it was duplicated.
+
+Leo reruns the analysis.
+
+The numbers change.
+
+But the report does not.
+
+The table in the document still shows the old values. The figure in the slide deck still shows the previous version. The paragraph still explains a pattern that has shifted. Nobody can tell which output came from which code.
+
+Nothing has crashed.
+
+But trust has started to leak.
+
+That is the problem Chapter 19 solves.
+
+A reproducible report keeps code, output, and explanation together. It allows Leo to write the analysis once, rerun it when the data changes, and produce a document where the tables, figures, and interpretation remain connected to the code that created them.
+
+::: {.callout-important appearance="simple"}
+## The central lightbulb
+
+A reproducible report is not a document with code added to it. It is an analytical system where code, evidence, and explanation travel together.
+:::
+
+Part 5 begins here because Leo is no longer learning only how to produce analytical pieces. He is learning how to make those pieces live inside a system that can be checked, rerun, shared, and trusted.
+
+The professional movement is simple:
+
+```text
+script + copied output + separate explanation
+        ↓
+single Quarto document
+        ↓
+rendered HTML/PDF/Word report
+        ↓
+reproducible analytical communication
+```
+
+The simplicity is the point. Leo does not need a more complicated workflow. He needs a workflow where the relationship between the data, the code, the output, and the explanation is harder to break.
+
+## What Changed After Part 4
+
+Part 4 changed Leo's relationship with visual evidence.
+
+In Chapter 16, he learned how variables become visual marks. Study hours could become an x-axis. Project scores could become a y-axis. A learning mode could become a grouping variable. A plot was no longer a decoration added after analysis. It became a way to inspect structure and compare patterns.
+
+In Chapter 17, he learned that a technically correct plot can still fail a reader. A plot can have the right variables and still be difficult to interpret if the scale is careless, the legend is noisy, the labels are weak, or the layout makes the eye work too hard.
+
+In Chapter 18, he learned that a clear plot still needs responsible communication. The title must guide interpretation without exaggeration. The caption must disclose source and scope. The explanation must separate what the plot shows from what Leo thinks it may mean.
+
+Those lessons matter even more now.
+
+A visual story is not only a plot plus a paragraph. It is a relationship between evidence and language. If Leo updates the evidence but forgets to update the language, the story becomes unreliable. If he updates the language but forgets which data version produced the figure, the story becomes difficult to defend.
+
+Chapter 19 adds the missing container.
+
+It asks Leo to stop treating code, output, and explanation as separate objects that must be manually synchronized. It asks him to place them inside one source document.
+
+## Why Copy-Paste Reporting Breaks Trust
+
+Copy-paste reporting feels harmless because it works at first.
+
+Leo runs a script. A table appears in the console. He copies it into a document. He exports a plot and inserts it into a slide. He writes a paragraph below it. The report looks professional.
+
+The weakness appears later.
+
+The dataset changes. A filter is corrected. A category is renamed. A summary is recalculated. The code now produces a new result, but the document still contains the old result. Leo may not notice because nothing in the copied document warns him that it is stale.
+
+The problem is not only efficiency. It is traceability.
+
+```{r}
+#| label: tbl-19-copy-paste-risk
+#| tbl-cap: "How Copy-Paste Reporting Weakens Analytical Trust."
+
+tibble::tribble(
+  ~`Workflow Element`, ~`Copy-Paste Version`, ~`Reproducible Report Version`,
+  "Table", "Copied from console or spreadsheet", "Generated by code during rendering",
+  "Figure", "Exported manually and inserted elsewhere", "Created by a labelled chunk in the source document",
+  "Caption", "Typed after the output is moved", "Stored beside the output it describes",
+  "Explanation", "Written separately from the code", "Written beside the evidence and updated in context",
+  "Data update", "Requires manual replacement of outputs", "Requires re-rendering the source document",
+  "Audit trail", "Difficult to reconstruct", "Visible through source code, labels, and project files"
+) |>
+  knitr::kable()
+```
+
+@tbl-19-copy-paste-risk names the real danger. Manual reporting does not usually fail loudly. It fails quietly. The copied table continues to look like a table. The inserted figure continues to look like a figure. The paragraph continues to sound confident. Yet the pieces may no longer belong to the same version of the analysis.
+
+That is why reproducible reporting is not a cosmetic upgrade. It is an integrity practice.
+
+::: {.callout-warning appearance="simple"}
+## The quiet failure
+
+A report can look polished while being out of date. Reproducibility protects Leo from the professional risk of presenting old results in a new document.
+:::
+
+## What Quarto Changes
+
+Quarto changes the unit of work.
+
+In a script, Leo writes code that R executes. In a word processor, he writes prose that readers read. In a Quarto document, he writes both in one source file.
+
+A Quarto file has the extension `.qmd`. It can contain document metadata, ordinary explanatory writing, R code chunks, tables, figures, captions, and cross-references. When Leo renders the file, Quarto executes the code and builds a final document such as HTML, PDF, or Word.
+
+This does not mean Quarto makes the analysis correct. Quarto is not a substitute for judgement, clean data, responsible visualization, or careful interpretation. It does something narrower and very powerful: it keeps the analytical parts connected.
+
+The code that produces a table sits near the paragraph that interprets the table. The code that produces a plot sits near the caption that explains its scope. The cross-reference in the prose points to the labelled evidence. When the data change, Leo edits the source or reruns the render. He does not manually hunt for every copied result.
+
+A Quarto report is therefore not just a prettier script. It is a document that can perform analysis as it is being built.
+
+## File, Code, Output, and Explanation in One Place
+
+The easiest way to understand Quarto is to name the four layers it brings together.
+
+The **file** is the `.qmd` source. It is the document Leo edits.
+
+The **code** is written inside executable chunks. It imports data, transforms values, creates tables, and builds figures.
+
+The **output** is what the code produces during rendering. It may be a printed result, a table, a plot, or a message.
+
+The **explanation** is the prose around the code and output. It tells the reader what is being asked, what the output shows, why it matters, and what cannot be concluded.
+
+When these layers are separated across scripts, folders, screenshots, copied tables, and manually edited documents, Leo must remember how they connect. When they sit in one Quarto source document, the connection becomes visible.
+
+This is the difference between having files and having a reporting system.
+
+::: {.callout-note appearance="simple"}
+## A useful mental model
+
+A script answers, "What should R do?" A Quarto document answers, "What should R do, what did it produce, and how should a reader understand the result?"
+:::
+
+For the examples in this chapter, Leo uses the reusable analysis-ready dataset created during the Chapter 15 handoff step. The CSV version is available here: [Download `df_analysis.csv`](../datasets/processed/df_analysis.csv){download="df_analysis.csv"}. The Excel version is available here: [Download `df_analysis.xlsx`](../datasets/processed/df_analysis.xlsx){download="df_analysis.xlsx"}.
+
+There are now two coherent ways for Leo to bring `df_analysis` into Chapter 19.
+
+The first route is for readers who are using the downloadable CSV file. They should place the file inside the project as `data/processed/df_analysis.csv` and then import that same file.
+
+```{r}
+#| label: ch19-read-df-analysis-csv
+#| lst-label: lst-19-read-df-analysis-csv
+#| lst-cap: "Code for Loading the Downloaded CSV Version of the Analysis-Ready Dataset"
+#| eval: false
+
+df_analysis <- read.csv(
+  "data/processed/df_analysis.csv",
+  stringsAsFactors = FALSE,
+  na.strings = c("", "NA", "N/A", "missing", "not available")
+)
+```
+
+The CSV route in @lst-19-read-df-analysis-csv is the safest option for readers who start Part 5 from the online book, because it uses the same file they were asked to download.
+
+The second route is for readers who have followed the workflow from earlier chapters and successfully rendered the Chapter 15 handoff code. In that case, Chapter 15 saves the same analysis-ready object as an RDS file. Leo can reload that object directly.
+
+```{r}
+#| label: ch19-read-df-analysis-rds
+#| lst-label: lst-19-read-df-analysis-rds
+#| lst-cap: "Code for Loading the RDS Version Created by the Chapter 15 Handoff"
+#| eval: false
+
+df_analysis <- readRDS("datasets/processed/df_analysis.rds")
+```
+
+The RDS route in @lst-19-read-df-analysis-rds is useful for readers who have been building the project continuously. It keeps the exact R object created at the end of Chapter 15. The CSV route and the RDS route should lead to the same analytical object, but the important rule is simple: Chapter 19 must begin from `df_analysis`, not from the messy raw file.
+
+## The Anatomy of a Quarto Document
+
+A Quarto document has three visible parts that Leo will meet constantly.
+
+First is the **YAML header**. It sits at the top of the file between lines of three hyphens. It gives the document its identity and output instructions.
+
+Second is **Markdown prose**. This is the ordinary writing of the chapter or report: headings, paragraphs, lists, links, emphasis, and explanations.
+
+Third are **code chunks**. These are executable blocks that tell Quarto where R code should run and how its output should appear in the final document.
+
+A minimal Quarto report begins as a small source file with three working zones. Leo can think of it as a planning skeleton before he worries about advanced options.
+
+```{r}
+#| label: ch19-report-skeleton
+#| lst-label: lst-19-report-skeleton
+#| lst-cap: "A Planning Skeleton for a Minimal Quarto Report"
+#| eval: false
+
+# 1. YAML header at the top of the .qmd file
+# ---
+# title: "Learner Progress Report"
+# format: html
+# ---
+
+# 2. Markdown prose in the body of the report
+# ## Introduction
+# This report summarises learner progress using the analysis-ready dataset.
+
+# 3. R code inside a code chunk
+df_analysis |>
+  summarise(
+    learners = dplyr::n(),
+    average_project_score = mean(project_score, na.rm = TRUE)
+  ) |>
+  knitr::kable()
+
+# 4. Prose cross-reference after the output
+# The summary table shows the number of learners included in the report
+# and their average project score.
+```
+
+The skeleton in @lst-19-report-skeleton contains the complete idea of reproducible reporting. It is written as a planning sketch rather than a literal file to copy, because a full `.qmd` document contains its own Markdown and code fences. The important lesson is the structure: the source file names the report, explains the question, runs the code, creates the output, and leaves room for prose that interprets the evidence. Nothing has to be copied out of the console.
+
+::: {.callout-tip appearance="simple"}
+## Read a Quarto file from top to bottom
+
+When Leo reads a `.qmd` file, he should ask: What is the document? What question is being explained? What code creates the evidence? What does the prose claim from that evidence?
+:::
+
+## YAML: The Document's Identity Card
+
+YAML is the document's identity card.
+
+It tells Quarto basic information about the document before the body begins. At minimum, it often gives a title and an output format. In a Quarto book chapter, the project configuration may already control many format settings, but the chapter-level YAML still gives the chapter its title.
+
+For this chapter, the YAML is simple:
+
+```yaml
+---
+title: "Reproducible Reports with Quarto: Turning Analysis into a Document"
+---
+```
+
+The important thing is not to memorize every YAML option. The important thing is to understand its role. YAML is not part of the running analysis. It is not a paragraph for the reader. It is metadata that helps Quarto know what kind of document it is building.
+
+YAML is also sensitive to structure. Quotation marks, indentation, and colons matter. A small indentation error can prevent a document from rendering. This is why Leo should keep early YAML simple and expand it only when he understands what each line is doing.
+
+## Markdown: Writing the Explanation
+
+Markdown is where Leo writes the report.
+
+He can create headings with `##`, emphasize terms with asterisks, write ordinary paragraphs, add links, create lists, and explain the analysis in a readable way. Markdown keeps writing plain enough to edit but structured enough for Quarto to render into a professional document.
+
+The writing in a reproducible report has a specific job. It does not simply decorate the code. It frames the analysis.
+
+A weak report says:
+
+> The graph is shown below.
+
+A stronger report says:
+
+> The figure compares weekly study hours with project score for learners in the analysis-ready dataset. It should be read as an association, not as proof that study time alone causes higher performance.
+
+The second version does more professional work. It names the variables, identifies the scope, and limits the claim.
+
+This is where Chapter 18 connects directly to Chapter 19. Visual storytelling is not abandoned. It is placed inside a reproducible document.
+
+## Code Chunks: Where Analysis Runs
+
+A code chunk is where Leo tells Quarto to run R.
+
+A chunk begins with three backticks and `{r}`. Inside the chunk, Leo writes R code. At render time, Quarto sends that code to R, receives the output, and places the output in the final document according to the chunk options.
+
+A chunk can print a small calculation, create a table, build a figure, load data, set up objects, or run a model. But not every chunk should be shown to the reader in the same way. Some chunks are part of the visible evidence. Some are only setup work. Some are templates for the reader to try later.
+
+For example, the setup chunk at the beginning of this chapter loads packages and prepares `df_report`. It is necessary for the chapter to run, but it is not useful as reader-facing evidence. That is why it uses `include: false`. The code runs, but its code and output do not appear in the rendered chapter.
+
+This distinction matters.
+
+Hiding setup work is acceptable when the report explains the data source and presents the evidence transparently. Hiding the logic that creates the main result may be less acceptable unless the method is documented clearly.
+
+## Chunk Options: Controlling What Readers See
+
+Chunk options control the relationship between code, output, and reader.
+
+Leo has already learned that design choices shape plots. Chunk options are similar. They shape the document's evidence surface. They decide whether the reader sees code, output, warnings, messages, figures, tables, or nothing at all.
+
+```{r}
+#| label: tbl-19-chunk-options
+#| tbl-cap: "Common Quarto Chunk Options and Their Reader-Facing Effects."
+
+tibble::tribble(
+  ~`Chunk Option`, ~`Common Use`, ~`Effect on the Report`,
+  "echo: false", "Hide code for a reader-facing report", "Runs the code but does not show the code",
+  "include: false", "Run setup code silently", "Runs the code but hides both code and output",
+  "eval: false", "Show a template without running it", "Displays code but does not execute it",
+  "warning: false", "Suppress expected warnings", "Keeps warnings out of the final document",
+  "message: false", "Suppress package startup messages", "Keeps routine messages out of the final document",
+  "fig-cap", "Caption a figure", "Turns a plot into a numbered, referenceable figure",
+  "fig-alt", "Describe a figure for accessibility", "Adds alternative text for readers who need it",
+  "tbl-cap", "Caption a table", "Turns a table into a numbered, referenceable table"
+) |>
+  knitr::kable()
+```
+
+@tbl-19-chunk-options is not a list to memorize at once. It is a decision map. Leo should begin with the question, "What should the reader see?" Then he should choose the option that supports that purpose.
+
+A useful default for many reports is to show important tables and figures, hide routine setup, and avoid displaying code that distracts from the report's main audience. But if the report is meant for technical review, showing more code may be appropriate.
+
+```{r}
+#| label: ch19-global-chunk-options
+#| lst-label: lst-19-global-chunk-options
+#| lst-cap: "A Conservative Set of Global Chunk Options for a Quarto Report"
+#| eval: false
+
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>",
+  fig.align = "center"
+)
+```
+
+The code in @lst-19-global-chunk-options shows a common pattern for reducing routine noise. It should not be used to hide important problems. If a warning signals a real issue in the analysis, Leo should fix the issue rather than suppress the warning.
+
+::: {.callout-warning appearance="simple"}
+## Do not hide problems
+
+Chunk options should improve communication. They should not be used to bury uncertainty, suppress unexplained warnings, or make a fragile analysis look clean.
+:::
+
+## Tables in Quarto
+
+Tables are where reproducible reporting often begins to feel powerful.
+
+In a copy-paste workflow, Leo runs a summary, copies the numbers, pastes them into a document, and hopes nothing changes. In a Quarto workflow, the table is created during rendering. If the underlying dataset changes and the code still represents the intended analysis, the table updates with the report.
+
+The table below summarises the analysis-ready dataset by completion status.
+
+```{r}
+#| label: tbl-19-completion-summary
+#| tbl-cap: "Learner Progress Summary by Completion Status."
+
+completion_summary <- df_report |>
+  filter(!is.na(completion_status)) |>
+  group_by(completion_status) |>
+  summarise(
+    `Number of learners` = dplyr::n(),
+    `Average study hours` = round(mean(study_hours, na.rm = TRUE), 1),
+    `Average lessons completed` = round(mean(lessons_completed, na.rm = TRUE), 1),
+    `Average confidence score` = round(mean(confidence_score, na.rm = TRUE), 1),
+    `Average project score` = round(mean(project_score, na.rm = TRUE), 1),
+    .groups = "drop"
+  ) |>
+  arrange(desc(`Number of learners`))
+
+completion_summary |>
+  knitr::kable()
+```
+
+@tbl-19-completion-summary is evidence inside the document, not a screenshot of evidence from somewhere else. The code that creates the table, the caption that describes it, and the prose that interprets it remain connected.
+
+The table also models restraint. It does not try to answer every possible question. It gives a compact progress summary that a reader can understand before moving to a visual comparison.
+
+A table in a Quarto report should usually answer one of three reader needs:
+
+- It should give context before a figure.
+- It should summarise a comparison more precisely than a figure can.
+- It should document values the reader may need to inspect directly.
+
+If a table does none of these, it may be clutter.
+
+## Figures in Quarto
+
+Figures behave in the same reproducible way.
+
+In Part 4, Leo learned how to make and refine plots. Chapter 19 now places those plots inside a document that can rerun them. The plot is no longer a loose image saved somewhere on the machine. It is the output of a labelled code chunk.
+
+The figure below connects weekly study hours with project score. It uses the same analysis-ready reporting object prepared for the table.
+
+```{r}
+#| label: fig-19-study-project-report
+#| fig-cap: "Weekly Study Hours and Project Scores in the Analysis-Ready Dataset."
+#| fig-alt: "Scatter plot of weekly study hours on the horizontal axis and project score on the vertical axis. Points are grouped by completion status. The figure shows the overall relationship between study time and project performance but does not establish causation."
+
+ggplot(df_report, aes(x = study_hours, y = project_score, colour = completion_status)) +
+  geom_point(alpha = 0.45) +
+  geom_smooth(aes(group = 1), method = "lm", se = FALSE) +
+  labs(
+    title = "Project performance rises with study time, but the pattern is not a causal proof",
+    subtitle = "Each point represents a learner record from the analysis-ready reporting dataset",
+    x = "Weekly study hours",
+    y = "Project score",
+    colour = "Completion status",
+    caption = chapter19_caption_source
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+@fig-19-study-project-report shows why reproducible reporting matters after visualization. The figure is not only displayed. It is produced by code at render time. If Leo corrects the prepared dataset and renders again, the figure will be regenerated from the current data.
+
+This does not make the interpretation automatic. Leo still has to write responsibly. The caption and title avoid a causal claim because the plot shows association, not experimental proof. That is the Chapter 18 discipline carried into a Chapter 19 document.
+
+::: {.callout-tip appearance="simple"}
+## Caption before confidence
+
+If Leo cannot write a clear caption for a figure, he may not yet know what the figure is doing in the report.
+:::
+
+## Cross-Referencing Tables and Figures
+
+Cross-referencing is one of the habits that separates a professional report from a loose collection of outputs.
+
+A captioned table or figure can be labelled. Once labelled, it can be referenced in prose. Instead of writing "the table above" or "the figure below," Leo writes a reference such as `@tbl-19-completion-summary` or `@fig-19-study-project-report`.
+
+This matters because documents move. A figure that is below one paragraph may move above it after editing. A new table may be inserted between two sections. The phrase "the figure below" can become wrong. A cross-reference remains tied to the labelled evidence.
+
+The table in @tbl-19-completion-summary and the figure in @fig-19-study-project-report are not just visible outputs. They are named parts of the argument. The prose can point to them precisely.
+
+Good cross-referencing also disciplines interpretation. It forces Leo to connect claims to evidence.
+
+A weak sentence says:
+
+> Learners seem to perform better with more study time.
+
+A stronger sentence says:
+
+> @fig-19-study-project-report suggests a positive association between weekly study hours and project score, although the figure does not establish that study time alone caused the difference.
+
+The second sentence does more analytical work. It points to the evidence, names the pattern, and limits the claim.
+
+## Hiding Code Without Hiding Evidence
+
+A common beginner mistake is to confuse hiding code with hiding evidence.
+
+In many professional reports, the reader does not need to see every line of R code. A manager, policy colleague, supervisor, or client may need the result, the method summary, the source, and the limitation, not the full syntax. In that context, `echo: false` can be appropriate.
+
+But the evidence must remain visible and traceable.
+
+If Leo hides the code for a table, the table should still have a caption. The prose should still explain what was summarised. The report should still name the dataset and the analytical scope. If the report is reviewed technically, Leo should be able to share the source `.qmd` file.
+
+The question is not, "Should all code always be visible?" The better question is:
+
+> Does the report give the reader enough information to understand, trust, and, where necessary, check the result?
+
+For a teaching chapter, showing code is often useful. For a polished stakeholder report, hiding routine code may improve readability. For an audit or methods appendix, showing code may be essential.
+
+Reproducibility is not the same as visual clutter. It is the ability to rebuild the output from the source.
+
+## Rendering to HTML, PDF, and Word
+
+A `.qmd` file is the source document. Rendering turns that source into an output.
+
+The output format depends on the document or project settings. A Quarto document may render to HTML for web reading, PDF for print-like distribution, or Word for collaborative editing and institutional workflows.
+
+```{r}
+#| label: tbl-19-render-formats
+#| tbl-cap: "Common Quarto Output Formats and Their Reporting Uses."
+
+tibble::tribble(
+  ~`Output Format`, ~`Useful When`, ~`Practical Note`,
+  "HTML", "The report will be read in a browser or published online", "Good for navigation, links, and screen-based reading",
+  "PDF", "The report needs stable pagination or print-like formatting", "Usually requires a working TeX setup",
+  "Word", "The report must be reviewed or edited in a familiar document workflow", "Useful for supervisors, editors, and institutions that request .docx files"
+) |>
+  knitr::kable()
+```
+
+@tbl-19-render-formats helps Leo choose output format by reader need rather than habit. The same source document can often support more than one output, although each format has its own strengths and constraints.
+
+Rendering can be done in RStudio or from the terminal.
+
+```{bash}
+#| label: ch19-render-commands
+#| lst-label: lst-19-render-commands
+#| lst-cap: "Common Terminal Commands for Rendering a Quarto Report"
+#| eval: false
+
+quarto render report.qmd
+quarto render report.qmd --to html
+quarto render report.qmd --to pdf
+quarto render report.qmd --to docx
+```
+
+The commands in @lst-19-render-commands show the idea. Rendering means Quarto reads the source `.qmd`, executes the code chunks that should run, collects their outputs, applies the document settings, and writes the final file.
+
+When Leo changes the source document, he should render again. The rendered file is an output. The `.qmd` file is the source of truth.
+
+::: {.callout-important appearance="simple"}
+## Edit the source, not the output
+
+If Leo manually edits the rendered Word, PDF, or HTML output, the change may disappear the next time the report is rendered. Durable changes belong in the `.qmd` source.
+:::
+
+## Common Beginner Mistakes
+
+### Mistake 1: Treating Quarto as Word with code pasted in
+
+Quarto is not a word processor that happens to allow code. It is a source document that renders into a reader-facing output. Leo should edit the `.qmd` source, not manually repair the rendered file.
+
+### Mistake 2: Forgetting to render after changes
+
+Saving a `.qmd` file is not the same as rebuilding the output. If Leo changes data, code, captions, or interpretation, he should render again and inspect the result.
+
+### Mistake 3: Using absolute machine-specific paths
+
+A path such as `C:/Users/Leo/Desktop/report/data.csv` may work on Leo's laptop and fail everywhere else. Project-relative paths such as `data/processed/df_analysis.rds` are safer for reproducible projects.
+
+### Mistake 4: Hiding all code without explaining the method
+
+A readable report may hide code, but it should not hide the analytical logic. The reader still needs source, scope, method, and limitation.
+
+### Mistake 5: Creating figures or tables without captions
+
+A table or figure without a caption has no professional identity. Captions help readers understand what the output is, where it comes from, and how far it can be used.
+
+### Mistake 6: Failing to cross-reference evidence in prose
+
+Phrases such as "as shown below" can break when the document is edited. Cross-references keep the prose tied to the correct labelled output.
+
+### Mistake 7: Letting chunk options obscure the analysis
+
+`echo: false`, `include: false`, and `warning: false` are useful options, but they must be used deliberately. They should control communication, not hide problems.
+
+### Mistake 8: Mixing raw and processed data without explanation
+
+Chapter 19 uses `df_analysis` because the report begins from the analysis-ready handoff. If Leo switches back to raw or messy data, he must explain why and document the cleaning path.
+
+### Mistake 9: Editing rendered output manually
+
+Manual edits to a rendered file are fragile. If the report is rendered again, those edits may be lost. The reliable place to revise text, code, captions, and references is the source `.qmd` file.
+
+## Try It Yourself
+
+### Practice 1: Build a one-page report
+
+Create a new file called `learner-progress-report.qmd`. Give it a title, one short introduction, one summary table, one figure, and one conclusion paragraph.
+
+### Practice 2: Add a captioned table
+
+Summarise average project score by `preferred_learning_mode`. Give the table a `tbl-cap`, a clear label, and one sentence that refers to the table using a cross-reference.
+
+### Practice 3: Add a captioned figure
+
+Create a plot of `study_hours` and `project_score`. Add `fig-cap`, `fig-alt`, and one sentence that refers to the figure using a cross-reference.
+
+### Practice 4: Hide setup but not evidence
+
+Add a setup chunk that loads packages and imports `df_analysis`. Use `include: false` for the setup chunk. Keep the table and figure visible.
+
+### Practice 5: Render twice
+
+Render the report once. Then change one sentence in the interpretation and render again. Notice that the final document is produced from the source each time.
+
+### Practice 6: Check the claims
+
+Find one sentence in the report that sounds too strong. Rewrite it so it points to the table or figure and limits the claim to what the evidence supports.
+
+## A Small Practice Lab
+
+The lab below gives Leo a compact report scaffold. It is not evaluated automatically because it is meant to be copied into a new `.qmd` file and rendered manually.
+
+```{r}
+#| label: ch19-practice-lab
+#| lst-label: lst-19-practice-lab
+#| lst-cap: "Code for a Small Reproducible Quarto Report Practice Lab"
+#| eval: false
+
+# Copy this scaffold into a new report and add prose around each output.
+
+# Step 1: Load the analysis-ready data.
+df_analysis <- readRDS("data/processed/df_analysis.rds")
+
+# Step 2: Create a reader-facing summary table.
+progress_by_mode <- df_analysis |>
+  group_by(preferred_learning_mode) |>
+  summarise(
+    learners = dplyr::n(),
+    average_study_hours = mean(study_hours, na.rm = TRUE),
+    average_project_score = mean(project_score, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+progress_by_mode |>
+  knitr::kable()
+
+# Step 3: Create a reader-facing figure.
+progress_plot <- ggplot(df_analysis, aes(x = study_hours, y = project_score)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Study time and project performance move together in this sample",
+    x = "Weekly study hours",
+    y = "Project score"
+  ) +
+  theme_minimal()
+
+progress_plot
+
+# Step 4: Add captions, labels, alt text, and prose cross-references
+# in the .qmd report before rendering.
+```
+
+The scaffold in @lst-19-practice-lab brings together the main habits of the chapter: loading the prepared dataset, creating a table, creating a figure, and surrounding both with captions, labels, cross-references, and cautious interpretation inside the report source.
+
+
+## Short Recap
+
+In this chapter, Leo moved from analytical outputs to reproducible analytical documents. He saw why copy-paste reporting breaks trust when data, code, output, and prose drift apart. He learned that Quarto keeps those elements inside one source document that can be rendered into HTML, PDF, or Word.
+
+He learned the main parts of a Quarto document: YAML, Markdown prose, and code chunks. He learned how chunk options control what readers see. He created a captioned table and a captioned figure from `df_analysis`. He also learned why cross-references matter, why hidden code is not the same as hidden evidence, and why durable edits belong in the `.qmd` source rather than the rendered output.
+
+Most importantly, he learned that a reproducible report is not only a document. It is a trust structure.
+
+## Leo's Notebook
+
+- A copied table can become stale without warning.
+- A `.qmd` file keeps code, output, and explanation together.
+- The rendered report is the output. The source `.qmd` file is where durable changes belong.
+- YAML identifies the document. Markdown carries the explanation. Code chunks run the analysis.
+- Chunk options should help the reader, not hide analytical problems.
+- A table or figure should have a caption if it is part of the report's evidence.
+- Cross-references connect claims to named evidence.
+- `df_analysis` is the correct starting point for this chapter because it comes from the prepared Part 3 handoff.
+- Hiding setup code can be appropriate. Hiding the logic of a result without explanation is risky.
+- Rendering is the moment when the report rebuilds itself from the source.
+
+## Glossary
+
+**Caption**  
+A short description attached to a table or figure. A good caption identifies what the output shows and may include source, scope, or limitation.
+
+**Chunk option**  
+An instruction that controls how a code chunk behaves during rendering, such as whether code is shown, output is included, warnings are displayed, or a figure receives a caption.
+
+**Code chunk**  
+An executable block inside a Quarto document. In R chapters, code chunks run R code and insert the resulting output into the rendered document.
+
+**Cross-reference**  
+A reference in the prose that points to a labelled table, figure, listing, section, or other numbered element. Cross-references help keep claims tied to evidence.
+
+**Markdown**  
+A plain-text writing format used for headings, paragraphs, links, lists, emphasis, and other document structure.
+
+**Output format**  
+The final type of document produced when Quarto renders a source file, such as HTML, PDF, or Word.
+
+**Quarto document**  
+A `.qmd` source file that can combine metadata, prose, executable code, output, captions, and references into one reproducible document.
+
+**Render**  
+The process by which Quarto reads a `.qmd` source file, executes code chunks where appropriate, and produces the final output document.
+
+**Reproducible report**  
+A report whose tables, figures, and other outputs are generated from code in the source document, so the report can be rebuilt when data or analysis changes.
+
+**YAML**  
+The metadata block at the top of a Quarto document. It gives information such as the title and, where appropriate, output settings.
+
+## Chapter Outcome
+
+Leo can now turn analysis into a reproducible report.
+
+He can explain why copy-paste reporting is fragile. He can identify the main parts of a Quarto document. He can load the analysis-ready dataset, create a captioned table, create a captioned figure, and refer to both in the prose. He can use chunk options deliberately. He can distinguish the source `.qmd` file from the rendered output. He can also make a stronger professional judgement about when to show code, when to hide routine setup, and how to keep evidence visible even when code is not printed in full.
+
+This is the first threshold of Part 5.
+
+Leo is no longer only producing analyses. He is beginning to build analytical systems.
+
+## What Comes Next
+
+Chapter 19 solved the problem of fragile reporting from a local analysis-ready dataset.
+
+But professional data work rarely stops there.
+
+So far, Leo's report begins from `df_analysis`, a prepared dataset stored in the project. That is appropriate for learning reproducible reporting. It gives him a stable source, a controlled object, and a document that can be rerun.
+
+The next question is different:
+
+> What happens when the data do not live neatly as one local file?
+
+Many real reports depend on data stored in databases, web services, shared systems, or external platforms. Those data may update, require access rules, or arrive in structures that are not as simple as a CSV file.
+
+Chapter 20 moves Leo into that world. It introduces data connections, not as a departure from reproducible reporting, but as the next layer in the same system. Once Leo can build a report that reruns from a local prepared dataset, he is ready to ask how R connects to data beyond local files.

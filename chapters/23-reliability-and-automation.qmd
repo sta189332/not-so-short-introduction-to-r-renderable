@@ -1,0 +1,1204 @@
+---
+title: "Reliability and Automation: Making Workflows Repeatable"
+---
+
+```{=latex}
+
+\renewcommand{\thefigure}{23.\arabic{figure}}
+
+\setcounter{figure}{0}
+
+\renewcommand{\thetable}{23.\arabic{table}}
+
+\setcounter{table}{0}
+
+```
+
+```{r}
+#| label: setup-chapter-23
+#| include: false
+
+suppressPackageStartupMessages({
+  library(knitr)
+})
+
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>",
+  fig.align = "center"
+)
+```
+
+## Opening Scene: Which Script Should I Run First?
+
+Leo returns to a project after several days away from it.
+
+Nothing looks broken. The folders are still there. The scripts are still there. The report still exists. A cleaned dataset sits inside `data/processed/`, but Leo cannot immediately remember which script created it. A few helper functions live in a shared file. Some reusable tools are beginning to look organised after the work in [Chapter 22](22-from-functions-to-packages.qmd).
+
+Then Leo opens the project and asks the question that exposes the next weakness:
+
+> "Which script should I run first?"
+
+That question should make him pause.
+
+A project can contain correct code and still be unreliable. A script can work on Tuesday and confuse its author on Friday. A report can render once and fail later because Leo forgot one step, ran scripts in the wrong order, changed an input file, overwrote an output, or trusted an object that only existed in yesterday's R session.
+
+This is a different kind of problem from the one solved in [Chapter 22](22-from-functions-to-packages.qmd). Chapter 22 helped Leo move repeated functions into more reusable forms. It taught him that useful functions need names, examples, documentation, and eventually tests. But reusable tools do not automatically create a repeatable workflow.
+
+A toolkit is not automatically a workflow. 
+
+A package by itself is not automatically a workflow. 
+
+A folder full of scripts is not automatically a workflow.
+
+A workflow begins to become reliable when the project itself makes the order of work visible.
+
+## The Lightbulb Idea
+
+Reliable analysis is not only analysis that gives a correct answer today. It is analysis that can be run again tomorrow, by Leo or by someone else, without relying on memory.
+
+That is the controlling idea of this chapter:
+
+> Once Leo has reusable tools, he must learn how to make the whole workflow run reliably, in the right order, with fewer fragile manual steps.
+
+The important phrase is **in the right order**.
+
+A serious analytical project usually has dependencies. Raw data must be imported before it is cleaned. Cleaned data must exist before it can be transformed. Transformed data must exist before summaries and plots can be created. Summaries and plots must exist before a final report can be trusted.
+
+If Leo runs those steps by memory, the project is fragile. If the project records the order, checks its assumptions, and reduces manual repetition, the project becomes easier to repeat.
+
+Within Part 5, that movement matters because Leo is no longer learning isolated R techniques. He is learning how professional analytical work becomes a system: first communicable through reports, then traceable through version control, reusable through functions and packages, repeatable through reliability habits, efficient through performance awareness, and finally integrated into a complete end-to-end project.
+
+## What Changes After Chapter 22
+
+After [Chapter 22](22-from-functions-to-packages.qmd), Leo can think about reusable functions more professionally. He knows that repeated logic should not be copied across scripts forever. He knows that helper functions can live in a shared file, a project toolkit, or a small internal package when the project deserves that structure.
+
+But the next question is larger:
+
+> How does the whole project run?
+
+This question shifts Leo from **tool design** to **workflow design**. A reusable function solves one local problem. A repeatable workflow solves the larger problem of sequence, dependency, checking, and execution.
+
+@fig-23-reusable-to-repeatable summarises this movement from reusable tools to a repeatable analytical system.
+
+```{r}
+#| label: fig-23-reusable-to-repeatable
+#| fig-cap: "From Reusable Tools to a Repeatable Analytical System."
+#| fig-alt: "A left-to-right workflow diagram showing reusable functions becoming ordered scripts, checked inputs, controlled outputs, and a repeatable report."
+#| echo: false
+#| fig-width: 8
+#| fig-height: 3.6
+#| out-width: "92%"
+
+old_par <- par(no.readonly = TRUE)
+on.exit(par(old_par), add = TRUE)
+
+par(mar = c(1, 1, 1, 1))
+plot.new()
+plot.window(xlim = c(0, 10), ylim = c(0, 5))
+
+boxes <- data.frame(
+  xleft = c(0.3, 2.6, 4.9, 7.2),
+  xright = c(2.0, 4.3, 6.6, 9.3),
+  ybottom = c(2.0, 2.0, 2.0, 2.0),
+  ytop = c(3.4, 3.4, 3.4, 3.4),
+  label = c(
+    "Reusable\nfunctions",
+    "Ordered\nscripts",
+    "Checked\ninputs and outputs",
+    "Repeatable\nreport"
+  )
+)
+
+for (i in seq_len(nrow(boxes))) {
+  rect(
+    boxes$xleft[i], boxes$ybottom[i],
+    boxes$xright[i], boxes$ytop[i],
+    lwd = 1.4
+  )
+  text(
+    x = (boxes$xleft[i] + boxes$xright[i]) / 2,
+    y = (boxes$ybottom[i] + boxes$ytop[i]) / 2,
+    labels = boxes$label[i],
+    cex = 0.9
+  )
+}
+
+arrows(2.05, 2.7, 2.52, 2.7, length = 0.1, lwd = 1.2)
+arrows(4.35, 2.7, 4.82, 2.7, length = 0.1, lwd = 1.2)
+arrows(6.65, 2.7, 7.12, 2.7, length = 0.1, lwd = 1.2)
+
+text(
+  x = 5,
+  y = 1.2,
+  labels = "Reliability comes from order, checks, and repeatable execution.",
+  cex = 0.95
+)
+```
+
+The figure matters because it prevents a common misunderstanding. Leo is not trying to make his project look more technical for its own sake. He is trying to remove hidden dependence on his memory.
+
+A workflow becomes more reliable when the next action is not a guess.
+
+## Reliability Before Automation
+
+Automation sounds advanced. It can make beginners imagine cloud servers, scheduled jobs, GitHub Actions, production pipelines, and complicated engineering systems.
+
+That is not where Leo starts.
+
+In this chapter, automation means something simpler and more useful:
+
+> Automation is the reduction of fragile manual repetition.
+
+Automation can begin with one script that runs steps in the right order. It can begin with a few checks that stop the workflow when required files are missing. It can begin with an instruction that creates an output folder before saving a result. It can begin with a render command that rebuilds a report from its source.
+
+Before Leo thinks about advanced automation, he needs a reliability vocabulary. @tbl-23-reliability-vocabulary separates the key terms that often get mixed together.
+
+```{r}
+#| label: tbl-23-reliability-vocabulary
+#| tbl-cap: "Core Reliability Terms for a Beginner-Professional R Workflow."
+#| echo: false
+
+reliability_vocabulary <- data.frame(
+  Term = c(
+    "Reusable code",
+    "Repeatable workflow",
+    "Reliable workflow",
+    "Automation",
+    "Reproducibility",
+    "Dependency order",
+    "Assumption check",
+    "Project memory"
+  ),
+  Meaning = c(
+    "Code, usually a function, designed to be used more than once without copying and rewriting it.",
+    "A sequence of steps that can be run again in the same intended order.",
+    "A repeatable workflow that also checks important assumptions and reduces hidden manual decisions.",
+    "A way of making routine steps run with fewer manual actions.",
+    "The ability to recreate results from the same inputs, code, and environment.",
+    "The required sequence among files, scripts, objects, and outputs.",
+    "A deliberate check that confirms a needed file, folder, column, package, or object is available before later work depends on it.",
+    "The information a project records so Leo does not have to remember everything alone."
+  ),
+  `Leo's practical question` = c(
+    "Can I use this tool again?",
+    "Can I run the same process again?",
+    "Will the process warn me before it gives a misleading result?",
+    "Can I reduce repeated clicking, copying, and manual running?",
+    "Can this result be rebuilt from its sources?",
+    "What must happen before this step can safely run?",
+    "What must be true before I continue?",
+    "What does the project know without asking me to remember?"
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(reliability_vocabulary)
+```
+
+The distinction in @tbl-23-reliability-vocabulary is more than vocabulary. It gives Leo a practical diagnostic tool. When a project fails, he can ask whether the problem is the code, the order, the input, the output, the environment, or the undocumented manual step.
+
+## Why Manual Workflows Break
+
+Manual work feels harmless when a project is small.
+
+Leo opens a file. He runs one script. He changes one value. He exports one chart. He renders one report. Nothing seems complicated.
+
+Then the project grows.
+
+A manual workflow begins to break for predictable reasons. The problem is not that Leo is careless. The problem is that memory is not a reliable workflow manager.
+
+@tbl-23-workflow-risks maps common manual workflow risks to the reliability habit that reduces each risk.
+
+```{r}
+#| label: tbl-23-workflow-risks
+#| tbl-cap: "Manual Workflow Risks and the Reliability Habits That Reduce Them."
+#| echo: false
+
+workflow_risks <- data.frame(
+  `Manual workflow risk` = c(
+    "Running scripts in the wrong order",
+    "Trusting objects left in the Global Environment",
+    "Forgetting to update the cleaned dataset",
+    "Saving outputs with unclear names",
+    "Overwriting old results without noticing",
+    "Rendering a report from stale inputs",
+    "Changing code without checking expected inputs",
+    "Depending on steps performed outside the project"
+  ),
+  `What can go wrong` = c(
+    "Later scripts may use missing or outdated objects.",
+    "The script may work only because yesterday's session still contains hidden objects.",
+    "Summaries and plots may use old evidence.",
+    "Leo may not know which output belongs to which run.",
+    "Previous evidence may disappear before it can be compared.",
+    "The report may look current while using outdated data.",
+    "Errors may appear late or, worse, wrong results may appear without errors.",
+    "Another reader cannot rebuild the work from the project files."
+  ),
+  `Reliability habit` = c(
+    "Record and run the workflow in a visible order.",
+    "Restart R and run from project files, not memory.",
+    "Make cleaned outputs part of the documented workflow.",
+    "Use clear output locations and names.",
+    "Write outputs deliberately and avoid casual manual replacement.",
+    "Render from source after rebuilding required inputs.",
+    "Check assumptions before later steps depend on them.",
+    "Move hidden manual steps into scripts or written instructions."
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(workflow_risks)
+```
+
+The risks in @tbl-23-workflow-risks are not rare edge cases. They are everyday causes of irreproducible analysis. A fragile workflow can fail silently because nothing in the project records the proper order of work.
+
+This is why reliability is not a luxury. It is a form of analytical honesty.
+
+## From Files to a Workflow Route
+
+A project folder is a place. A workflow route is a path through that place.
+
+Leo may have many useful files:
+
+- `data/raw/df_r_migration_messy.csv`
+- `scripts/01_import.R`
+- `scripts/02_clean.R`
+- `scripts/03_prepare_analysis_data.R` 
+- `scripts/04_create_tables_and_figures.R`
+- `chapters/23-reliability-and-automation.qmd`
+- `data/processed/df_analysis.rds`
+- `outputs/tables/`
+- `outputs/figures/`
+
+Those files do not automatically tell him what to do first. Naming helps, but naming is only the beginning. A repeatable workflow needs a visible route.
+
+@tbl-23-run-order gives Leo a simple run-order map. It does not require advanced pipeline software. It simply makes dependency order explicit.
+
+```{r}
+#| label: tbl-23-run-order
+#| tbl-cap: "A Simple Run-Order Map for a Repeatable R Project."
+#| echo: false
+
+run_order <- data.frame(
+  Step = c(
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ),
+  `Script or action` = c(
+    "`scripts/01_import.R`",
+    "`scripts/02_clean.R`",
+    "`scripts/03_prepare_analysis_data.R`",
+    "`scripts/04_create_tables_and_figures.R`",
+    "`quarto render`"
+  ),
+  `Main input` = c(
+    "`data/raw/df_r_migration_messy.csv`",
+    "Imported raw object or saved raw import",
+    "Cleaned learner data",
+    "Analysis-ready data",
+    "Chapter and report `.qmd` files"
+  ),
+  `Main output` = c(
+    "Checked raw import",
+    "`data/processed/df_r_migration_clean.rds`",
+    "`data/processed/df_analysis.rds`",
+    "Tables, figures, and summary outputs",
+    "Rendered book, chapter, or report"
+  ),
+  `Reliability question` = c(
+    "Can R find and read the raw file?",
+    "Were obvious data problems handled consistently?",
+    "Does the analysis dataset contain the expected variables?",
+    "Do outputs reflect the current data?",
+    "Can the document rebuild from project files?"
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(run_order)
+```
+
+@tbl-23-run-order gives Leo something better than memory. It gives him an execution map. Even if he later changes the scripts, the principle remains stable: every step should have an input, an action, an output, and a reliability question.
+
+::: {.callout-warning title="Project-Root Discipline"}
+A repeatable workflow should not depend on `setwd("C:/Users/...")`, a Downloads folder, or a path that only works on Leo's machine.
+
+The safer habit is to open the project from its root folder and use project-root relative paths such as `data/raw/df_r_migration_messy.csv`, `data/processed/df_analysis.rds`, and `scripts/02_clean.R`.
+:::
+
+::: {.callout-tip title="Lightbulb Moment"}
+A workflow becomes more reliable when Leo can point to the next step without guessing.
+
+If the order exists only in his head, the project is still depending on memory. If the order exists in script names, a master script, a README, or a project note, the project begins to remember for him.
+:::
+
+## Script-Level Discipline
+
+A reliable workflow begins inside individual scripts.
+
+A script should not behave like a personal scratchpad. It should tell a future reader what it expects, what it does, and what it creates. That future reader may be a collaborator. It may be a supervisor. Very often, it will be Leo himself after one busy week.
+
+A script header is a small habit with high value. @lst-23-script-header shows a simple template Leo can adapt.
+
+```{r}
+#| lst-label: lst-23-script-header
+#| eval: false
+#| lst-cap: "A Simple Header for a Reliable Project Script."
+
+# scripts/02_clean.R
+# Purpose: Clean the raw learner migration dataset for analysis.
+# Inputs:
+#   - data/raw/df_r_migration_messy.csv
+# Outputs:
+#   - data/processed/df_r_migration_clean.rds
+#   - data/processed/df_r_migration_clean.csv
+# Must run after:
+#   - scripts/01_import.R, if the project saves a checked raw import first.
+# Must run before:
+#   - scripts/03_prepare_analysis_data.R
+# Reliability notes:
+#   - Do not edit the raw CSV file directly.
+#   - Keep cleaning decisions visible in this script.
+#   - Save cleaned outputs to data/processed/.
+```
+
+The header in @lst-23-script-header is not decoration. It answers the questions Leo asks when he returns to a project:
+
+- What does this file do?
+- What must exist before it runs?
+- What does it create?
+- What should not be edited manually?
+- What depends on it later?
+
+The header does not make the code correct by itself. It makes the script easier to inspect, repeat, and trust.
+
+## Workflow-Level Discipline
+
+Script-level discipline makes each file clearer. Workflow-level discipline makes the project clearer.
+
+The difference matters.
+
+A script-level question asks:
+
+> Can this script run correctly?
+
+A workflow-level question asks:
+
+> Can the project run correctly from beginning to end?
+
+Leo needs both. A clean script inside a confused workflow still leaves him asking which file to run first. A workflow-level view shows the dependency route.
+
+@lst-23-project-route shows one possible project route note. It is written as a commented planning scaffold inside a non-evaluated R listing, so it is intentionally not executed during rendering.
+
+```{r}
+#| lst-label: lst-23-project-route
+#| eval: false
+#| lst-cap: "A Project Route Note That Makes Workflow Order Visible."
+
+# Project route for the learner migration analysis
+#
+# 1. Confirm raw data exists:
+#    data/raw/df_r_migration_messy.csv
+#
+# 2. Import and inspect:
+#    scripts/01_import.R
+#
+# 3. Clean and standardise:
+#    scripts/02_clean.R
+#
+# 4. Prepare analysis-ready data:
+#    scripts/03_prepare_analysis_data.R
+#
+# 5. Create tables and figures:
+#    scripts/04_create_tables_and_figures.R
+#
+# 6. Render the book or report:
+#    quarto render
+```
+
+The route note in @lst-23-project-route does not replace code. It helps Leo and other readers understand the workflow before entering the code. In a small project, this can live in a `README.md` file. In a teaching project, it may appear in a chapter note. In a larger project, the same idea can later grow into a more formal workflow tool.
+
+The principle remains the same: make the order visible.
+
+## Checking Assumptions Before Running
+
+A fragile workflow fails late. A reliable workflow tries to fail early.
+
+This is a crucial distinction.
+
+If the raw data file is missing, Leo should know before the cleaning script starts. If the output folder does not exist, the script should create it or stop with a useful message. If a required column is missing, the workflow should not quietly continue and produce misleading summaries.
+
+Assumption checks are small pieces of defensive code. They do not make a project complicated. They make failure more honest.
+
+@lst-23-required-file-check shows a simple pattern for checking that a required file exists before a script depends on it.
+
+```{r}
+#| lst-label: lst-23-required-file-check
+#| eval: false
+#| lst-cap: "Checking That a Required Input File Exists Before Continuing."
+
+raw_file <- "data/raw/df_r_migration_messy.csv"
+
+if (!file.exists(raw_file)) {
+  stop(
+    "Required raw data file not found: ", raw_file, "\n",
+    "Place df_r_migration_messy.csv in data/raw/ before running this script.",
+    call. = FALSE
+  )
+}
+
+raw_data <- read.csv(raw_file, stringsAsFactors = FALSE)
+```
+
+The pattern in @lst-23-required-file-check improves the reader's experience of failure. Instead of receiving a vague error later, Leo receives a direct message about the missing file and where it should go.
+
+That is reliability in practice.
+
+## Checking Folders Before Saving
+
+Files are not the only assumptions. Folders matter too.
+
+If Leo wants to save an output to `data/processed/`, that folder must exist. If he wants to save figures to `outputs/figures/`, that folder must exist. A beginner often creates folders manually and then forgets which ones are required. A repeatable workflow can create expected folders safely.
+
+@lst-23-folder-check shows a simple folder-creation pattern.
+
+```{r}
+#| lst-label: lst-23-folder-check
+#| eval: false
+#| lst-cap: "Creating Expected Output Folders Safely Before Saving Files."
+
+required_dirs <- c(
+  "data/processed",
+  "outputs/tables",
+  "outputs/figures"
+)
+
+for (dir in required_dirs) {
+  if (!dir.exists(dir)) {
+    dir.create(dir, recursive = TRUE)
+  }
+}
+```
+
+@lst-23-folder-check is intentionally plain. Leo does not need advanced automation to avoid a missing-folder error. He needs the project to prepare the path before saving output.
+
+This is one of the simplest moves from manual work to repeatable work.
+
+## Checking Columns Before Analysis
+
+A file can exist and still be wrong.
+
+Perhaps the wrong CSV was placed in `data/raw/`. Perhaps a column name changed. Perhaps an earlier cleaning step dropped a variable that the next script expects. If the analysis depends on columns such as `learner_id`, `study_hours`, `project_score`, and `completion_status`, Leo should check that they exist before analysis continues.
+
+@lst-23-column-check demonstrates this habit.
+
+```{r}
+#| lst-label: lst-23-column-check
+#| eval: false
+#| lst-cap: "Checking Required Columns Before Later Analysis Depends on Them."
+
+required_columns <- c(
+  "learner_id",
+  "study_hours",
+  "project_score",
+  "completion_status"
+)
+
+missing_columns <- setdiff(required_columns, names(df_analysis))
+
+if (length(missing_columns) > 0) {
+  stop(
+    "The analysis dataset is missing required columns: ",
+    paste(missing_columns, collapse = ", "),
+    call. = FALSE
+  )
+}
+```
+
+The column check in @lst-23-column-check protects the workflow from a dangerous situation: code that runs on the wrong structure. Reliable workflows do not simply ask whether code runs. They ask whether the evidence has the expected shape before the code runs.
+
+::: {.callout-warning title="Common Mistake"}
+Beginners often treat an error as the enemy.
+
+In reliable analysis, a good early error is a friend. It stops the workflow before the project produces a confident but misleading result.
+:::
+
+## A Master Script as a First Automation Habit
+
+A master script is one of the simplest ways to move from manual execution to repeatable execution.
+
+The idea is straightforward. Instead of opening several scripts and running them one by one from memory, Leo creates one script whose job is to run the project steps in order.
+
+For a beginner-professional workflow, that master script might be called:
+
+- `scripts/00_run_project.R`
+- `scripts/run_all.R`
+- `scripts/_run_workflow.R`
+
+The name matters less than the discipline. The master script should be easy to find, easy to read, and careful about what it runs.
+
+@lst-23-master-script gives a beginner-friendly version. It uses `source()` deliberately rather than casually.
+
+```{r}
+#| lst-label: lst-23-master-script
+#| eval: false
+#| lst-cap: "A Beginner-Friendly Master Script for Running Project Steps in Order."
+
+# scripts/00_run_project.R
+# Purpose: Run the learner migration workflow in the intended order.
+
+message("Starting learner migration workflow...")
+
+if (!dir.exists("scripts") || !dir.exists("data")) {
+  stop(
+    "This workflow expects to be run from the project root. ",
+    "Open the project folder first, then run scripts/00_run_project.R.",
+    call. = FALSE
+  )
+}
+
+# 1. Prepare expected folders
+source("scripts/00_setup_paths.R")
+
+# 2. Import and inspect raw data
+source("scripts/01_import.R")
+
+# 3. Clean raw data
+source("scripts/02_clean.R")
+
+# 4. Prepare analysis-ready data
+source("scripts/03_prepare_analysis_data.R")
+
+# 5. Create tables and figures
+source("scripts/04_create_tables_and_figures.R")
+
+message("Workflow completed. Now render the book or report from source.")
+```
+
+The master script in @lst-23-master-script does not make the project advanced. It makes the project less dependent on memory. It creates one visible place where Leo can inspect the order of work. 
+
+The master script should not become a dumping ground for every cleaning, analysis, and plotting decision. Its main job is orchestration. The detailed work should still live in focused scripts whose names, inputs, outputs, and assumptions can be inspected.
+
+This pattern also teaches humility. If running all scripts from a clean session fails, that failure reveals a dependency problem the project was hiding.
+
+## Controlled Use of `source()`
+
+The function `source()` tells R to run code from another script. It is powerful, but it should be used with care.
+
+Used well, `source()` helps Leo build a repeatable workflow. Used carelessly, it can hide complexity and make the project harder to inspect. The difference lies in discipline.
+
+A controlled use of `source()` has three features:
+
+1. The sourced scripts have clear purposes.
+2. The order is intentional.
+3. The workflow does not depend on mysterious objects left behind in the Global Environment.
+
+@tbl-23-source-discipline distinguishes helpful and risky uses of `source()`.
+
+```{r}
+#| label: tbl-23-source-discipline
+#| tbl-cap: "Helpful and Risky Uses of `source()` in Beginner-Professional R Projects."
+#| echo: false
+
+source_discipline <- data.frame(
+  `Use of source()` = c(
+    "Helpful",
+    "Helpful",
+    "Risky",
+    "Risky"
+  ),
+  Pattern = c(
+    "A master script sources numbered workflow scripts in a visible order.",
+    "A script sources a small helper file that contains reusable functions.",
+    "A script sources many files whose purposes and order are unclear.",
+    "A workflow works only because sourced scripts create hidden objects in the Global Environment."
+  ),
+  `Better habit` = c(
+    "Keep the order explicit and comment each major step.",
+    "Keep helper files focused and avoid mixing helper functions with analysis actions.",
+    "Split scripts by purpose and document the route.",
+    "Save important outputs deliberately and pass objects clearly where possible."
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(source_discipline)
+```
+
+The point of @tbl-23-source-discipline is not that `source()` is good or bad. The point is that `source()` should make the route clearer, not more mysterious.
+
+## Clean Sessions: The Reality Test
+
+One of the most important reliability habits is simple:
+
+> Restart R and run the workflow from the project files.
+
+This habit exposes hidden dependence on memory. If a script works only because Leo already created an object in the Global Environment, the script is not reliable. If a report renders only because the right object happens to exist from yesterday, the report is not reproducible.
+
+A clean session asks the project a strict question:
+
+> Can you rebuild what you need from the files you claim to use?
+
+This is why serious work should not be judged only by whether a script runs after a long interactive session. It should be judged by whether it runs from a clean start.
+
+@lst-23-clean-session-test gives Leo a simple manual test he can perform inside RStudio or any R session.
+
+```{r}
+#| lst-label: lst-23-clean-session-test
+#| eval: false
+#| lst-cap: "A Simple Clean-Session Test for Workflow Reliability."
+
+# Clean-session reliability test
+# 1. Save all open files.
+# 2. Restart R.
+# 3. Do not manually create objects in the Console.
+# 4. Run the master script from the project root.
+# 5. Render the report or book from source.
+# 6. If something fails, fix the missing dependency in the workflow,
+#    not by manually recreating the object in the Console.
+```
+
+The test in @lst-23-clean-session-test is deliberately demanding. It prevents Leo from mistaking a successful interactive session for a repeatable project.
+
+::: {.callout-tip title="Reliability Habit"}
+When a workflow fails after restarting R, do not treat the restart as the problem.
+
+The restart has revealed the problem. Something important was living in memory instead of being recorded in the project workflow.
+:::
+
+## Output Discipline
+
+A workflow is not only about inputs and scripts. It is also about outputs.
+
+Output discipline means Leo knows:
+
+- where outputs are saved;
+- which script created them;
+- whether they are intermediate or final;
+- whether they can be recreated;
+- whether they should be tracked in version control;
+- whether they should be manually edited.
+
+This matters because output folders can become another version of the old `final`, `final_2`, and `real_final` problem. A reliable workflow should make outputs understandable.
+
+@tbl-23-output-discipline gives a practical output map for Leo's project.
+
+```{r}
+#| label: tbl-23-output-discipline
+#| tbl-cap: "A Practical Output Discipline Map for Repeatable R Workflows."
+#| echo: false
+
+output_discipline <- data.frame(
+  `Output location` = c(
+    "`data/processed/`",
+    "`outputs/tables/`",
+    "`outputs/figures/`",
+    "`_book/` or rendered report folder",
+    "`logs/`"
+  ),
+  `Typical contents` = c(
+    "Cleaned or analysis-ready datasets",
+    "CSV, RDS, or rendered tables used in reports",
+    "Saved plots and image outputs",
+    "Rendered HTML, PDF, EPUB, or report files",
+    "Optional run notes, validation summaries, or session records"
+  ),
+  `Reliability rule` = c(
+    "Create from scripts; do not manually edit as if they were raw data.",
+    "Name clearly and regenerate from analysis scripts where possible.",
+    "Create from plotting scripts or report chunks; avoid manual replacement without documentation.",
+    "Render from source rather than editing the rendered output directly.",
+    "Use logs to document what happened, not to replace readable code."
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(output_discipline)
+```
+
+The map in @tbl-23-output-discipline helps Leo separate evidence from products. Raw data should be protected. Processed data should be created by scripts. Reports should be rendered from source. Outputs should not become secret workspaces where manual editing hides the analytical route.
+
+## Rendering as Part of the Workflow
+
+For a Quarto book, rendering is not an afterthought. Rendering is the moment when source files, code chunks, outputs, cross-references, captions, and narrative are tested together.
+
+Leo should not treat rendering as merely pressing a button at the end. Rendering is part of workflow reliability.
+
+A report that cannot be rendered from source is not yet a reliable report.
+
+@lst-23-render-commands shows render commands Leo may run in a Terminal from the project root, not commands he should paste into the R Console. These commands are not evaluated in the chapter because they are project actions rather than chapter computations.
+
+```{bash}
+#| lst-label: lst-23-render-commands
+#| eval: false
+#| lst-cap: "Common Quarto Render Commands for Rebuilding Work from Source."
+
+# Run these commands in a Terminal from the project root. 
+
+# Render the entire Quarto project or book 
+quarto render
+
+# Render a specific chapter or document
+quarto render chapters/23-reliability-and-automation.qmd
+
+# Preview the project during development
+quarto preview
+```
+
+The commands in @lst-23-render-commands give Leo another reliability habit: rebuild the product from its source. If the rendered book exposes a broken table reference, missing figure, or failing chunk, the render has served its purpose.
+
+It has protected the reader.
+
+## Render-Safe Thinking
+
+A render-safe chapter is written with the rendering process in mind.
+
+This does not mean every code chunk must be evaluated. Some chunks are templates, scaffolds, or commands that should not run during book rendering. The professional habit is to decide deliberately.
+
+For Chapter 23 and later chapters, Leo should apply a simple rule:
+
+- real analysis that creates a table should usually run and receive a table caption;
+- real analysis that creates a figure should usually run and receive a figure caption and alt text;
+- templates and pseudocode should usually not run;
+- file-writing code should usually not run inside a book render unless the chapter is designed to create that file;
+- practice labs should usually be scaffolds that Leo runs manually.
+
+@tbl-23-chunk-discipline records this decision pattern in a compact form.
+
+```{r}
+#| label: tbl-23-chunk-discipline
+#| tbl-cap: "Chunk-Execution Discipline for Reliable Quarto Chapters from Chapter 19 Onward."
+#| echo: false
+
+chunk_discipline <- data.frame(
+  `Type of chunk` = c(
+    "Real analysis that creates a table",
+    "Real analysis that creates a figure",
+    "Real code that teaches a concept but prints no useful output",
+    "Template or pseudocode",
+    "Optional package demonstration",
+    "File-writing or export code",
+    "App code such as Shiny",
+    "Practice-lab scaffold"
+  ),
+  `Default treatment` = c(
+    "`eval: true`, with `tbl-cap`, table label, and prose reference",
+    "`eval: true`, with `fig-cap`, `fig-alt`, figure label, and prose reference",
+    "Usually `eval: true`, unless incomplete",
+    "`eval: false`, with `lst-label` and prose reference if discussed",
+    "Usually `eval: false`, unless the package is guaranteed in setup",
+    "Usually `eval: false`",
+    "`eval: false`",
+    "Usually `eval: false`, so Leo can run it manually"
+  ),
+  `Reliability reason` = c(
+    "The rendered chapter proves the table can be recreated.",
+    "The rendered chapter proves the figure can be recreated and interpreted.",
+    "The code should remain honest unless it is only illustrative.",
+    "The book should not pretend a template is a working computation.",
+    "Optional dependencies should not break the render for readers.",
+    "A chapter render should not unexpectedly overwrite project files.",
+    "Apps require a different runtime context.",
+    "Practice should invite action without destabilising the book build."
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(chunk_discipline)
+```
+
+@tbl-23-chunk-discipline is not a formatting preference. It is a reliability rule. A book about reproducible work should not hide fragile chunks, unreferenced outputs, or code that accidentally rewrites files during rendering.
+
+## Small Automation Without Overengineering
+
+At this point, Leo may worry that automation means learning a full pipeline framework.
+
+Not yet.
+
+A beginner-professional workflow can become much more reliable with small automation habits:
+
+- one script to create expected folders;
+- one script to run analysis steps in order;
+- one render command to rebuild the document;
+- one checklist before submission;
+- one clean-session test before trusting the output.
+
+These habits are not glamorous. They are powerful because they remove repeated manual decisions.
+
+@lst-23-small-automation combines several of these habits in a small project setup script.
+
+```{r}
+#| lst-label: lst-23-small-automation
+#| eval: false
+#| lst-cap: "A Small Automation Script for Preparing Project Folders and Inputs."
+
+# scripts/00_setup_paths.R
+# Purpose: Prepare basic project paths before the workflow runs.
+
+required_dirs <- c(
+  "data/raw",
+  "data/processed",
+  "outputs/tables",
+  "outputs/figures"
+)
+
+for (dir in required_dirs) {
+  if (!dir.exists(dir)) {
+    dir.create(dir, recursive = TRUE)
+  }
+}
+
+required_files <- c(
+  "data/raw/df_r_migration_messy.csv"
+)
+
+missing_files <- required_files[!file.exists(required_files)]
+
+if (length(missing_files) > 0) {
+  stop(
+    "Missing required file(s): ",
+    paste(missing_files, collapse = ", "),
+    "\nPlace the required file(s) in the expected location before running the workflow.",
+    call. = FALSE
+  )
+}
+
+message("Project paths and required inputs are ready.")
+```
+
+The setup script in @lst-23-small-automation does not analyse data. It prepares the ground for analysis. That is precisely why it belongs near the beginning of a workflow. It turns assumptions into checks.
+
+::: {.callout-note title="What Automation Means Here"}
+Automation does not mean removing human judgment.
+
+It means reducing repeated manual actions that are easy to forget, skip, or perform in the wrong order. Leo still decides what the workflow should do. The project helps him run that decision consistently.
+:::
+
+## Validation After Running
+
+Checks before a workflow runs are important. Checks after a workflow runs are also important.
+
+A script may complete without an error and still create a suspicious output. A cleaned dataset may have zero rows because a filter was too strict. A summary may contain missing values in a key variable. A figure may render, but from an unexpectedly small dataset.
+
+Validation asks a simple question:
+
+> Did the workflow produce outputs that make sense?
+
+@lst-23-output-validation shows a small validation pattern Leo can adapt after creating an analysis dataset.
+
+```{r}
+#| lst-label: lst-23-output-validation
+#| eval: false
+#| lst-cap: "Checking Required Objects and Columns Before Continuing."
+
+if (!exists("df_analysis")) {
+  stop(
+    "df_analysis does not exist. Run the analysis-data preparation step first.",
+    call. = FALSE
+  )
+}
+
+required_columns <- c(
+  "learner_id",
+  "study_hours",
+  "project_score",
+  "completion_status"
+)
+
+missing_columns <- setdiff(required_columns, names(df_analysis))
+
+if (length(missing_columns) > 0) {
+  stop(
+    "The analysis dataset is missing required columns: ",
+    paste(missing_columns, collapse = ", "),
+    call. = FALSE
+  )
+}
+message("df_analysis passed basic validation checks.")
+```
+
+The validation pattern in @lst-23-output-validation is intentionally modest. It does not prove the whole analysis is correct. It protects the workflow from obvious structural failures before later chapters, reports, or decisions depend on the output. Analytical judgment still matters; validation only ensures that the workflow has produced the expected object in the expected shape.
+
+## Logging Without Making the Project Heavy
+
+A log is a record of what happened.
+
+Leo does not need a complex logging system to benefit from this idea. Even simple messages can help him follow a workflow. The goal is not to drown the project in technical noise. The goal is to make important events visible.
+
+A beginner-friendly script might report:
+
+- when the workflow starts;
+- which input file is being read;
+- how many rows were imported;
+- where an output was saved;
+- whether validation checks passed;
+- when the workflow ends.
+
+@lst-23-simple-messages shows this lightweight approach.
+
+```{r}
+#| lst-label: lst-23-simple-messages
+#| eval: false
+#| lst-cap: "Using Simple Messages to Make Workflow Progress Visible."
+
+message("Reading raw learner migration data...")
+
+raw_file <- "data/raw/df_r_migration_messy.csv"
+raw_data <- read.csv(raw_file, stringsAsFactors = FALSE)
+
+message("Rows imported: ", nrow(raw_data))
+message("Columns imported: ", ncol(raw_data))
+
+message("Saving cleaned data to data/processed/...")
+
+# saveRDS(df_clean, "data/processed/df_r_migration_clean.rds")
+
+message("Cleaning step completed.")
+```
+
+The messages in @lst-23-simple-messages should not replace proper checks. They serve a different purpose. They help Leo see the workflow moving through its expected stages.
+
+## The Reproducibility Checklist
+
+Before Leo submits a report, shares a chapter, or hands a project to someone else, he needs a final reliability check.
+
+This is not a moral test. It is a practical protection. Many workflow failures appear only when the project is moved, reopened, restarted, or rendered from scratch.
+
+@tbl-23-reproducibility-checklist gives Leo a checklist he can use before trusting a workflow.
+
+```{r}
+#| label: tbl-23-reproducibility-checklist
+#| tbl-cap: "A Beginner-Professional Reproducibility Checklist Before Sharing or Submitting Work."
+#| echo: false
+
+reproducibility_checklist <- data.frame(
+  Check = c(
+    "Project opens from its root folder",
+    "Raw data location is documented",
+    "Scripts have a visible run order",
+    "Important inputs are checked before use",
+    "Important outputs are created by code",
+    "The workflow runs after restarting R",
+    "The report or book renders from source",
+    "Tables, figures, and listings are captioned and referenced",
+    "Manual steps are documented or removed",
+    "Package environment is recorded where appropriate"
+  ),
+  `Why it matters` = c(
+    "Relative paths depend on the project root.",
+    "Future readers need to know where evidence enters the project.",
+    "Run order prevents memory-based execution.",
+    "Early checks prevent late or silent failures.",
+    "Outputs should be reproducible rather than manually reconstructed.",
+    "A clean session reveals hidden dependencies.",
+    "Rendering tests code, narrative, captions, and cross-references together.",
+    "Reader-facing evidence should be findable and auditable.",
+    "Hidden steps are a major source of irreproducibility.",
+    "A recorded environment helps others rebuild the work later."
+  ),
+  `Leo's question` = c(
+    "Am I working inside the project, not from a random folder?",
+    "Can someone find the original evidence?",
+    "Can I tell what runs first, second, and third?",
+    "Will the workflow stop clearly if something important is missing?",
+    "Can the project recreate this output?",
+    "Does the project work without objects left in memory?",
+    "Can the document rebuild without manual patching?",
+    "Can a reader trace every major output?",
+    "What am I still doing by hand?",
+    "Can this environment be reconstructed later?"
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(reproducibility_checklist)
+```
+
+@tbl-23-reproducibility-checklist brings the chapter together. It does not ask Leo to become a software engineer. It asks him to make his analytical process inspectable.
+
+## When to Stop Automating
+
+Automation has a danger: it can become a distraction.
+
+Leo should not automate a broken process just because automation sounds professional. First, he should understand the work. Then he should stabilise the order. Then he should automate the repeated parts that are easy to forget.
+
+A good beginner rule is: 
+
+> Automate the boring, repeated, and order-sensitive steps. Keep human judgment visible. 
+
+A second rule is just as important: 
+
+> If Leo cannot explain what the automation is doing, the automation is not yet helping him.
+
+This prevents two mistakes.
+
+The first mistake is under-automation. Leo keeps doing the same fragile steps manually, and eventually he forgets one.
+
+The second mistake is over-automation. Leo builds a complex system he cannot explain, debug, or teach.
+
+Chapter 23 belongs between those mistakes. It teaches enough automation to make the project repeatable without turning the book into an advanced pipeline-engineering manual.
+
+::: {.callout-important title="Reliability Boundary"}
+This chapter is not a full lesson on CI/CD, GitHub Actions, deployment, Shiny hosting, or advanced pipeline frameworks.
+
+Those tools have value in the right setting. Leo's immediate need is simpler: make the workflow run in a clear order, check assumptions, reduce manual repetition, and rebuild outputs from source.
+:::
+
+## A Small Practice Lab
+
+The best way to understand reliability is to inspect a real workflow.
+
+@lst-23-practice-lab gives Leo a practice scaffold. It is not evaluated because it is an activity he should perform inside his own project.
+
+```{r}
+#| lst-label: lst-23-practice-lab
+#| eval: false
+#| lst-cap: "A Practice-Lab Scaffold for Turning a Manual Workflow into a Repeatable Workflow."
+
+# Practice Lab: Make the workflow remember
+
+# 1. List the scripts in your current project.
+#    Write them in the order you think they should run.
+
+# 2. For each script, answer:
+#    - What input does it need?
+#    - What output does it create?
+#    - What script or chapter depends on its output?
+#    - What could go wrong if it runs too early?
+
+# 3. Add a short header to each major script:
+#    - Purpose
+#    - Inputs
+#    - Outputs
+#    - Must run before
+#    - Must run after
+
+# 4. Add at least one assumption check:
+#    - Does the raw file exist?
+#    - Does the processed folder exist?
+#    - Does the expected column exist?
+
+# 5. Create a simple master script:
+#    - source setup script
+#    - source import script
+#    - source cleaning script
+#    - source analysis script
+#    - render the report manually after the scripts run
+
+# 6. Restart R.
+#    Run the workflow again from the project files.
+#    Fix the workflow whenever it depends on memory.
+```
+
+The practice lab in @lst-23-practice-lab is not busywork. It is the point of the chapter. Leo is learning to move the route of analysis out of his head and into the project.
+
+## Common Beginner Mistakes
+
+Several mistakes appear when learners first try to make workflows repeatable.
+
+One common mistake is creating a master script that is only a long list of commands copied from the Console. That does not create reliability. It preserves confusion in a new place.
+
+A second mistake is using `source()` to hide unclear dependencies. If a master script sources ten files with vague names, the project may become harder to understand, not easier.
+
+A third mistake is saving outputs manually after running code interactively. Manual export may feel fast, but it creates a hidden step the project cannot repeat.
+
+A fourth mistake is editing processed data by hand. Processed data should normally be recreated by scripts from raw data and documented decisions. If Leo manually edits `data/processed/df_analysis.csv`, the project may no longer know how that file came to exist.
+
+A fifth mistake is rendering only after many changes have accumulated. Rendering early and often exposes problems while they are still small.
+
+The correction is simple but demanding: keep the route visible, keep assumptions checked, and keep important outputs rebuildable.
+
+## Short Recap
+
+Leo began this chapter with a practical question:
+
+> "Which script should I run first?"
+
+That question revealed the difference between having scripts and having a workflow. A folder full of files does not automatically create a repeatable process. A reliable workflow makes order, inputs, outputs, and assumptions visible.
+
+He learned that reusable code is not the same as a repeatable workflow. Reusable code helps him avoid copying logic. A repeatable workflow helps him run the project again. A reliable workflow goes further by checking assumptions, reducing hidden manual steps, and making outputs easier to rebuild.
+
+He also learned that automation does not need to begin with advanced engineering. It can begin with script headers, file checks, folder checks, column checks, a master script, render commands, and a clean-session test. These habits help the project remember what Leo should not have to carry in his head.
+
+## Leo's Notebook
+
+- Correct code can still live inside a fragile workflow.
+- A workflow is reliable when the project knows the order, not only Leo.
+- Automation begins by reducing fragile manual repetition.
+- A good early error is protection, not failure.
+- Every major step should have an input, an action, an output, and a reliability question.
+- A master script is a map, not a magic wand.
+- If the workflow fails after restarting R, the restart has revealed a hidden dependency. 
+- The best workflow is not the one Leo remembers. It is the one the project can run again from its own files.
+- Rendered reports should be rebuilt from source, not repaired by hand.
+- Reliability is not complexity. Reliability is disciplined repeatability.
+
+## Glossary
+
+**Assumption check**  
+A deliberate check that confirms something important is true before later code depends on it. Examples include checking whether a file exists, whether a folder exists, or whether required columns are present.
+
+**Automation**  
+The reduction of fragile manual repetition. In this chapter, automation begins with simple scripts and commands that run routine steps in a controlled order.
+
+**Clean session**  
+An R session that begins without objects left over from previous work. Restarting R before running a workflow helps reveal hidden dependencies.
+
+**Dependency order**  
+The required sequence among inputs, scripts, intermediate outputs, and final outputs. If one step depends on another, the earlier step must run first.
+
+**Master script**  
+A script whose main purpose is to run other workflow scripts in the intended order. It helps make execution order visible.
+
+**Output discipline**  
+The habit of saving outputs in clear, predictable locations and creating them through code rather than hidden manual steps.
+
+**Project memory**  
+The information stored in files, scripts, notes, checks, and project structure so the workflow does not depend only on human memory.
+
+**Reliable workflow**  
+A workflow that can be repeated with fewer hidden assumptions, clearer checks, and more dependable outputs.
+
+**Repeatable workflow**  
+A sequence of steps that can be run again in the intended order.
+
+**Reproducibility**  
+The ability to recreate results from the same inputs, code, and environment.
+
+**Script-level discipline**  
+The habit of making each script clear about its purpose, inputs, outputs, and place in the workflow.
+
+**Workflow-level discipline**  
+The habit of making the whole project route clear, including the order in which scripts run and how outputs are created.
+
+## Chapter Outcome
+
+By the end of this chapter, Leo can explain why reusable tools do not automatically create a reliable analytical system. He can distinguish reusable code, repeatable workflow, reliable workflow, automation, and reproducibility. He understands that reliability depends on visible order, checked assumptions, controlled outputs, and reduced manual repetition.
+
+He can create or interpret a simple workflow route. He can use script headers to document purpose, inputs, outputs, and dependency order. He can apply basic checks for required files, folders, and columns. He can understand the value of a master script, controlled `source()` calls, clean-session testing, render commands, and output discipline.
+
+Most importantly, Leo now knows how to ask a stronger professional question:
+
+> Can this project run again from its own files, or does it still depend on what I remember?
+
+That question marks his movement from reusable tools to repeatable systems.
+
+## What Comes Next
+
+Leo can now make a workflow easier to repeat. 
+
+That is a major step. But repeatability introduces the next professional question: what happens when the same reliable workflow becomes slow, heavy, or difficult to scale? A small dataset may feel easy. A larger dataset, repeated reports, heavier transformations, and slower computations can expose new limits.
+
+Chapter 23 has focused on reliability and automation: order, checks, outputs, and repeatable execution. It has not taught performance. That belongs to [Chapter 24](24-performance-and-scale.qmd).
+
+The next chapter asks:
+
+> Once the workflow is repeatable, can it remain efficient, responsive, and scalable as the data and tasks grow?
+
+That question moves Leo from repeatable systems to efficient systems.

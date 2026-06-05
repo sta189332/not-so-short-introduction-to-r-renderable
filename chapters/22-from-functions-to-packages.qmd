@@ -1,0 +1,965 @@
+---
+title: "From Functions to Packages: Building Reusable R Tools"
+---
+
+```{=latex}    
+
+\renewcommand{\thefigure}{22.\arabic{figure}}  
+
+\setcounter{figure}{0}
+
+\renewcommand{\thetable}{22.\arabic{table}}  
+
+\setcounter{table}{0}
+
+```
+
+```{r}
+#| label: setup-chapter-22
+#| include: false
+
+suppressPackageStartupMessages({
+  library(knitr)
+})
+
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>",
+  fig.align = "center"
+)
+```
+
+## Opening Scene: When Useful Functions Become Hard to Control
+
+Leo now has a project that can remember.
+
+In [Chapter 21](21-collaboration-and-version-control.qmd), he learned that serious analytical work needs traceable history. A project should not depend on folders called `final`, `final_2`, and `real_final`. It should record meaningful changes, protect sensitive files, and make collaboration easier to inspect.
+
+That solved one professional problem.
+
+Then another problem appears.
+
+Inside Leo's scripts, useful functions are beginning to multiply:
+
+```{r}
+clean_text_field <- function(x) {
+  trimws(tolower(gsub("\\s+", " ", as.character(x))))
+}
+
+standardise_yes_no <- function(x) {
+  value <- clean_text_field(x)
+
+  out <- rep(NA, length(value))
+  out[value %in% c("yes", "y", "true", "1")] <- TRUE
+  out[value %in% c("no", "n", "false", "0")] <- FALSE
+
+  out
+}
+
+make_score_band <- function(score) {
+  ifelse(
+    is.na(score), NA_character_,
+    ifelse(score >= 80, "high",
+           ifelse(score >= 60, "moderate", "developing"))
+  )
+}
+```
+
+At first, this feels like progress. Leo is no longer rewriting every cleaning rule from scratch. He can name a rule once and call it again.
+
+But the functions do not stay neatly in one place. One copy lives in a cleaning script. Another copy appears in a Quarto report. A third copy gets pasted into a collaborator's project. Then Leo improves one version of `clean_text_field()` but forgets that two older versions still exist elsewhere.
+
+The functions are useful.
+
+That is exactly why the disorder matters.
+
+A project with traceable history can show Leo what changed. It cannot, by itself, solve the problem of reusable functions scattered across scripts. Traceability protects the record of change. Reuse needs a stable home.
+
+This chapter begins there.
+
+::: {.callout-important appearance="simple"}
+## The lightbulb idea
+
+A function names one reusable action. A package organises related reusable actions into a tool that can be loaded, documented, tested, shared, and trusted.
+:::
+
+This chapter does not turn Leo into a professional package maintainer. It does not teach CRAN submission, release engineering, continuous integration, or advanced object systems.
+
+It teaches a simpler and more important idea:
+
+> A package is not only something Leo installs. It can also be a disciplined way to organise his own reusable R work.
+
+## What Changes After Chapter 21
+
+Chapter 21 taught Leo to protect the history of a project. That matters before a project grows further because reusable tools become risky when their changes cannot be traced.
+
+If Leo puts related functions into a shared toolkit, those functions will evolve. He may correct an assumption in `standardise_yes_no()`. He may change the threshold used by `make_score_band()`. He may add a new helper for dates, missing values, or learner-status categories.
+
+When those changes affect several analyses, Leo needs two kinds of control:
+
+- version control, so he can inspect how the tool changed;
+- tool organisation, so the reusable logic lives in one deliberate place.
+
+Chapter 22 builds on Chapter 21 by asking a new question:
+
+> Once a project can remember its history, where should reusable analytical tools live?
+
+The answer is not always "make a package." Sometimes a function should remain inside a script. Sometimes a small helper file is enough. Sometimes a project-level toolkit is the right middle ground. But when related functions are reused across scripts, reports, projects, or collaborators, Leo has reached the package question.
+
+The movement in this chapter is shown in @fig-22-function-to-package-flow.
+
+```{r}
+#| label: fig-22-function-to-package-flow
+#| fig-cap: "From Scattered Helper Functions to a Reusable R Toolkit."
+#| fig-alt: "A left-to-right diagram showing scattered script functions becoming a sourced helper file, then a project toolkit, and finally a small internal R package."
+#| echo: false
+#| fig-width: 8
+#| fig-height: 3
+#| out-width: "90%"
+
+old_par <- par(no.readonly = TRUE)
+on.exit(par(old_par))
+
+par(mar = c(0.2, 0.2, 0.2, 0.2), xpd = NA)
+
+plot.new()
+plot.window(xlim = c(0, 1), ylim = c(0, 1))
+
+x <- c(0.13, 0.38, 0.63, 0.88)
+y <- rep(0.60, 4)
+
+labels <- c(
+  "Scattered\nscript functions",
+  "Sourced\nhelper file",
+  "Project\ntoolkit",
+  "Small internal\nR package"
+)
+
+for (i in seq_along(x)) {
+  rect(
+    x[i] - 0.105, y[i] - 0.09,
+    x[i] + 0.105, y[i] + 0.09,
+    col = "gray95",
+    border = "gray35",
+    lwd = 1.3
+  )
+  text(x[i], y[i], labels[i], cex = 0.88)
+}
+
+for (i in 1:3) {
+  arrows(
+    x[i] + 0.115, y[i],
+    x[i + 1] - 0.115, y[i],
+    length = 0.08,
+    lwd = 1.2
+  )
+}
+
+text(
+  0.5, 0.30,
+  "The professional movement is not more code. It is better organisation of reusable code.",
+  cex = 0.88,
+  font = 3
+)
+```
+
+@fig-22-function-to-package-flow is deliberately modest. It does not say that every learner must create a package immediately. It says that reusable work has stages. Leo needs to recognise which stage his project has reached.
+
+## Revisiting the Function Story Without Repeating It
+
+[Chapter 8](08-functions.qmd) introduced built-in functions as R's ready-made action system. Leo learned that functions such as `mean()`, `summary()`, `length()`, `tolower()`, and `trimws()` are named actions R already knows how to perform. That chapter focused on using existing tools well.
+
+[Chapter 9](09-user-defined-functions.qmd) moved one step further. Leo learned to create small user-defined functions when the same idea appeared repeatedly. Instead of writing the same text-cleaning rule across several lines, he could name the rule and call it deliberately.
+
+Chapter 22 is not a repeat of those lessons. It asks what happens after Leo has several useful functions of his own.
+
+A single user-defined function solves a local repetition problem. A group of related user-defined functions creates an organisation problem.
+
+For example, suppose Leo repeatedly uses these helpers in his `df_r_migration` workflow:
+
+```{r}
+clean_text_field(c(" Nigeria ", "SOUTH  AFRICA", "ghana"))
+
+make_score_band(c(92, 74, 51, NA))
+
+standardise_yes_no(c("Yes", "N", "TRUE", "0", "not available"))
+```
+
+Each function is small. Each one is understandable. But together they now form a toolkit for preparing learner data.
+
+That is a new threshold.
+
+Leo is no longer only writing functions. He is beginning to build tools.
+
+## Why Copying Functions Is Not a Workflow
+
+Copying a function from one script into another feels efficient because it produces immediate progress. The code is already there. The output works. The report renders.
+
+The danger appears later.
+
+Suppose Leo has three scripts:
+
+```text
+scripts/12-clean-data.R
+scripts/15-summarise-learners.R
+chapters/19-reproducible-reports-with-quarto.qmd
+```
+
+Each file contains its own copy of `clean_text_field()`.
+
+Then Leo notices a problem. The function handles extra spaces, but it does not handle missing values carefully enough. He fixes the version in `scripts/12-clean-data.R`.
+
+But the old version remains in the other two files.
+
+Now the project contains one function name with several behaviours. The danger is not that R refuses to run. The danger is that the project may run with different assumptions in different places.
+
+::: {.callout-warning appearance="simple"}
+## Copying is not reuse
+
+Copying a helper function creates more locations to maintain. Reuse means keeping the rule in one controlled place and calling it when needed.
+:::
+
+This distinction is central to professional R work. A repeated function should not become a hidden family of slightly different copies. It should become a shared tool with one source of truth.
+
+## From a Loose Function to a Small Toolkit
+
+Leo does not need to jump from one helper function straight into a formal package. There are stages between chaos and package development. @tbl-22-reuse-stages gives him a practical map.
+
+```{r}
+#| label: tbl-22-reuse-stages
+#| tbl-cap: "Five Stages of Organising Reusable R Functions."
+#| echo: false
+
+reuse_stages <- data.frame(
+  Stage = c(
+    "Loose function in a script",
+    "Sourced helper file",
+    "Project toolkit",
+    "Small internal package",
+    "Public CRAN-style package"
+  ),
+  `Best used when` = c(
+    "The function serves one analysis and is unlikely to be reused elsewhere.",
+    "Several scripts in one project need the same helper functions.",
+    "A project has a small set of stable helpers used across reports and scripts.",
+    "Related functions need structure, documentation, tests, and controlled loading.",
+    "The tool is intended for broad external use and must satisfy public release expectations."
+  ),
+  Strength = c(
+    "Fast and local.",
+    "Keeps shared helpers in one file.",
+    "Makes project-specific tools easier to find and maintain.",
+    "Gives reusable functions a formal home with documentation and tests.",
+    "Supports wider distribution and stronger user-facing discipline."
+  ),
+  Risk = c(
+    "Easy to copy, forget, or change inconsistently.",
+    "Can become crowded as the project grows.",
+    "May lack formal documentation or testing if not managed deliberately.",
+    "Can be overbuilt if the functions are not yet stable or reused.",
+    "Requires much more maintenance, checking, policy awareness, and user support."
+  ),
+  `Control question` = c(
+    "Is this function only needed here?",
+    "Do several files need the same helper?",
+    "Are these helpers part of this project's regular workflow?",
+    "Do these related functions need a stable documented structure?",
+    "Is this tool ready for users beyond the project team?"
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(reuse_stages)
+```
+
+@tbl-22-reuse-stages prevents two opposite mistakes. The first mistake is staying too informal for too long, until helper functions are scattered across files. The second mistake is turning every small function into a package before the need is real.
+
+The professional habit is judgment.
+
+Leo should ask what kind of reuse he is dealing with. A one-off helper can stay in a script. A few shared helpers can live in a sourced file. A stable family of functions may deserve a package structure.
+
+A sourced helper file is often the first serious improvement because it gives the project one place to load shared functions instead of copying them into several scripts. @lst-22-source-helper-file shows the idea without turning it into a full package.
+
+```{r}
+#| lst-label: lst-22-source-helper-file
+#| eval: false
+#| lst-cap: "Loading a Shared Helper File Without Copying Functions."
+
+source("scripts/helpers.R")
+
+df_r_migration$country <- clean_text_field(df_r_migration$country)
+df_r_migration$used_quarto <- standardise_yes_no(df_r_migration$used_quarto)
+```
+
+@lst-22-source-helper-file is useful because the function definitions now live in one shared helper file. In this example, `scripts/helpers.R` is an ordinary project helper file, not the special `R/` folder used inside an R package. That distinction matters because a helper file can reduce copying, but it is still not a package. It has no package identity, no formal export rules, no help pages, and no built-in testing structure. That limitation explains why a stable family of functions may eventually need a stronger home.
+
+## What a Package Really Is
+
+Earlier chapters introduced packages mostly from the user's side. Leo installed packages, loaded them, and used functions written by other people. That user-side view is still correct, but it is not complete.
+
+From the author's side, an R package is an organised project structure for related R functions and their supporting materials. It is not the analysis itself, not the raw data, and not the final report. It is the reusable tool layer that helps those parts of the workflow behave consistently.
+
+At beginner level, Leo can think of a package as a folder with rules:
+
+- the functions live in predictable places;
+- the package describes itself;
+- the package declares what it makes available;
+- the package can include documentation;
+- the package can include examples;
+- the package can include tests;
+- the package can be loaded as a tool rather than copied as loose code.
+
+This definition matters because it removes a false barrier. A package does not have to be famous. It does not have to be on CRAN. It does not have to solve a global problem.
+
+A package can begin as an internal tool that helps Leo and his collaborators keep repeated analytical logic organised.
+
+::: {.callout-note appearance="simple"}
+## Package as structure, not status
+
+A package is not automatically a public product. It can be a disciplined structure for organising reusable R functions inside a project, research group, classroom, or team.
+:::
+
+That is the Chapter 22 shift. Leo is no longer only a package user. He is beginning to understand package thinking from the author side.
+
+## The Smallest Useful Package Mental Model
+
+The smallest useful package does not need to be impressive. It needs to be coherent.
+
+For this book, imagine a teaching package called `rwaytools`. The name is only an example. It is not a real package claim and it is not being prepared for CRAN in this chapter.
+
+The package might contain functions such as:
+
+- `clean_text_field()`, for standardising text fields such as `country`, `industry`, `background`, and `completion_status`;
+- `standardise_yes_no()`, for converting mixed yes-or-no values into logical values;
+- `make_score_band()`, for turning assessment scores into labelled bands;
+- `check_required_columns()`, for checking whether a dataset has the columns a workflow expects.
+
+These functions belong together because they support one kind of work: preparing and checking learner data before analysis.
+
+The package idea does not make the functions more complicated. It makes their home more reliable.
+
+The beginner-friendly skeleton in @lst-22-package-skeleton shows the structure Leo should recognise before he tries to build anything advanced.
+
+```{text}
+#| lst-label: lst-22-package-skeleton
+#| eval: false
+#| lst-cap: "A Beginner-Friendly Skeleton of a Small Internal R Package."
+
+rwaytools/
+├── DESCRIPTION
+├── LICENSE
+├── NAMESPACE
+├── R/
+│   ├── clean-text-field.R
+│   ├── standardise-yes-no.R
+│   └── make-score-band.R
+├── man/
+│   ├── clean_text_field.Rd
+│   ├── standardise_yes_no.Rd
+│   └── make_score_band.Rd
+└── tests/
+    └── testthat/
+        ├── test-clean-text-field.R
+        ├── test-standardise-yes-no.R
+        └── test-make-score-band.R
+```
+
+@lst-22-package-skeleton is not a command to run. It is a map. The map tells Leo that a package is not one giant script. It is a structured home for related functions, identity information, documentation, and checks.
+
+## Anatomy of a Beginner-Friendly R Package
+
+The package skeleton becomes easier to understand when each part has a job. @tbl-22-package-anatomy gives Leo the first practical map.
+
+```{r}
+#| label: tbl-22-package-anatomy
+#| tbl-cap: "Core Parts of a Beginner-Friendly R Package."
+#| echo: false
+
+package_anatomy <- data.frame(
+  Part = c(
+    "`R/`",
+    "`DESCRIPTION`",
+    "`NAMESPACE`",
+    "`man/`",
+    "`tests/testthat/`",
+    "`README`",
+    "`vignettes/`"
+  ),
+  `Main job` = c(
+    "Stores the R function files that define the package's reusable actions.",
+    "Identifies the package and records basic metadata such as name, version, title, description, authors, licence, and dependencies.",
+    "Controls which functions are exported for users and which external functions are imported for package use.",
+    "Stores help files generated from documentation comments or written manually.",
+    "Stores tests that check whether important functions behave as expected.",
+    "Introduces the package to human readers and shows common use cases.",
+    "Stores longer tutorials or worked examples when the package needs extended guidance."
+  ),
+  `Beginner interpretation` = c(
+    "Where Leo's functions live.",
+    "The package identity card.",
+    "The package access map.",
+    "The help system.",
+    "The trust-checking area.",
+    "The front door for readers.",
+    "The extended teaching space."
+  ),
+  `Needed immediately?` = c(
+    "Yes, for any package with functions.",
+    "Yes.",
+    "Yes, though beginners often let tools generate it.",
+    "Usually, once functions are meant to be reused.",
+    "Recommended for important reusable functions.",
+    "Useful, especially for collaborators.",
+    "Optional for beginners."
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(package_anatomy)
+```
+
+@tbl-22-package-anatomy should not be memorised as a checklist for publication. It is a mental map. The essential point is that a package gives reusable work a recognisable architecture.
+
+That architecture gives future Leo two advantages. First, he knows where to look. Second, he knows what kind of support each function needs before other people depend on it.
+
+## The `R/` Folder: Where Functions Live
+
+The `R/` folder is the simplest part of the package to understand. It contains R scripts that define functions.
+
+A beginner mistake is to imagine that one package must have one giant R file. That is not the point. The `R/` folder can contain several files, and each file can hold one function or a small group of closely related functions.
+
+For Leo's teaching package, the `R/` folder might contain:
+
+```text
+R/clean-text-field.R
+R/standardise-yes-no.R
+R/make-score-band.R
+```
+
+The file names use hyphens because they are file names. The function names use underscores because they are R object names.
+
+The function itself still looks like the function Leo learned to write in [Chapter 9](09-user-defined-functions.qmd). What changes is the home around it.
+
+```{r}
+clean_text_field <- function(x) {
+  trimws(tolower(gsub("\\s+", " ", as.character(x))))
+}
+
+clean_text_field(c(" Nigeria ", "SOUTH  AFRICA", "ghana"))
+```
+
+The function remains small. It has one clear job. It can be demonstrated, documented, tested, and reused.
+
+It is still a teaching helper, not a universal cleaning engine. In real package work, Leo would document its assumptions carefully and add tests for the cases his project depends on.
+
+That is the point.
+
+## `DESCRIPTION`: The Package Identity Card
+
+Every package needs to identify itself. In R packages, that identity begins with the `DESCRIPTION` file.
+
+The `DESCRIPTION` file is plain text arranged in fields. It tells R and human readers what the package is called, what version it is, what it does, who maintains it, what licence applies, and which other packages it depends on.
+
+@lst-22-description-example shows a simplified teaching example. It is not a release-ready file. It is a reader-facing sketch of the idea.
+
+```{text}
+#| lst-label: lst-22-description-example
+#| eval: false
+#| lst-cap: "A Simplified DESCRIPTION File for a Teaching Package."
+
+Package: rwaytools
+Title: Helper Tools for the R Way Learner Dataset
+Version: 0.0.1
+Authors@R: person("Leo", "Learner", email = "leo@example.com", role = c("aut", "cre"))
+Description: Provides small helper functions for cleaning, checking, and preparing learner data used in teaching examples.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+```
+
+In @lst-22-description-example, the package is named, described, and versioned. Leo should notice the practical purpose of this file: it makes the tool explicit.
+
+A package without a clear description is like a script called `misc.R`. It may contain useful code, but it does not tell future users what problem it is meant to solve.
+
+## `NAMESPACE`: What the Package Makes Available
+
+If `DESCRIPTION` is the identity card, `NAMESPACE` is the access map.
+
+A package can contain many functions. Some are meant for users. Others are internal helpers that support the user-facing functions. The `NAMESPACE` file controls what the package exports and what it imports from other packages.
+
+For beginners, the safe first idea is this:
+
+> Exported functions are the functions users are expected to call directly.
+
+For example, `clean_text_field()` may be exported because Leo wants users to call it. A small internal helper used only inside that function may remain unexported.
+
+In modern package development, tools such as `roxygen2` often generate `NAMESPACE` from special documentation comments. Beginners should not rush to edit complex namespace rules by hand. They should first understand the purpose: a package needs a controlled public surface.
+
+::: {.callout-note appearance="simple"}
+## Public surface
+
+The public surface of a package is the set of functions users are expected to call. A small package is easier to trust when that surface is clear and not cluttered with every internal helper.
+:::
+
+This is another reason a package is more disciplined than a copied script. A script often exposes everything because everything is just code in a file. A package encourages Leo to decide what belongs to the user-facing tool.
+
+## Documentation: Explaining What the Tool Does
+
+A function is not ready for reuse just because it runs.
+
+Future Leo needs to know what the function expects, what it returns, and what assumptions it carries. A collaborator needs the same information. Even the original author needs it after enough time has passed.
+
+Documentation turns a function from private memory into a usable tool.
+
+In R package development, one common documentation style uses `roxygen2` comments. These comments sit above a function and can be used to generate formal help files in the `man/` directory and namespace instructions in `NAMESPACE`. Chapter 22 does not require Leo to master `roxygen2`, but it should help him recognise the pattern.
+
+The important shift is that Leo does not have to maintain function code in one place and package documentation in a separate, unfamiliar `.Rd` file by hand. With `roxygen2`, the explanation stays close to the function it explains. Special `#'` comments describe the function, its parameters, its return value, examples, and export behaviour. When documentation is generated, those comments become the formal help system users see when they ask R for help.
+
+@lst-22-roxygen-example shows a documentation sketch for `clean_text_field()`.
+
+```{r}
+#| lst-label: lst-22-roxygen-example
+#| eval: false
+#| lst-cap: "A Documentation Sketch for a Reusable Text-Cleaning Function."
+
+#' Clean a text field for consistent comparison
+#'
+#' Converts values to character, changes letters to lower case,
+#' replaces repeated spaces with one space, and removes leading and
+#' trailing spaces.
+#'
+#' @param x A vector of values to clean.
+#' @return A character vector with standardised text values.
+#' @examples
+#' clean_text_field(c(" Nigeria ", "SOUTH  AFRICA"))
+#' @export
+clean_text_field <- function(x) {
+  trimws(tolower(gsub("\\s+", " ", as.character(x))))
+}
+```
+
+The most important part of @lst-22-roxygen-example is not the syntax. It is the obligation. If Leo wants others to reuse a function, he should explain the input, output, and example use.
+
+This is where package thinking changes behaviour. It makes Leo ask documentation questions earlier:
+
+- What does this function do?
+- What input does it expect?
+- What output does it return?
+- What happens with missing values?
+- What example would prove the function's purpose?
+
+Those questions protect the reader from guessing.
+
+::: {.callout-note appearance="simple"}
+## Generated documentation is only a starting point
+
+Tools can help Leo create a documentation skeleton, but they cannot finish the thinking for him. A generated block may detect argument names and default values, but Leo still has to explain what the function means, what assumptions it carries, what edge cases matter, and what example will genuinely help the reader.
+:::
+
+## Examples: Showing the Tool in Motion
+
+Documentation tells the user what a function is supposed to do. Examples show the function in motion.
+
+A good example is small, direct, and reproducible. It should not require the entire book dataset just to explain one function.
+
+For instance, `make_score_band()` can be explained with a short vector:
+
+```{r}
+make_score_band <- function(score) {
+  ifelse(
+    is.na(score), NA_character_,
+    ifelse(score >= 80, "high",
+           ifelse(score >= 60, "moderate", "developing"))
+  )
+}
+
+make_score_band(c(95, 76, 45, NA))
+```
+
+The example is small enough for Leo to inspect. It also reveals the threshold logic immediately:
+
+- scores from 80 upward become `"high"`;
+- scores from 60 to below 80 become `"moderate"`;
+- scores below 60 become `"developing"`;
+- missing scores remain missing.
+
+A package does not remove the need for examples. It raises the standard for them because reusable tools need reusable explanation.
+
+## Tests: Teaching Leo to Trust His Tools
+
+[Chapter 9](09-user-defined-functions.qmd) introduced a practical testing habit: do not trust a function merely because it has a name. Call it with simple inputs and inspect the output.
+
+Chapter 22 extends that habit.
+
+When a function becomes part of a package, tests become a more formal way of protecting expectations. A test records what a function should do for selected inputs. If the function changes later, the test can reveal whether expected behaviour has been broken.
+
+This chapter does not teach full test automation. That belongs to the reliability and automation work introduced in [Chapter 23](23-reliability-and-automation.qmd). Here, Leo only needs the package-building mindset:
+
+> Important reusable functions deserve explicit checks.
+
+A simple testing thought for `make_score_band()` might be:
+
+- `90` should return `"high"`;
+- `70` should return `"moderate"`;
+- `40` should return `"developing"`;
+- `NA` should remain missing.
+
+In professional R package work, the `testthat` package is commonly used for tests. Since `testthat` is an optional development tool, @lst-22-testthat-sketch is shown as a non-evaluated listing rather than code the book should run automatically.
+
+```{r}
+#| lst-label: lst-22-testthat-sketch
+#| eval: false
+#| lst-cap: "A Conceptual testthat Sketch for a Score-Banding Function."
+
+testthat::test_that("make_score_band classifies scores as expected", {
+  testthat::expect_equal(make_score_band(90), "high")
+  testthat::expect_equal(make_score_band(70), "moderate")
+  testthat::expect_equal(make_score_band(40), "developing")
+  testthat::expect_true(is.na(make_score_band(NA_real_)))
+})
+```
+
+@lst-22-testthat-sketch is not included to make Leo memorise `testthat` syntax. It is included to make the trust habit concrete. A reusable tool should carry some evidence that it still behaves as expected.
+
+::: {.callout-tip appearance="simple"}
+## Tests are protection
+
+A test is not a punishment for writing code. It is a way to protect a useful function from silent breakage when the project grows.
+:::
+
+This is where Chapter 22 prepares [Chapter 23](23-reliability-and-automation.qmd) without teaching it. Once functions have documentation and tests, they are better candidates for reliable workflows later.
+
+## Package Development Without Overwhelm
+
+R has mature tools for package development. The most useful beginner-facing tools for this chapter are `usethis`, `devtools`, `roxygen2`, `sinew`, and `testthat`.
+
+Leo should know what these tools are for, but he does not need to run them while reading this chapter.
+
+- `usethis` helps create and modify package project structure.
+- `devtools` helps load, document, test, check, and work with packages during development.
+- `roxygen2` turns structured `#'` comments above functions into formal help files and namespace instructions.
+- `sinew` helps generate a starter `roxygen2` documentation skeleton from an existing function, so Leo is not forced to begin from a blank documentation block.
+- `testthat` helps write and run tests for expected function behaviour.
+
+These tools can change files and folders. They also require packages that may not be installed in every reader's environment. For that reason, the book treats the commands in @lst-22-package-tooling as optional, non-evaluated demonstrations.
+
+```{r}
+#| lst-label: lst-22-package-tooling
+#| eval: false
+#| lst-cap: "A First Guided Workflow from One Function to a Documented Package File."
+
+# Step 1: Install development tools once, outside the book render.
+# These tools change projects and files, so this listing is not evaluated.
+install.packages(c("usethis", "devtools", "roxygen2", "sinew", "testthat"))
+
+# The workflow below uses package::function() calls,
+# so attaching packages with library() is not required.
+
+# Step 2: Create a small package project.
+# In real work, choose a real path outside your current Quarto book folder.
+usethis::create_package("rwaytools")
+
+# Step 3: Create a function file inside the package's R/ folder.
+usethis::use_r("clean-text-field")
+
+# Step 4: Write or paste the function into R/clean-text-field.R.
+clean_text_field <- function(x) {
+  trimws(tolower(gsub("\\s+", " ", as.character(x))))
+}
+
+# Step 5: Ask sinew to generate a starter roxygen2 documentation block.
+# This does not finish the documentation. It gives Leo a structured first draft.
+sinew::makeOxygen(
+  clean_text_field,
+  add_fields = c("details", "examples", "export"),
+  print = TRUE
+)
+
+# Step 6: Copy the generated roxygen2 block above the function,
+# then replace placeholder text with real explanation.
+
+# Step 7: If a function genuinely uses another package, record that dependency.
+# clean_text_field() uses base R, so it does not need this step.
+# Example only: uncomment this kind of line only when the dependency is real.
+# usethis::use_package("readr", type = "Imports")
+
+# Step 8: Generate help files and update NAMESPACE from roxygen2 comments.
+# devtools::document() runs the documentation workflow powered by roxygen2.
+devtools::document()
+
+# Step 9: Load the package during development without installing it permanently.
+devtools::load_all()
+
+# Step 10: Create a paired test file when the function becomes important.
+usethis::use_testthat()
+usethis::use_test("clean-text-field")
+
+# Step 11: Run package checks before trusting the package more widely.
+devtools::check()
+```
+
+@lst-22-package-tooling should be read as orientation, not as a required lab. The commands are real package-development commands, but they are not the centre of this chapter. The centre is the mental model: related reusable functions need structure, documentation, and checks.
+
+The workflow also shows why package development becomes confusing for beginners. Several files are being coordinated at once: the function file in `R/`, the package identity in `DESCRIPTION`, the help files generated into `man/`, the export rules written into `NAMESPACE`, and the checks stored under `tests/testthat/`. Tools such as `usethis`, `sinew`, `roxygen2`, `devtools`, and `testthat` reduce manual labour, but Leo still needs to understand what each tool is changing.
+
+The most important habit is this: Leo should not manually fight every package file before he understands the workflow. He should let development tools create the structure, then use his judgment to improve the explanation, examples, dependencies, and tests.
+
+A generated documentation skeleton may look like @lst-22-sinew-generated-skeleton. The exact output can vary with package versions and options, so Leo should treat the listing as a pattern, not as a promise that every machine will print identical text.
+
+```{r}
+#| lst-label: lst-22-sinew-generated-skeleton
+#| eval: false
+#| lst-cap: "A Documentation Skeleton That Still Needs Human Revision."
+
+#' @title Clean Text Field
+#' @description BRIEF_DESCRIPTION
+#' @param x PARAM_DESCRIPTION
+#' @return OUTPUT_DESCRIPTION
+#' @details DETAILS
+#' @examples
+#' clean_text_field(c(" Nigeria ", "SOUTH  AFRICA"))
+#' @export
+clean_text_field <- function(x) {
+  trimws(tolower(gsub("\\s+", " ", as.character(x))))
+}
+```
+
+@lst-22-sinew-generated-skeleton is useful because it gives Leo a structure. It is also incomplete because `BRIEF_DESCRIPTION`, `PARAM_DESCRIPTION`, `OUTPUT_DESCRIPTION`, and `DETAILS` are not documentation. They are reminders that the human author must still explain the tool. The next step is to revise the skeleton into the kind of human-readable documentation shown earlier in @lst-22-roxygen-example.
+
+::: {.callout-warning appearance="simple"}
+## Do not rush to public release
+
+A beginner package does not need to go to CRAN. Leo should first learn how a package organises reusable work. Public release introduces additional responsibilities that belong beyond this introductory chapter.
+:::
+
+## A Small Package Sketch for the Book Workflow
+
+To connect this chapter to the book's continuing dataset, imagine that Leo repeatedly prepares `df_r_migration` across analysis scripts and Quarto reports.
+
+He keeps writing code like this:
+
+```{r}
+#| lst-label: lst-22-scattered-cleaning-example
+#| eval: false
+#| lst-cap: "Repeated Cleaning Calls That Signal the Need for a Shared Helper."
+
+df_r_migration$country <- clean_text_field(df_r_migration$country)
+df_r_migration$industry <- clean_text_field(df_r_migration$industry)
+df_r_migration$background <- clean_text_field(df_r_migration$background)
+df_r_migration$completion_status <- clean_text_field(df_r_migration$completion_status)
+
+df_r_migration$used_rstudio <- standardise_yes_no(df_r_migration$used_rstudio)
+df_r_migration$used_quarto <- standardise_yes_no(df_r_migration$used_quarto)
+
+df_r_migration$project_score_band <- make_score_band(df_r_migration$project_score)
+```
+
+The code in @lst-22-scattered-cleaning-example is non-evaluated because it depends on the project dataset being available in the reader's current session. Its purpose is conceptual. Leo should recognise the signal: several fields need the same helper functions, and the same helpers may be used in several places.
+
+A small package or internal toolkit could give those helpers one stable home.
+
+The package would not contain the whole analysis. It would not contain the raw data. It would not replace Quarto reports. It would not replace version control.
+
+It would contain reusable tools that support the analysis.
+
+That boundary matters.
+
+## When Not to Create a Package
+
+Package thinking is powerful, but overbuilding is real.
+
+A package is not the right answer when Leo has only one small script, one temporary function, or one private experiment that will not be reused. In those cases, the cost of structure may be higher than the benefit.
+
+A function should usually stay in a script when:
+
+- it is used once;
+- it is tightly tied to one local analysis;
+- it is still experimental;
+- Leo cannot yet explain its input and output;
+- changing it will not affect other scripts or collaborators.
+
+A helper file may be enough when:
+
+- the functions are reused only inside one project;
+- the number of helpers is small;
+- the team does not need formal documentation or tests yet;
+- the project is still exploratory.
+
+A package becomes more sensible when:
+
+- related functions are reused across several scripts, reports, or projects;
+- collaborators need a stable way to load the same tools;
+- the functions need documentation and examples;
+- important behaviour should be tested;
+- changes to helpers affect several outputs.
+
+The decision is practical, not ceremonial.
+
+Leo should not create packages to look advanced. He should create packages when reusable work needs a reliable home.
+
+## Common Beginner Mistakes
+
+The first mistake is treating packages only as things other people make. This keeps Leo trapped on the user side of the package story. Chapter 22 opens the author-side idea gently: Leo's own reusable functions can become organised tools.
+
+The second mistake is copying helper functions into many scripts. Copying feels efficient until one copy changes and the others do not. At that point, the project contains hidden disagreement.
+
+The third mistake is creating a package too early. A package should answer a real reuse problem. If the function is still unstable, private, or used once, a script may be enough.
+
+The fourth mistake is turning a package into a dumping ground. A package should organise related functions. It should not become a folder for every unfinished idea.
+
+The fifth mistake is neglecting documentation. A reusable function without explanation forces future users to reverse-engineer the author's intention.
+
+The sixth mistake is treating tests as advanced decoration. Tests are not only for professional software engineers. Even simple checks can protect analytical assumptions.
+
+The seventh mistake is confusing package development with CRAN submission. CRAN is a public distribution route with its own expectations. Chapter 22 is about the earlier and more basic idea: using package structure to organise reusable tools.
+
+The eighth mistake is treating generated documentation as finished documentation. A tool can create a roxygen skeleton, but only Leo can explain what the function is for, what the arguments mean, what assumptions the function makes, what edge cases matter, and what examples will help another reader use it correctly. Generated structure is not the same as reader-ready explanation.
+
+## A Small Practice Lab
+
+Leo does not need to build a full package to practise package thinking. He can begin by classifying functions and deciding what kind of organisation they deserve.
+
+Use the scaffold in @lst-22-practice-lab as a manual exercise.
+
+```{r}
+#| lst-label: lst-22-practice-lab
+#| eval: false
+#| lst-cap: "A Practice-Lab Scaffold for Classifying Reusable Functions."
+
+# Practice Lab: From functions to a toolkit
+
+# 1. List four helper functions used in your current R project.
+#    Example names:
+#    clean_text_field()
+#    standardise_yes_no()
+#    make_score_band()
+#    check_required_columns()
+
+# 2. For each function, answer:
+#    - Is it used once, or reused in several places?
+#    - Does it belong only to one script, or to the wider project?
+#    - Could another reader understand its input and output?
+#    - What simple example would demonstrate it?
+#    - What simple test would protect it?
+
+# 3. Decide the right level of organisation:
+#    - keep it in the script;
+#    - move it to a sourced helper file;
+#    - organise it as part of a project toolkit;
+#    - consider a small internal package.
+
+# 4. Sketch a package name only if the functions form a coherent family.
+#    Do not create a package just to appear advanced.
+```
+
+@lst-22-practice-lab keeps the work deliberately reflective. Leo is learning to diagnose a reuse problem before reaching for package tools.
+
+A good answer to this lab should explain why functions belong together. It should not merely list function names.
+
+## Short Recap
+
+Chapter 22 has moved Leo from repeated functions to reusable tools.
+
+The key distinction is now clear. [Chapter 8](08-functions.qmd) showed Leo how to call built-in functions. [Chapter 9](09-user-defined-functions.qmd) showed him how to write user-defined functions. Chapter 21 showed him how to make project history traceable. Chapter 22 shows him how related functions can receive a stable home.
+
+A package is not only a CRAN product. It is also an organised structure for related functions, documentation, examples, tests, and metadata. Tools such as `usethis`, `roxygen2`, `sinew`, `devtools`, and `testthat` can reduce the manual work, but they do not replace Leo's responsibility to understand and explain the tool he is building.
+
+The progression is practical:
+
+```text
+loose function → helper file → project toolkit → internal package → public package
+```
+
+Leo does not need to rush through that progression. He needs to recognise the stage his project has reached.
+
+## Leo's Notebook
+
+Leo writes three lines in his notebook.
+
+First:
+
+> A function solves repeated action. A package solves repeated reusable action across places.
+
+Second:
+
+> Copying a function creates more versions to maintain. Reuse needs one source of truth.
+
+Third:
+
+> A package does not make code trustworthy by magic. Documentation, examples, tests, and version control make reuse safer.
+
+Those notes change the way he looks at his project folder. A script is no longer the only possible home for useful code. A helper file is no longer the final destination. A package is no longer a mysterious object created by distant experts.
+
+It is a structure Leo can understand.
+
+## Glossary
+
+**CRAN**  
+The Comprehensive R Archive Network. It is a major public repository for distributing R packages. Chapter 22 mentions CRAN only as a later possibility, not as the immediate goal of beginner package thinking.
+
+**DESCRIPTION**  
+A required package file that records key metadata about the package, including its name, version, description, authorship, licence, and dependency information.
+
+**Documentation**  
+Written guidance that explains what a function or package does, what inputs it expects, what it returns, and how it should be used.
+
+**Exported function**  
+A function that a package intentionally makes available for users to call directly.
+
+**Helper file**  
+A script that stores reusable functions so other scripts can load them, often with `source()`. A helper file can reduce copying, but it is less structured than a package.
+
+**Internal package**  
+A package created for use inside a project, research group, organisation, classroom, or team rather than for broad public release.
+
+**NAMESPACE**  
+A package file that controls which functions are exported and what external functions are imported for package use.
+
+**Package**  
+An organised R project structure for reusable functions and supporting materials such as metadata, documentation, examples, tests, and sometimes tutorials.
+
+**Public surface**  
+The part of a package users are expected to interact with directly, usually through exported functions.
+
+**R folder**  
+The package folder where R function files are stored.
+
+**Reusable tool**  
+A function or set of related functions designed to be used more than once in a controlled and understandable way.
+
+**roxygen2**  
+An R package commonly used to create package documentation from structured comments placed near functions. It can generate formal help files in `man/` and update package namespace instructions from tags such as `@export` and `@importFrom`.
+
+**sinew**  
+An R package-development helper that can generate starter `roxygen2` documentation skeletons from existing functions. It helps Leo begin documentation faster, but the generated text still needs human revision.
+
+**testthat**  
+An R package commonly used to write and run tests that check whether functions behave as expected.
+
+**usethis**  
+An R package that automates common package setup tasks, such as creating package projects, adding R files, creating test files, and recording package dependencies.
+
+## Chapter Outcome
+
+By the end of this chapter, Leo can explain why repeated functions create an organisation problem. He can distinguish a loose function in a script, a sourced helper file, a project toolkit, a small internal package, and a public CRAN-style package. He understands that a package is not only something installed from CRAN, but also a disciplined structure for organising reusable R work.
+
+He can describe the basic anatomy of an R package: the `R/` folder for functions, `DESCRIPTION` for identity, `NAMESPACE` for access control, `man/` for help files, and `tests/testthat/` for behaviour checks. He can explain why documentation and examples help future users, why generated documentation skeletons still require human revision, and why tests help protect important functions from silent breakage.
+
+Most importantly, Leo now sees reuse as a professional design problem. The question is no longer only, "Can this function run?" The stronger question is:
+
+> Where should this reusable logic live so that future work can find it, understand it, test it, and trust it?
+
+## What Comes Next
+
+Leo now knows how related functions can become reusable tools.
+
+But reusable tools create another responsibility. If a workflow depends on several tools, scripts, reports, data files, and outputs, Leo must know whether the pieces run in the right order and produce dependable results.
+
+Chapter 22 has prepared the ground by introducing documentation, examples, and tests as trust habits. It has not yet taught automation. That belongs to [Chapter 23](23-reliability-and-automation.qmd).
+
+The next chapter asks a sharper systems question:
+
+> How can Leo make a workflow run repeatedly, reliably, and with fewer missed manual steps?
+
+That question moves him from reusable tools to repeatable systems.
