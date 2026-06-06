@@ -1,7 +1,3 @@
----
-number-sections: false
----
-
 # Author’s Note {.unnumbered}
 
 ## Why This Book Had to Exist
