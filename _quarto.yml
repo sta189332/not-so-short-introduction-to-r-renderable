@@ -108,6 +108,8 @@ knitr:
     fig.width: 7
     fig.height: 5
     out.width: "90%"
+number-sections: true
+number-depth: 3
 
 format:
   html:
@@ -154,10 +156,12 @@ format:
     toc: true
     toc-depth: 3
     number-sections: true
+    number-depth: 3
     colorlinks: true
     fig-width: 6.5
     fig-height: 4.5
     fig-cap-location: bottom
+    keep-tex: true
     include-in-header:
       text: |
         \usepackage{microtype}
@@ -166,6 +170,17 @@ format:
         \usepackage{chngcntr}
         \captionsetup[figure]{labelfont=bf,textfont=normalfont,labelsep=colon}
         \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+
+        % Make PDF chapter openings behave more like HTML page headings.
+        \RedeclareSectionCommand[
+          beforeskip=0pt,
+          afterskip=1.25\baselineskip
+        ]{chapter}
+
+        % Show chapter number inline before the chapter title.
+        \renewcommand*{\chapterformat}{\thechapter\enskip}
+        \renewcommand*{\chaptermarkformat}{\thechapter\enskip}
+        \setkomafont{chapter}{\normalfont\huge\bfseries}
 
   epub:
     cover-image: assets/cover.png

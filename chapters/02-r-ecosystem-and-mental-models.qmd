@@ -1,7 +1,5 @@
----
-title: "Understanding the R Ecosystem"
-subtitle: "The Engine, the Cockpit, and the Flight Plan"
----
+# Understanding the R Ecosystem
+## The Engine, the Cockpit, and the Flight Plan
 
 ## Opening Scene: The Engine Is Not the Whole Journey
 
