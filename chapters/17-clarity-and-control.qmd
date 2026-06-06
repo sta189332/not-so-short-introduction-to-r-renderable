@@ -1634,19 +1634,3 @@ But real analytical communication rarely ends with one plot. A report may need s
 That is the next challenge.
 
 Chapter 18 will move from controlled plots to visual communication. Leo will learn how multiple visualisations, narrative structure, and analytical explanation work together so readers do not merely see a chart. They follow the evidence.
-
-## References and Further Reading
-
-Bostock, M., Ogievetsky, V., & Heer, J. (2011). D³ data-driven documents. *IEEE Transactions on Visualization and Computer Graphics, 17*(12), 2301-2309. https://doi.org/10.1109/TVCG.2011.185
-
-Garnier, S., Ross, N., Rudis, R., Camargo, A. P., Sciaini, M., & Scherer, C. (2024). *viridisLite: Colorblind-friendly color maps for R*. R package.
-
-Gohel, D., & Skintzos, P. (2024). *ggiraph: Make ggplot2 graphics interactive*. R package.
-
-Sievert, C. (2020). *Interactive web-based data visualization with R, plotly, and shiny*. Chapman and Hall/CRC.
-
-Slowikowski, K. (2024). *ggrepel: Automatically position non-overlapping text labels with ggplot2*. R package.
-
-Wickham, H. (2016). *ggplot2: Elegant graphics for data analysis* (2nd ed.). Springer. https://doi.org/10.1007/978-3-319-24277-4
-
-Wilkinson, L. (2005). *The grammar of graphics* (2nd ed.). Springer. https://doi.org/10.1007/0-387-28695-0

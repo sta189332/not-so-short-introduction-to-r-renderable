@@ -1547,21 +1547,3 @@ Show the structure behind the picture.
 Leo has moved from summarising evidence to seeing evidence.
 
 Next, he will learn how to make that evidence clearer.
-
-## References
-
-Chang, W., Cheng, J., Allaire, J. J., Sievert, C., Schloerke, B., Aden-Buie, G., Xie, Y., Allen, J., McPherson, J., Dipert, A., Borges, B., & Posit Software, PBC. (2026). *shiny: Web application framework for R* (R package). https://doi.org/10.32614/CRAN.package.shiny
-
-Cleveland, W. S. (1993). *Visualizing data*. Hobart Press.
-
-Healy, K. (2019). *Data visualization: A practical introduction*. Princeton University Press.
-
-Sarkar, D. (2008). *Lattice: Multivariate data visualization with R*. Springer. https://doi.org/10.1007/978-0-387-75969-2
-
-Sievert, C. (2020). *Interactive web-based data visualization with R, plotly, and shiny*. Chapman and Hall/CRC. https://doi.org/10.1201/9780429447273
-
-Wickham, H. (2016). *ggplot2: Elegant graphics for data analysis* (2nd ed.). Springer. https://doi.org/10.1007/978-3-319-24277-4
-
-Wickham, H., Çetinkaya-Rundel, M., & Grolemund, G. (2023). *R for data science* (2nd ed.). O'Reilly Media. https://r4ds.hadley.nz/
-
-Wilkinson, L. (2005). *The grammar of graphics* (2nd ed.). Springer. https://doi.org/10.1007/0-387-28695-0

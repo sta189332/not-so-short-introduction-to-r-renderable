@@ -2,348 +2,1554 @@
 title: "Final Integration Project: Building an End-to-End Analytical System"
 ---
 
-## **1. The Final Stage**
+```{=latex}    
+\renewcommand{\thefigure}{25.\arabic{figure}}  
+\setcounter{figure}{0}
+
+\renewcommand{\thetable}{25.\arabic{table}}  
+\setcounter{table}{0}
+```
+
+```{r}
+#| label: setup-chapter-25
+#| include: false
+
+suppressPackageStartupMessages({
+  library(knitr)
+})
+
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>",
+  fig.align = "center"
+)
+
+set.seed(25)
+```
+
+```{r}
+#| label: setup-chapter-25-data
+#| include: false
+
+make_ch25_example_data <- function() {
+  data.frame(
+    learner_id = sprintf("L%03d", 1:120),
+    country = sample(
+      c("Nigeria", "Kenya", "Ghana", "South Africa"),
+      120,
+      replace = TRUE
+    ),
+    region = sample(
+      c("West Africa", "East Africa", "Southern Africa"),
+      120,
+      replace = TRUE
+    ),
+    background = sample(
+      c("Research", "Marketing", "Education", "Health"),
+      120,
+      replace = TRUE
+    ),
+    r_experience_level = sample(
+      c("Beginner", "Some experience", "Confident"),
+      120,
+      replace = TRUE,
+      prob = c(0.50, 0.35, 0.15)
+    ),
+    study_hours = round(runif(120, 1, 12), 1),
+    lessons_completed = sample(4:24, 120, replace = TRUE),
+    confidence_score = sample(45:95, 120, replace = TRUE),
+    project_score = sample(40:98, 120, replace = TRUE),
+    completion_status = sample(
+      c("Completed", "In progress", "Paused"),
+      120,
+      replace = TRUE,
+      prob = c(0.55, 0.35, 0.10)
+    ),
+    used_quarto = sample(
+      c(TRUE, FALSE),
+      120,
+      replace = TRUE,
+      prob = c(0.62, 0.38)
+    ),
+    used_git = sample(
+      c(TRUE, FALSE),
+      120,
+      replace = TRUE,
+      prob = c(0.44, 0.56)
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
+chapter_25_data_source <- "render-safe example data"
+
+if (file.exists("data/processed/df_analysis.rds")) {
+  df_ch25 <- readRDS("data/processed/df_analysis.rds")
+  chapter_25_data_source <- "data/processed/df_analysis.rds"
+} else if (file.exists("data/processed/df_analysis.csv")) {
+  df_ch25 <- read.csv(
+    "data/processed/df_analysis.csv",
+    stringsAsFactors = FALSE
+  )
+  chapter_25_data_source <- "data/processed/df_analysis.csv"
+} else if (file.exists("data/raw/df_r_migration_messy.csv")) {
+  df_ch25 <- read.csv(
+    "data/raw/df_r_migration_messy.csv",
+    stringsAsFactors = FALSE
+  )
+  chapter_25_data_source <- "data/raw/df_r_migration_messy.csv"
+} else {
+  df_ch25 <- make_ch25_example_data()
+}
+
+required_ch25_columns <- c(
+  "learner_id",
+  "country",
+  "background",
+  "r_experience_level",
+  "study_hours",
+  "lessons_completed",
+  "confidence_score",
+  "project_score",
+  "completion_status",
+  "used_quarto",
+  "used_git"
+)
 
-Leo has learned:
+for (column_name in required_ch25_columns) {
+  if (!column_name %in% names(df_ch25)) {
+    df_ch25[[column_name]] <- rep(NA, nrow(df_ch25))
+  }
+}
 
-* how to import data
-* how to clean data
-* how to transform data
-* how to visualize data
-* how to report results
-* how to ensure reproducibility
-* how to automate workflows
-* how to scale computation
+if (nrow(df_ch25) > 0 && all(is.na(df_ch25$learner_id))) {
+  df_ch25$learner_id <- seq_len(nrow(df_ch25))
+}
 
-Each piece works.
+text_columns <- c(
+  "country",
+  "background",
+  "r_experience_level",
+  "completion_status"
+)
 
-Now they must work together.
+for (column_name in text_columns) {
+  df_ch25[[column_name]] <- trimws(as.character(df_ch25[[column_name]]))
+  df_ch25[[column_name]][df_ch25[[column_name]] == ""] <- NA
+}
 
-Leo now asks:
+numeric_columns <- c(
+  "study_hours",
+  "lessons_completed",
+  "confidence_score",
+  "project_score"
+)
 
-> “How do I turn everything I know into one complete system?”
+for (column_name in numeric_columns) {
+  df_ch25[[column_name]] <- suppressWarnings(as.numeric(df_ch25[[column_name]]))
+}
+
+logical_like_to_text <- function(x) {
+  x <- trimws(tolower(as.character(x)))
+  ifelse(
+    x %in% c("true", "t", "yes", "y", "1"),
+    "Yes",
+    ifelse(x %in% c("false", "f", "no", "n", "0"), "No", NA)
+  )
+}
+
+df_ch25$used_quarto_text <- logical_like_to_text(df_ch25$used_quarto)
+df_ch25$used_git_text <- logical_like_to_text(df_ch25$used_git)
+
+df_ch25$project_ready <- ifelse(
+  !is.na(df_ch25$project_score) &
+    !is.na(df_ch25$confidence_score) &
+    df_ch25$project_score >= 70 &
+    df_ch25$confidence_score >= 70,
+  "Project-ready indicator met",
+  "Project-ready indicator not met"
+)
+
+df_ch25$study_band <- cut(
+  df_ch25$study_hours,
+  breaks = c(-Inf, 3, 6, 9, Inf),
+  labels = c("Up to 3 hours", "More than 3 to 6", "More than 6 to 9", "More than 9"),
+  right = TRUE
+)
+```
+
+## Opening Scene: The Last Question Is Not a Command
+
+Leo reaches the final chapter with a different kind of problem.
+
+At the beginning of the book, his question was small and urgent: *How do I make R do this one thing?* He wanted the command that would import a file, clean a column, draw a plot, calculate a summary, or render a report. That was a reasonable place to begin. A learner cannot build a system before he trusts the first brick.
+
+Now the question has changed.
+
+Leo no longer wants one command. He wants a complete piece of work that another person can open, inspect, rerun, and trust. He wants the raw learner data to enter the project through a clear path. He wants the cleaning choices to be visible. He wants the analysis-ready object to be created in a known place. He wants the summaries and figures to match the report. He wants the report to rebuild without private memory, manual clicking, or hidden corrections. He wants the project to survive revision.
+
+This is the final professional threshold.
+
+A script can work once and still not be a system. A report can look polished and still be fragile. A project can contain good code and still fail because the parts are not connected.
+
+In [Chapter 24](24-performance-and-scale.qmd), Leo learned that efficient work is not the same as making every line faster. Performance is practical judgement. Scale is about knowing when time, memory, repeated work, file movement, and machine resources matter. Chapter 25 adds the last discipline: integration.
+
+Leo now has to prove that the whole project can stand.
+
+## The Final Lightbulb Idea
+
+::: {.callout-tip}
+## The final lightbulb idea
+
+An analytical system is not a collection of scripts. It is a connected workflow where data, code, checks, outputs, and explanation rebuild together.
+:::
+
+That sentence changes the meaning of the final project. Leo is not being asked to remember everything from the book. He is being asked to connect the parts into one working route.
+
+The route matters because professional analysis is not only judged by the answer. It is judged by how the answer was produced, whether it can be inspected, whether it can be rerun, and whether the next person can understand what changed.
+
+Chapter 25 therefore does not introduce a new trick. It integrates what Leo has already built.
+
+## Why Integration Is the Last Skill
+
+Integration belongs at the end because it depends on everything before it. Leo cannot integrate a workflow he does not understand. He cannot connect cleaning, transformation, reporting, version control, automation, and performance if each of those remains a disconnected memory.
+
+Earlier chapters gave Leo the working parts. Part 5 then moved him from reports into systems. [Chapter 19](19-reproducible-reports-with-quarto.qmd) made analysis communicable through Quarto. [Chapter 20](20-data-connections.qmd) expanded Leo’s sense of where data can come from. [Chapter 21](21-collaboration-and-version-control.qmd) made change traceable. [Chapter 22](22-from-functions-to-packages.qmd) showed that reusable actions can be organised into reusable tools. [Chapter 23](23-reliability-and-automation.qmd) taught Leo to rebuild work through reliable checks and repeatable execution. [Chapter 24](24-performance-and-scale.qmd) taught him to think about efficiency without worshipping speed.
+
+Now those skills have to operate together.
 
----
+This chapter is not a summary of Chapters 1 to 24. A summary would list what Leo has learned. A capstone asks whether he can use those skills together under realistic conditions. The final task is no longer, "Can Leo run this code?" The better question is, "Can Leo build a project where the route from evidence to explanation is visible?"
 
-## **2. The Problem with Fragmented Work**
+::: {.callout-note}
+## What this chapter is doing
 
-Before:
+This chapter integrates rather than introduces. It gives Leo a final guided project that uses the book’s official learner dataset and the objects that emanate from it. The purpose is not to add a new advanced tool. The purpose is to assemble a trustworthy analytical system.
+:::
 
-Leo worked in parts:
+@tbl-25-final-workflow-map maps the final project stages to the earlier skills Leo is now joining into one route.
 
-* one script for cleaning
-* another for analysis
-* another for visualization
-* another for reporting
+```{r}
+#| label: tbl-25-final-workflow-map
+#| echo: false
+#| tbl-cap: "Final Integration Workflow Map for the End-to-End Analytical System."
 
-This creates problems:
-
-* steps disconnect
-* logic scatters
-* outputs lose context
-* workflows break easily
-
-The work exists, but not as a system.
-
----
-
-## **3. The Core Idea of Integration**
-
-An integrated project is:
-
-> a complete system where all steps connect from data input to final output
-
-This means:
-
-* each step feeds the next
-* the workflow runs as a unit
-* outputs are consistent
-
-Integration turns pieces into a product.
-
----
-
-## **4. The End-to-End Pipeline**
-
-Leo now builds a full pipeline.
-
-The pipeline includes:
-
-* data import
-* data cleaning
-* data transformation
-* data visualization
-* reporting
-
-Each stage depends on the previous one.
-
-The system becomes:
-
-* ordered
-* predictable
-* repeatable
-
----
-
-## **5. Project Structure as the Foundation**
-
-A complete system needs structure.
-
-Leo organizes the project into clear parts:
-
-* data sources
-* scripts or functions
-* reports
-* outputs
-
-This structure ensures:
-
-* clarity
-* stability
-* reproducibility
-
-The project becomes navigable.
-
----
-
-## **6. Data Import (Entry Point)**
-
-The system begins with data.
-
-Leo defines:
-
-* where data comes from
-* how it is accessed
-
-The import step:
-
-* connects to data
-* retrieves required fields
-* prepares for processing
-
-This step must be explicit and reliable.
-
----
-
-## **7. Data Cleaning (Stabilization Layer)**
-
-Raw data contains issues.
-
-Leo cleans:
-
-* missing values
-* inconsistent formats
-* invalid entries
-
-Cleaning ensures:
-
-* data is usable
-* errors are reduced
-* structure is consistent
-
-This step protects downstream processes.
-
----
-
-## **8. Data Transformation (Meaning Layer)**
-
-Clean data is not yet useful.
-
-Leo transforms it:
-
-* creates variables
-* filters relevant data
-* aggregates results
-
-Transformation produces:
-
-* meaningful structure
-* analytical readiness
-
----
-
-## **9. Visualization (Insight Layer)**
-
-Data becomes interpretable through visualization.
-
-Leo builds:
-
-* plots
-* summaries
-* comparisons
-
-Visualization:
-
-* reveals patterns
-* communicates findings
-* supports decisions
-
----
-
-## **10. Reporting (Delivery Layer)**
-
-Results must be communicated.
-
-Leo uses structured documents.
-
-Reports include:
-
-* narrative explanation
-* code execution
-* embedded outputs
-
-This creates:
-
-* a shareable artifact
-* a reproducible document
-
----
-
-## **11. Reproducibility Across the System**
-
-The full system must reproduce results.
-
-Leo ensures:
-
-* inputs are defined
-* steps are consistent
-* outputs regenerate automatically
-
-This connects:
-
-* data
-* code
-* results
-
-into one reliable process.
-
----
-
-## **12. Automation of the Pipeline**
-
-The system is no longer manual.
-
-Leo defines execution:
-
-* steps run in order
-* outputs update automatically
-
-Automation ensures:
-
-* consistency
-* efficiency
-* repeatability
-
-The system runs as designed.
-
----
-
-## **13. Validation and Reliability**
-
-Leo validates each stage.
-
-He checks:
-
-* data integrity
-* transformation logic
-* output correctness
-
-This prevents:
-
-* silent errors
-* incorrect conclusions
-
-Validation protects the system.
-
----
-
-## **14. Integration with Version Control**
-
-The project is tracked.
-
-Leo uses:
-
-* version history
-* structured commits
-
-This ensures:
-
-* changes are visible
-* errors are reversible
-* collaboration is possible
-
-The system gains traceability.
-
----
-
-## **15. Environment Consistency**
-
-The system depends on packages.
-
-Leo locks the environment.
-
-This ensures:
-
-* consistent execution
-* stable results
-* reproducibility across machines
-
-The system becomes portable.
-
----
-
-## **16. The Mental Model**
-
-Isolated work:
-
-* separate steps
-* manual execution
-* fragile workflow
-
-Integrated system:
-
-* connected pipeline
-* automated execution
-* stable output
-
----
-
-## **17. The Shift**
-
-Before:
-
-Leo builds pieces of analysis
-
-After:
-
-Leo builds a complete analytical product
-
----
-
-## **18. The Outcome**
-
-Leo now produces:
-
-* a structured project
-* a connected pipeline
-* a reproducible report
-* a scalable system
-
-His work is no longer a collection of scripts.
-
-It is a product.
-
----
-
-## **19. Transition**
-
-Leo now understands:
-
-* how to integrate all stages of analysis
-* how to build end-to-end systems
-* how to produce reliable outputs
-
-He has completed the journey from:
-
-> writing code → building analytical systems
-
+final_workflow_map <- data.frame(
+  `Project stage` = c(
+    "Define the analytical question",
+    "Prepare the project environment",
+    "Import the raw learner data",
+    "Inspect the imported object",
+    "Clean and prepare the evidence",
+    "Create the analysis-ready object",
+    "Validate assumptions and outputs",
+    "Summarise learner patterns",
+    "Visualise key relationships",
+    "Render the Quarto report",
+    "Preserve the project history",
+    "Review performance and scale",
+    "Reflect on limits and next decisions"
+  ),
+  `What Leo is doing` = c(
+    "Converts curiosity into a bounded analytical task.",
+    "Confirms packages, folders, paths, and project assumptions.",
+    "Reads `df_r_migration_messy.csv` through an explicit project-relative route.",
+    "Checks names, dimensions, types, and obvious irregularities before cleaning.",
+    "Standardises names, types, missing values, dates, categories, and obvious data issues.",
+    "Produces `df_analysis` as the stable object for final summaries and figures.",
+    "Checks row counts, required columns, plausible ranges, and output consistency.",
+    "Creates tables that answer the final question without hiding the method.",
+    "Creates figures that communicate patterns rather than decorate the report.",
+    "Combines code, output, and explanation in one reproducible document.",
+    "Uses Git and clear commits so changes remain visible and reversible.",
+    "Keeps the final system efficient enough to rebuild without unnecessary friction.",
+    "States what the evidence suggests, what it cannot prove, and what should be checked next."
+  ),
+  `Earlier skill now being integrated` = c(
+    "Problem framing and analytical judgement",
+    "Packages, projects, paths, and reproducibility",
+    "Importing data",
+    "Inspection before interpretation",
+    "Cleaning and preparing data",
+    "Selecting, filtering, transforming, summarising, and grouping",
+    "Debugging, reliability, and automation",
+    "Summarising evidence",
+    "Data visualisation and communication",
+    "Reproducible reporting with Quarto",
+    "Collaboration and version control",
+    "Performance and scale",
+    "Professional interpretation"
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(final_workflow_map, align = "l")
+```
+
+The table is not a memory test. It is a coordination map. Leo is now learning to see the workflow as one connected system rather than many separate lessons.
+
+## The Final Project Brief
+
+The final project uses the book’s learner/R-migration dataset. The raw file is the deliberately imperfect dataset:
+
+`data/raw/df_r_migration_messy.csv`
+
+The central analysis-ready object is:
+
+`df_analysis`
+
+The stable saved outputs should live in:
+
+`data/processed/df_analysis.rds`
+
+and, where useful for sharing outside R:
+
+`data/processed/df_analysis.csv`
+
+The final report should answer this bounded question:
+
+> What factors appear to support a learner’s movement from R beginner to confident, project-ready analyst?
+
+This question is deliberately practical. It does not pretend that the dataset can prove every cause. It asks Leo to use the evidence responsibly. He can examine relationships among study hours, completed lessons, project scores, confidence, completion status, tool use, and other fields available in the final analysis-ready dataset.
+
+The final deliverable is not only a table or a plot. It is a complete project route:
+
+raw data → import → inspect → clean → transform → validate → summarise → visualise → report → preserve → review.
+
+The word *appear* is important. It protects the analysis from overclaiming. Leo can identify patterns. He can discuss plausible support factors. He can show that learners with more completed lessons, higher study engagement, stronger confidence, or more complete project work tend to look more project-ready if the data support that pattern. He cannot turn a teaching dataset into causal proof without a design that supports causal inference.
+
+That is not a weakness. It is analytical honesty.
+
+## The Project Folder Structure
+
+A final project needs visible architecture. The structure does not need to be complicated, but it must be honest. Files should not float around the desktop. Scripts should not live inside the downloads folder. Reports should not depend on hidden objects that only exist because Leo ran something yesterday.
+
+@tbl-25-project-files shows the recommended structure for the final project. It is intentionally modest. Leo does not need production infrastructure to do professional work. He needs a clear route.
+
+```{r}
+#| label: tbl-25-project-files
+#| echo: false
+#| tbl-cap: "Recommended Final Project Structure for the Chapter 25 Integration Project."
+
+project_files <- data.frame(
+  `Folder or file` = c(
+    "`data/raw/`",
+    "`data/raw/df_r_migration_messy.csv`",
+    "`data/processed/`",
+    "`data/processed/df_analysis.rds`",
+    "`data/processed/df_analysis.csv`",
+    "`scripts/00_setup_env.R`",
+    "`scripts/01_import_data.R`",
+    "`scripts/02_clean_data.R`",
+    "`scripts/03_create_analysis_data.R`",
+    "`scripts/04_validate_outputs.R`",
+    "`reports/final-integration-report.qmd`",
+    "`outputs/tables/`",
+    "`outputs/figures/`",
+    "`renv.lock`",
+    "`README.md`",
+    "`chapters/25-final-integration-project.qmd`"
+  ),
+  `Purpose` = c(
+    "Stores untouched source data.",
+    "The official raw learner dataset used by the project.",
+    "Stores stable data objects created by the workflow.",
+    "The primary analysis-ready R object used by reports and scripts.",
+    "A shareable CSV version of the analysis-ready dataset.",
+    "Prepares packages, folders, and project assumptions.",
+    "Imports raw data through a project-relative path.",
+    "Cleans names, types, missing values, categories, dates, and obvious inconsistencies.",
+    "Creates the final `df_analysis` object used for summaries and figures.",
+    "Checks required columns, row counts, plausible values, and expected outputs.",
+    "Combines narrative, code, tables, figures, and interpretation.",
+    "Stores exported tables when the project needs them outside the report.",
+    "Stores exported figures when the project needs them outside the report.",
+    "Records package versions for environment consistency.",
+    "Explains how to rebuild and understand the project.",
+    "Contains the final capstone chapter in the Quarto book."
+  ),
+  `Kind of project material` = c(
+    "Source-data location",
+    "Source data",
+    "Processed-data location",
+    "Processed data",
+    "Processed data",
+    "Workflow script",
+    "Workflow script",
+    "Workflow script",
+    "Workflow script",
+    "Workflow script",
+    "Report source",
+    "Output location",
+    "Output location",
+    "Environment record",
+    "Documentation",
+    "Book chapter source"
+  ),
+  `Leo should usually track it with Git?` = c(
+    "Yes, as a folder placeholder if needed.",
+    "Usually yes for this teaching project because it is the distributed practice dataset.",
+    "Yes, as a folder placeholder if needed.",
+    "Usually yes if small and intentionally distributed with the teaching project.",
+    "Usually yes if small and intentionally distributed with the teaching project.",
+    "Yes.",
+    "Yes.",
+    "Yes.",
+    "Yes.",
+    "Yes.",
+    "Yes.",
+    "Yes, if exported tables are part of the project product.",
+    "Yes, if exported figures are part of the project product.",
+    "Yes.",
+    "Yes.",
+    "Yes."
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(project_files, align = "l")
+```
+
+The same structure appears as a listing in @lst-25-project-structure. The table explains the purpose. The listing gives Leo a copyable mental picture of the project.
+
+```{bash}
+#| lst-label: lst-25-project-structure
+#| eval: false
+#| lst-cap: "A Final Project Folder Structure for an End-to-End Analytical System."
+
+not-so-short-introduction-to-r-renderable/
+├── data/
+│   ├── raw/
+│   │   └── df_r_migration_messy.csv
+│   └── processed/
+│       ├── df_analysis.rds
+│       └── df_analysis.csv
+├── scripts/
+│   ├── 00_setup_env.R
+│   ├── 01_import_data.R
+│   ├── 02_clean_data.R
+│   ├── 03_create_analysis_data.R
+│   └── 04_validate_outputs.R
+├── reports/
+│   └── final-integration-report.qmd
+├── outputs/
+│   ├── figures/
+│   └── tables/
+├── chapters/
+│   └── 25-final-integration-project.qmd
+├── renv.lock
+├── README.md
+└── _quarto.yml
+```
+
+The folder structure is not decoration. It is a contract. Every part of the project has a place, and every place has a purpose.
+
+## The End-to-End Workflow Map
+
+A final system needs more than folders. It needs movement.
+
+@fig-25-end-to-end-system gives Leo the full route from raw data to preserved work. The figure is deliberately plain because the point is not graphic design. The point is to see the system as a sequence of linked responsibilities.
+
+```{r}
+#| label: fig-25-end-to-end-system
+#| echo: false
+#| fig-cap: "An End-to-End Analytical System from Raw Data to Preserved Work."
+#| fig-alt: "A left-to-right workflow diagram showing raw data moving through import, cleaning, analysis-ready data, validation, summaries and figures, Quarto report, and version control."
+#| fig-width: 9
+#| fig-height: 2.6
+
+old_par <- par(mar = c(0.5, 0.5, 0.5, 0.5))
+plot.new()
+plot.window(xlim = c(0, 14), ylim = c(0, 2))
+
+steps <- c(
+  "Raw\ndata",
+  "Import",
+  "Clean",
+  "Analysis-\nready data",
+  "Validate",
+  "Summaries\n& figures",
+  "Quarto\nreport",
+  "Version\ncontrol"
+)
+
+x <- seq(1, 13, length.out = length(steps))
+y <- rep(1, length(steps))
+
+for (i in seq_along(steps)) {
+  rect(
+    xleft = x[i] - 0.65,
+    ybottom = y[i] - 0.28,
+    xright = x[i] + 0.65,
+    ytop = y[i] + 0.28,
+    border = "black"
+  )
+  text(x[i], y[i], labels = steps[i], cex = 0.78)
+
+  if (i < length(steps)) {
+    arrows(
+      x0 = x[i] + 0.70,
+      y0 = y[i],
+      x1 = x[i + 1] - 0.70,
+      y1 = y[i],
+      length = 0.08
+    )
+  }
+}
+
+text(
+  x = 7,
+  y = 0.25,
+  labels = "The final project is trustworthy when every arrow is explicit.",
+  cex = 0.9
+)
+
+par(old_par)
+```
+
+A broken system usually fails at the arrows. The data exists, but the import path is unclear. The cleaning script exists, but the report does not call it. The figure exists, but no one knows which dataset created it. The report exists, but the package versions have shifted. Integration is the discipline of protecting the arrows.
+
+@fig-25-final-output-flow shows the same idea from the output side. It reminds Leo that final tables, figures, and reports should not be manually detached from the scripts that produce them.
+
+```{r}
+#| label: fig-25-final-output-flow
+#| echo: false
+#| fig-cap: "How Final Project Outputs Should Remain Connected to Their Sources."
+#| fig-alt: "A simple diagram showing raw data and scripts feeding processed data, which then feeds tables, figures, and a final Quarto report."
+#| fig-width: 8
+#| fig-height: 3
+
+old_par <- par(mar = c(0.5, 0.5, 0.5, 0.5))
+plot.new()
+plot.window(xlim = c(0, 10), ylim = c(0, 6))
+
+boxes <- data.frame(
+  label = c(
+    "Raw data",
+    "Scripts",
+    "df_analysis",
+    "Tables",
+    "Figures",
+    "Final report"
+  ),
+  x = c(1.5, 1.5, 5, 8.5, 8.5, 5),
+  y = c(4.5, 1.5, 3, 4.5, 1.5, 0.8),
+  stringsAsFactors = FALSE
+)
+
+for (i in seq_len(nrow(boxes))) {
+  rect(
+    boxes$x[i] - 0.95,
+    boxes$y[i] - 0.35,
+    boxes$x[i] + 0.95,
+    boxes$y[i] + 0.35,
+    border = "black"
+  )
+  text(boxes$x[i], boxes$y[i], boxes$label[i], cex = 0.82)
+}
+
+arrow_pairs <- list(
+  c(2.45, 4.5, 4.0, 3.15),
+  c(2.45, 1.5, 4.0, 2.85),
+  c(5.95, 3.15, 7.55, 4.35),
+  c(5.95, 2.85, 7.55, 1.65),
+  c(5.0, 2.65, 5.0, 1.2),
+  c(8.0, 4.15, 5.85, 1.1),
+  c(8.0, 1.85, 5.85, 0.95)
+)
+
+for (pair in arrow_pairs) {
+  arrows(
+    x0 = pair[1],
+    y0 = pair[2],
+    x1 = pair[3],
+    y1 = pair[4],
+    length = 0.08
+  )
+}
+
+text(
+  x = 5,
+  y = 5.6,
+  labels = "Outputs should be products of the workflow, not detached artefacts.",
+  cex = 0.9
+)
+
+par(old_par)
+```
+
+The message in @fig-25-final-output-flow is simple: the final report should not be a manually assembled exhibition. It should be a rebuildable product of the project.
+
+## Step 1: Prepare the Project Environment
+
+The final project begins before analysis. Leo first confirms that the project has the packages, folders, and assumptions needed to rebuild the work.
+
+This step belongs near the beginning because environment problems are silent project breakers. A workflow can be conceptually correct and still fail because a folder does not exist, a package is missing, or the project is being run from the wrong location.
+
+The setup script should do limited work:
+
+* load required packages
+* create expected folders
+* confirm expected input paths
+* avoid changing raw data
+* avoid producing final analysis claims
+
+Leo already learned in [Chapter 23](23-reliability-and-automation.qmd) that automation is not just speed. It is ordered rebuilding. In Chapter 25, the setup script becomes the first step in that order.
+
+@lst-25-setup-script gives Leo a compact setup template. It is non-evaluated because file creation belongs in the reader’s project, not inside the book render.
+
+```{r}
+#| lst-label: lst-25-setup-script
+#| eval: false
+#| lst-cap: "A Setup Script Template for Preparing the Final Integration Project."
+
+# scripts/00_setup_env.R
+
+required_packages <- c(
+  "readr",
+  "dplyr",
+  "stringr",
+  "lubridate",
+  "ggplot2",
+  "knitr"
+)
+
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+
+if (length(missing_packages) > 0) {
+  stop(
+    "Install these packages before rebuilding the project: ",
+    paste(missing_packages, collapse = ", ")
+  )
+}
+
+# Quarto itself is normally checked from the terminal with:
+# quarto --version
+
+required_folders <- c(
+  "data/raw",
+  "data/processed",
+  "scripts",
+  "reports",
+  "outputs/tables",
+  "outputs/figures"
+)
+
+for (folder in required_folders) {
+  if (!dir.exists(folder)) {
+    dir.create(folder, recursive = TRUE)
+  }
+}
+
+raw_path <- "data/raw/df_r_migration_messy.csv"
+
+if (!file.exists(raw_path)) {
+  stop(
+    "The raw dataset is missing. Expected file: ",
+    raw_path
+  )
+}
+```
+
+The important habit in @lst-25-setup-script is not the list of packages itself. It is the decision to make project assumptions explicit before any analysis begins.
+
+## Step 2: Import the Raw Learner Data
+
+The official raw data route is:
+
+`data/raw/df_r_migration_messy.csv`
+
+The import script should make that route explicit. Leo should not import from a downloads folder. He should not use a full machine-specific path such as `C:/Users/Leo/Desktop/...`. The project must be able to move.
+
+A good import step does three things. It reads the file. It performs immediate inspection. It stops early if the expected file is missing.
+
+@lst-25-import-script shows the import step as a separate script. It is not evaluated during book rendering because it depends on the reader’s project files.
+
+```{r}
+#| lst-label: lst-25-import-script
+#| eval: false
+#| lst-cap: "An Import Script Template for Reading and Inspecting the Raw Learner Data."
+
+# scripts/01_import_data.R
+
+source("scripts/00_setup_env.R")
+
+raw_path <- "data/raw/df_r_migration_messy.csv"
+
+if (!file.exists(raw_path)) {
+  stop("Cannot import data because the raw file is missing: ", raw_path)
+}
+
+raw_migration <- readr::read_csv(
+  raw_path,
+  show_col_types = FALSE
+)
+
+message("Imported rows: ", nrow(raw_migration))
+message("Imported columns: ", ncol(raw_migration))
+
+print(names(raw_migration))
+print(dplyr::glimpse(raw_migration))
+```
+
+The import script in @lst-25-import-script does not clean the data. That boundary matters. Importing asks R to interpret a file as data. Cleaning comes next.
+
+## Step 3: Clean and Prepare the Evidence
+
+Cleaning is the stabilisation layer. It protects everything downstream.
+
+For this project, cleaning may include:
+
+* standardising column names
+* trimming text fields
+* harmonising inconsistent categories
+* converting dates
+* converting numeric-looking text to numeric values
+* handling missing-like values such as blanks, `NA`, `N/A`, `missing`, and `not available`
+* checking duplicate learner records or learner-week records
+* identifying suspicious values such as negative `study_hours`
+* documenting decisions rather than hiding them
+
+Cleaning must not become silent rewriting. Leo should be able to explain what changed and why. [Chapter 13](13-cleaning-and-preparing-data.qmd) made this distinction clear: cleaning makes evidence consistent enough to analyse without hiding what was changed.
+
+@lst-25-clean-script gives Leo a compact cleaning template. It is deliberately not exhaustive. The point is to show how cleaning decisions are made visible and repeatable.
+
+```{r}
+#| lst-label: lst-25-clean-script
+#| eval: false
+#| lst-cap: "A Cleaning Script Template for Preparing the Learner Dataset."
+
+# scripts/02_clean_data.R
+
+source("scripts/01_import_data.R")
+
+missing_like_values <- c(
+  "",
+  "NA",
+  "N/A",
+  "missing",
+  "not available",
+  "Not available"
+)
+
+df_clean <- raw_migration |>
+  dplyr::mutate(
+    dplyr::across(
+      where(is.character),
+      ~ stringr::str_squish(.x)
+    ),
+    dplyr::across(
+      where(is.character),
+      ~ dplyr::na_if(.x, "")
+    )
+  ) |>
+  dplyr::mutate(
+    dplyr::across(
+      where(is.character),
+      ~ ifelse(.x %in% missing_like_values, NA, .x)
+    ),
+    country = stringr::str_to_title(country),
+    background = stringr::str_to_title(background),
+    industry = stringr::str_to_title(industry),
+    job_role = stringr::str_to_title(job_role),
+    completion_status = stringr::str_to_title(completion_status),
+    study_hours = suppressWarnings(as.numeric(study_hours)),
+    lessons_completed = suppressWarnings(as.numeric(lessons_completed)),
+    confidence_score = suppressWarnings(as.numeric(confidence_score)),
+    project_score = suppressWarnings(as.numeric(project_score))
+  )
+
+suspicious_study_hours <- df_clean |>
+  dplyr::filter(!is.na(study_hours), study_hours < 0)
+
+if (nrow(suspicious_study_hours) > 0) {
+  warning(
+    "Some records have negative study_hours. Inspect before interpretation."
+  )
+}
+```
+
+The template in @lst-25-clean-script is a disciplined starting point, not a magical cleaning machine. Leo should revise it when the real inspection reveals additional problems.
+
+## Step 4: Create the Analysis-Ready Dataset
+
+The analysis-ready object is the bridge between preparation and interpretation.
+
+In this book, the central object is:
+
+`df_analysis`
+
+The saved versions are:
+
+`data/processed/df_analysis.rds`
+
+and:
+
+`data/processed/df_analysis.csv`
+
+The `.rds` file preserves R object structure. The `.csv` file is useful for sharing with people or systems outside R. Leo does not need to choose one forever. He needs to know why each exists.
+
+@lst-25-analysis-data-script shows how the cleaned evidence can become the final analysis-ready object. It is non-evaluated because it writes files in the reader’s project.
+
+```{r}
+#| lst-label: lst-25-analysis-data-script
+#| eval: false
+#| lst-cap: "A Script Template for Creating and Saving the Analysis-Ready Dataset."
+
+# scripts/03_create_analysis_data.R
+
+source("scripts/02_clean_data.R")
+
+df_analysis <- df_clean |>
+  dplyr::mutate(
+    project_ready = dplyr::case_when(
+      !is.na(project_score) &
+        !is.na(confidence_score) &
+        project_score >= 70 &
+        confidence_score >= 70 ~ "Project-ready indicator met",
+      TRUE ~ "Project-ready indicator not met"
+    ),
+    study_band = cut(
+      study_hours,
+      breaks = c(-Inf, 3, 6, 9, Inf),
+      labels = c(
+        "Up to 3 hours",
+        "More than 3 to 6",
+        "More than 6 to 9",
+        "More than 9"
+      )
+    )
+  )
+
+required_analysis_columns <- c(
+  "learner_id",
+  "country",
+  "background",
+  "study_hours",
+  "lessons_completed",
+  "confidence_score",
+  "project_score",
+  "completion_status",
+  "project_ready"
+)
+
+missing_analysis_columns <- setdiff(
+  required_analysis_columns,
+  names(df_analysis)
+)
+
+if (length(missing_analysis_columns) > 0) {
+  stop(
+    "The analysis-ready dataset is missing required columns: ",
+    paste(missing_analysis_columns, collapse = ", ")
+  )
+}
+
+saveRDS(df_analysis, "data/processed/df_analysis.rds")
+readr::write_csv(df_analysis, "data/processed/df_analysis.csv")
+```
+
+The file-writing lines in @lst-25-analysis-data-script belong inside the reader’s project workflow, not inside the rendered book chapter. That is why the listing is non-evaluated.
+
+@lst-25-script-sequence shows the script order for rebuilding the final project from the terminal. It is also non-evaluated because it represents the project execution pattern, not a chunk that should run during book rendering.
+
+```{bash}
+#| lst-label: lst-25-script-sequence
+#| eval: false
+#| lst-cap: "A Script Sequence for Rebuilding the Final Integration Project."
+
+Rscript scripts/00_setup_env.R
+Rscript scripts/01_import_data.R
+Rscript scripts/02_clean_data.R
+Rscript scripts/03_create_analysis_data.R
+Rscript scripts/04_validate_outputs.R
+quarto render reports/final-integration-report.qmd
+```
+
+The order in @lst-25-script-sequence is more important than the specific terminal style. Leo’s machine may use RStudio, the terminal, or another editor. The professional habit remains the same: rebuild the project in a known order.
+
+## Step 5: Validate Assumptions and Outputs
+
+Validation is where Leo refuses to trust a beautiful output too quickly.
+
+A final integration project should check that the object being analysed has the expected columns, plausible values, and enough rows to support the report. These checks do not make the analysis perfect. They reduce the risk of silent error.
+
+@lst-25-validation-script shows how Leo can place validation checks in a dedicated script. It is non-evaluated because it depends on the project object created outside the book render.
+
+```{r}
+#| lst-label: lst-25-validation-script
+#| eval: false
+#| lst-cap: "A Validation Script Template for Checking the Final Analysis Object."
+
+# scripts/04_validate_outputs.R
+
+analysis_path <- "data/processed/df_analysis.rds"
+
+if (!file.exists(analysis_path)) {
+  stop("The analysis-ready file is missing: ", analysis_path)
+}
+
+df_analysis <- readRDS(analysis_path)
+
+required_columns <- c(
+  "learner_id",
+  "country",
+  "study_hours",
+  "lessons_completed",
+  "confidence_score",
+  "project_score",
+  "completion_status",
+  "project_ready"
+)
+
+missing_columns <- setdiff(required_columns, names(df_analysis))
+
+if (length(missing_columns) > 0) {
+  stop(
+    "The analysis object is missing required columns: ",
+    paste(missing_columns, collapse = ", ")
+  )
+}
+
+if (nrow(df_analysis) == 0) {
+  stop("The analysis object has no rows.")
+}
+
+if (any(is.na(df_analysis$learner_id))) {
+  stop("Some learner_id values are missing.")
+}
+
+if (any(df_analysis$study_hours < 0, na.rm = TRUE)) {
+  stop("Some study_hours values are negative.")
+}
+
+if (any(
+  df_analysis$project_score < 0 | df_analysis$project_score > 100,
+  na.rm = TRUE
+)) {
+  stop("Some project_score values fall outside 0 to 100.")
+}
+
+if (any(
+  df_analysis$confidence_score < 0 | df_analysis$confidence_score > 100,
+  na.rm = TRUE
+)) {
+  stop("Some confidence_score values fall outside 0 to 100.")
+}
+
+message("Validation checks completed.")
+```
+
+@tbl-25-validation-checks demonstrates a small validation summary for the current render. When the official processed dataset exists, the checks reflect that object. When the book is rendered without the project data available, the setup chunk uses a small render-safe example so the chapter still compiles. The table is a workflow demonstration, not a substantive research finding.
+
+```{r}
+#| label: tbl-25-validation-checks
+#| echo: false
+#| tbl-cap: "A Render-Safe Validation Summary for the Chapter 25 Final Project."
+
+required_columns <- c(
+  "learner_id",
+  "country",
+  "study_hours",
+  "lessons_completed",
+  "project_score",
+  "confidence_score",
+  "completion_status"
+)
+
+validation_checks <- data.frame(
+  `Check` = c(
+    "Data source used for this render",
+    "Dataset contains at least one row",
+    "Required project columns are present",
+    "Learner ID column has no missing values",
+    "Study hours has no negative values among non-missing entries",
+    "Project score is between 0 and 100 among non-missing entries",
+    "Confidence score is between 0 and 100 among non-missing entries",
+    "Completion status column exists for interpretation"
+  ),
+  `Result` = c(
+    chapter_25_data_source,
+    if (nrow(df_ch25) > 0) "Pass" else "Review",
+    if (all(required_columns %in% names(df_ch25))) "Pass" else "Review",
+    if (all(!is.na(df_ch25$learner_id))) "Pass" else "Review",
+    if (all(is.na(df_ch25$study_hours) | df_ch25$study_hours >= 0)) "Pass" else "Review",
+    if (all(is.na(df_ch25$project_score) |
+            (df_ch25$project_score >= 0 & df_ch25$project_score <= 100))) {
+      "Pass"
+    } else {
+      "Review"
+    },
+    if (all(is.na(df_ch25$confidence_score) |
+            (df_ch25$confidence_score >= 0 & df_ch25$confidence_score <= 100))) {
+      "Pass"
+    } else {
+      "Review"
+    },
+    if ("completion_status" %in% names(df_ch25)) "Pass" else "Review"
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(validation_checks, align = "l")
+```
+
+The point of @tbl-25-validation-checks is not to make Leo paranoid. It is to make him disciplined. If a check fails, he should pause, inspect the relevant stage, and correct the workflow rather than editing the final report by hand.
+
+::: {.callout-tip}
+## Validate before interpreting
+
+A final table or figure is only as trustworthy as the route that produced it. Before Leo discusses a pattern, he should confirm that the object, variables, and assumptions behind that pattern are sound.
+:::
+
+## Step 6: Summarise the Evidence
+
+A final project needs summaries that serve the analytical question. It does not need every possible table.
+
+For the learner project, useful summaries might include:
+
+* learner counts by completion status
+* average project scores by completion status
+* average confidence scores by study-hour bands
+* differences in project scores across experience levels or backgrounds
+* the relationship among lessons completed, study hours, confidence, and project performance
+
+Leo should not treat these as isolated outputs. Each table should answer a defined part of the final question.
+
+@tbl-25-evidence-summary gives a small render-safe example of the kind of table the final report may include. The table groups learners by study-hour band and reports project readiness indicators. Its purpose is instructional: it shows how a final table can be tied to the analytical question without pretending to prove causation.
+
+```{r}
+#| label: tbl-25-evidence-summary
+#| echo: false
+#| tbl-cap: "A Render-Safe Example Summary Linking Study Effort, Confidence, and Project Readiness."
+
+summary_base <- df_ch25[
+  !is.na(df_ch25$study_band),
+  c("study_band", "confidence_score", "project_score", "project_ready")
+]
+
+if (nrow(summary_base) == 0) {
+  evidence_summary <- data.frame(
+    `Study-hour band` = "No valid study-hour band available",
+    `Learners` = 0,
+    `Average confidence score` = NA_real_,
+    `Average project score` = NA_real_,
+    `Project-ready indicator met (%)` = NA_real_,
+    check.names = FALSE
+  )
+} else {
+  split_summary <- split(summary_base, summary_base$study_band)
+
+  evidence_summary <- do.call(
+    rbind,
+    lapply(names(split_summary), function(group_name) {
+      group_data <- split_summary[[group_name]]
+
+      data.frame(
+        `Study-hour band` = group_name,
+        `Learners` = nrow(group_data),
+        `Average confidence score` = round(
+          mean(group_data$confidence_score, na.rm = TRUE),
+          1
+        ),
+        `Average project score` = round(
+          mean(group_data$project_score, na.rm = TRUE),
+          1
+        ),
+        `Project-ready indicator met (%)` = round(
+          mean(
+            group_data$project_ready == "Project-ready indicator met",
+            na.rm = TRUE
+          ) * 100,
+          1
+        ),
+        check.names = FALSE
+      )
+    })
+  )
+}
+
+rownames(evidence_summary) <- NULL
+
+knitr::kable(evidence_summary, align = "l")
+```
+
+A careful final report would discuss @tbl-25-evidence-summary with restraint. If higher study bands appear stronger, Leo may describe an association in the dataset. He should not claim that study hours alone caused project readiness unless the research design supports that claim.
+
+A good final report might move through three questions:
+
+1. Who is represented in the learner dataset?
+2. What patterns are visible across learning effort, confidence, completion, tool use, and project performance?
+3. What practical interpretation can be made without overstating the evidence?
+
+This is where judgement matters. The final project is not an excuse to produce twenty tables. It is a chance to produce a small number of credible outputs.
+
+## Step 7: Visualise the Findings
+
+Figures in the final project should clarify patterns that tables alone make slow to see.
+
+A figure might show project score by study hours, confidence score by completion status, or completion patterns across countries or backgrounds. Leo should choose a figure because it helps the reader understand the evidence, not because the report feels empty without one.
+
+The final chapter should also remind Leo of a principle from the visualisation chapters: a figure is not a decoration. It is an argument in visual form.
+
+@lst-25-visualisation-template gives Leo a simple report-ready plotting pattern. It is non-evaluated because the final report, not the book chapter, should create project-specific figures from the reader’s local `df_analysis`.
+
+```{r}
+#| lst-label: lst-25-visualisation-template
+#| eval: false
+#| lst-cap: "A Visualisation Template for Connecting Project Scores and Study Effort."
+
+# Inside reports/final-integration-report.qmd
+
+df_analysis <- readRDS("data/processed/df_analysis.rds")
+
+ggplot2::ggplot(
+  df_analysis,
+  ggplot2::aes(
+    x = study_hours,
+    y = project_score
+  )
+) +
+  ggplot2::geom_point(na.rm = TRUE) +
+  ggplot2::geom_smooth(
+    method = "lm",
+    se = FALSE,
+    na.rm = TRUE
+  ) +
+  ggplot2::labs(
+    title = "Project Score and Study Hours",
+    x = "Weekly study hours",
+    y = "Project score"
+  )
+```
+
+The plotting template in @lst-25-visualisation-template is intentionally modest. Leo has already learned how to improve clarity and storytelling in the visualisation chapters. The final point here is not a new plotting trick. It is that the figure must be produced from the same analysis-ready object used by the rest of the report.
+
+## Step 8: Render the Final Quarto Report
+
+The final report is the public face of the analytical system. It should contain:
+
+* a short project question
+* a data source note
+* cleaning and preparation summary
+* validation summary
+* key tables
+* key figures
+* interpretation
+* limitations
+* reproducibility note
+
+The report should not require Leo to paste screenshots or manually insert values. It should rebuild from the workflow.
+
+@lst-25-report-scaffold gives Leo a non-evaluated report scaffold. It is not intended to replace the full chapter. It shows the kind of structure a final report can use.
+
+```{r}
+#| lst-label: lst-25-report-scaffold
+#| eval: false
+#| lst-cap: "A Quarto Report Scaffold for the Final Integration Project."
+
+# Save this as reports/final-integration-report.qmd
+
+# ---
+# title: "Final Integration Report"
+# format: html
+# ---
+
+# ## Project Question
+#
+# What factors appear to support a learner's movement from R beginner
+# to confident, project-ready analyst?
+
+# ## Data Source
+#
+# This report uses data/processed/df_analysis.rds, created from
+# data/raw/df_r_migration_messy.csv.
+
+df_analysis <- readRDS("data/processed/df_analysis.rds")
+
+# ## Validation Summary
+#
+# Add required-column, row-count, missing-value, and range checks here.
+
+# ## Key Summaries
+#
+# Create final summary tables here.
+
+# ## Key Figures
+#
+# Create final figures here.
+
+# ## Interpretation
+#
+# Explain what the evidence suggests, what it does not prove, and what
+# a careful reader should take from the analysis.
+
+# ## Limitations
+#
+# State the limits of the dataset, missing values, cleaning decisions,
+# and the difference between association and causation.
+
+# ## Reproducibility Note
+#
+# State how the report can be rebuilt and which data object it uses.
+```
+
+After writing the report, Leo should render it through a clear command. @lst-25-render-command shows the terminal pattern. It is non-evaluated because terminal commands should be run in the terminal, not inside the R Console.
+
+```{bash}
+#| lst-label: lst-25-render-command
+#| eval: false
+#| lst-cap: "A Terminal Command for Rendering the Final Integration Report."
+
+quarto render reports/final-integration-report.qmd
+```
+
+If Leo renders the report and it fails, that failure is useful. It tells him where the system is broken. He should not patch the HTML by hand. He should fix the source.
+
+## Step 9: Preserve the Work with Version Control
+
+A final project is not complete until its changes are traceable.
+
+Version control does not make the analysis correct by itself. It makes the project history visible. It allows Leo to see what changed, recover from mistakes, and communicate progress.
+
+@lst-25-git-preservation shows a minimal Git preservation sequence for the final project.
+
+```{bash}
+#| lst-label: lst-25-git-preservation
+#| eval: false
+#| lst-cap: "A Minimal Git Sequence for Preserving the Final Integration Project."
+
+git status
+git diff
+git add scripts/
+git add reports/final-integration-report.qmd
+git add outputs/
+git add data/processed/df_analysis.rds
+git add data/processed/df_analysis.csv
+git add README.md
+git commit -m "Complete final integration project workflow"
+git log --oneline
+```
+
+The important habit in @lst-25-git-preservation is not the exact commit message. It is the discipline of inspecting before recording. Leo should know what he is committing before he commits it.
+
+There is one additional judgement. In a teaching project, the learner dataset and processed outputs may be small enough to track. In a workplace project, large, private, or sensitive data may need different handling. The principle from [Chapter 21](21-collaboration-and-version-control.qmd) still applies: version control should make work traceable without carelessly exposing material that should not be shared.
+
+## Step 10: Review Performance and Scale
+
+Chapter 25 should not repeat [Chapter 24](24-performance-and-scale.qmd), but the final project must still respect it.
+
+Before Leo calls the project complete, he should ask:
+
+* Does the report rebuild in a reasonable time?
+* Is the workflow rereading large files unnecessarily?
+* Are expensive steps repeated when a stable processed object would be better?
+* Are intermediate objects named clearly?
+* Are optional high-performance tools being used only where they are justified?
+* Has speed been improved without damaging readability?
+
+The final question is not, "Did Leo make R as fast as possible?" The better question is, "Can the project rebuild efficiently enough for real use, while remaining clear enough to trust?"
+
+This is where Chapter 24’s lesson becomes part of the final system. Correctness comes first. Bottlenecks should be identified before they are fixed. Parallel computing, `foreach`, `apply` patterns, vectorisation, databases, or columnar storage are not prizes to display. They are responses to real constraints.
+
+## The Final Project Checklist
+
+A final checklist helps Leo resist the temptation to stop too early. The report may render. The figure may look good. The table may appear plausible. But the system is only ready when its major links are clear.
+
+@tbl-25-final-checklist gives Leo a final review tool before calling the project complete.
+
+```{r}
+#| label: tbl-25-final-checklist
+#| echo: false
+#| tbl-cap: "Final Completion Checklist for the Chapter 25 Integration Project."
+
+final_checklist <- data.frame(
+  `Area` = c(
+    "Project question",
+    "Raw data",
+    "Import route",
+    "Inspection",
+    "Cleaning decisions",
+    "Analysis-ready object",
+    "Validation",
+    "Tables",
+    "Figures",
+    "Report",
+    "Environment",
+    "Version control",
+    "Performance",
+    "Reader guidance"
+  ),
+  `Completion question` = c(
+    "Is the final analytical question clear, bounded, and answerable with the dataset?",
+    "Is the raw dataset stored in `data/raw/` without manual alteration?",
+    "Can the data be imported using a project-relative path?",
+    "Has the imported object been inspected before cleaning or interpretation?",
+    "Are cleaning choices visible, documented, and separated from raw data?",
+    "Can `df_analysis` be rebuilt and saved to `data/processed/`?",
+    "Do checks confirm required columns, plausible ranges, row counts, and expected outputs?",
+    "Does each table answer part of the final question?",
+    "Does each figure clarify a pattern rather than decorate the report?",
+    "Can the Quarto report render from source without manual patching?",
+    "Are packages and versions managed consistently enough for the project?",
+    "Are major changes inspected and committed with meaningful messages?",
+    "Does the project rebuild in a reasonable time without unnecessary repeated work?",
+    "Would another careful reader know how to rerun and inspect the project?"
+  ),
+  `Status before submission` = rep("Confirm", 14),
+  check.names = FALSE
+)
+
+knitr::kable(final_checklist, align = "l")
+```
+
+This is the final professional habit: do not ask only whether the output exists. Ask whether the route to the output is defensible.
+
+## Common Integration Failures
+
+By the final chapter, Leo has enough skill to make serious progress. He also has enough skill to make more subtle mistakes.
+
+The common failures are no longer only syntax errors. They are workflow errors.
+
+@tbl-25-integration-failures lists the failure patterns Leo should now be able to diagnose.
+
+```{r}
+#| label: tbl-25-integration-failures
+#| echo: false
+#| tbl-cap: "Common Integration Failures and the Professional Habit That Prevents Each One."
+
+integration_failures <- data.frame(
+  `Failure` = c(
+    "Changing raw data directly",
+    "Depending on hidden workspace objects",
+    "Using absolute paths",
+    "Forgetting which script created which output",
+    "Saving tables or figures manually without code",
+    "Ignoring warnings because the report still rendered",
+    "Letting old figures remain after the data changed",
+    "Committing large or sensitive files carelessly",
+    "Optimising before validating correctness",
+    "Adding advanced tools before the workflow needs them"
+  ),
+  `Why it weakens the project` = c(
+    "The audit trail disappears and cleaning decisions become difficult to explain.",
+    "The report may work on one machine but fail when the project is restarted.",
+    "The project becomes tied to one person’s computer.",
+    "Outputs become detached from the workflow that produced them.",
+    "The final report can stop matching the current data and code.",
+    "A visible output can hide a damaged assumption.",
+    "The reader may see stale evidence without knowing it.",
+    "Version control becomes a risk rather than a safeguard.",
+    "The workflow may become faster at producing the wrong result.",
+    "Complexity increases before the basic system is stable."
+  ),
+  `Better habit` = c(
+    "Keep raw data untouched and save processed objects separately.",
+    "Load or create every required object inside the report or workflow.",
+    "Use project-relative paths.",
+    "Name scripts clearly and document the execution order.",
+    "Generate outputs from code or make manual export decisions explicit.",
+    "Read warnings and decide whether they require action.",
+    "Regenerate outputs whenever data or code changes.",
+    "Use `.gitignore` and project judgement for files that should not be tracked.",
+    "Validate first, then improve performance.",
+    "Keep the final project clear, modest, and rebuildable."
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(integration_failures, align = "l")
+```
+
+One failure is the hidden object problem. The report works because `df_analysis` happens to exist in the Environment pane, but the report does not create it or load it. When the project is restarted, the report fails or uses an outdated object.
+
+Another failure is the broken path problem. The script reads from a full personal path on Leo’s computer. The project works only on his machine and only while the file stays in that exact location.
+
+A third failure is the manual-output problem. Leo creates a plot, exports it manually, inserts it into the report, then later changes the analysis. The report no longer matches the code.
+
+A fourth failure is the silent-cleaning problem. Leo changes values inside the raw file and forgets what changed. The workflow loses its audit trail.
+
+A fifth failure is the overbuilt-system problem. Leo adds tools he does not yet need. The project becomes impressive but fragile. The final chapter is not asking him to build an industrial platform. It is asking him to build a clean, inspectable analytical system.
+
+::: {.callout-caution}
+## The most dangerous final-project mistake
+
+The most dangerous final-project mistake is not a visible error. It is a report that renders successfully while hiding a broken workflow behind it.
+:::
+
+## Try It Yourself
+
+Choose one final output you want your project to produce. It may be a summary table, a figure, or a short report section.
+
+Then trace it backward.
+
+Ask:
+
+1. Which object produces this output?
+2. Which script creates that object?
+3. Which raw file feeds that script?
+4. Which cleaning decisions affect the result?
+5. Which validation check protects the result?
+6. Which report chunk displays the result?
+7. Which commit records the current version?
+
+If you cannot answer one of these questions, you have found a weak link. That is not failure. That is exactly what integration is meant to reveal.
+
+## Final Practice Lab
+
+The final practice lab asks Leo to assemble the whole system. It is intentionally non-evaluated because it is a project scaffold, not a small code demonstration.
+
+@lst-25-practice-lab gives Leo a final sequence to adapt inside his own project.
+
+```{r}
+#| lst-label: lst-25-practice-lab
+#| eval: false
+#| lst-cap: "Final Practice Lab for Building and Checking the End-to-End Analytical System."
+
+# Final Practice Lab: Build the End-to-End Analytical System
+
+# 1. Confirm the raw data exists.
+file.exists("data/raw/df_r_migration_messy.csv")
+
+# 2. Run the setup script.
+source("scripts/00_setup_env.R")
+
+# 3. Import the raw learner data.
+source("scripts/01_import_data.R")
+
+# 4. Clean and prepare the evidence.
+source("scripts/02_clean_data.R")
+
+# 5. Create the analysis-ready object.
+source("scripts/03_create_analysis_data.R")
+
+# 6. Validate the final object and expected outputs.
+source("scripts/04_validate_outputs.R")
+
+# 7. Confirm that the processed object exists.
+file.exists("data/processed/df_analysis.rds")
+
+# 8. Render the final report.
+# Run this in the terminal, not inside the R Console:
+# quarto render reports/final-integration-report.qmd
+
+# 9. Inspect Git status before committing.
+# Run this in the terminal:
+# git status
+# git diff
+
+# 10. Commit the completed project when the outputs are correct.
+# git add .
+# git commit -m "Complete final integration project"
+```
+
+The practice lab in @lst-25-practice-lab is not a ritual. It is a rehearsal for professional work. Leo is learning to ask whether the project can rebuild from source.
+
+## Leo’s Final Notebook
+
+Leo writes four notes at the end of the project.
+
+First:
+
+> A result is not complete until I know how it was produced.
+
+Second:
+
+> A report is not reproducible because it looks polished. It is reproducible when it rebuilds from its data, code, and documented assumptions.
+
+Third:
+
+> Integration means protecting the links between project parts.
+
+Fourth:
+
+> I no longer want isolated commands. I want analytical systems I can trust.
+
+These notes show the real change. Leo has not merely learned R syntax. He has learned how to think like someone responsible for evidence.
+
+## Glossary
+
+**Analysis-ready data**  
+A prepared dataset that has been cleaned, structured, and validated enough to support the planned analysis.
+
+**Analytical system**  
+A connected workflow in which data, code, checks, outputs, and explanation work together and can be rebuilt.
+
+**Integration**  
+The practice of connecting separate project parts so that each stage feeds the next in a clear and reproducible route.
+
+**Output**  
+A table, figure, file, report, or other product created by the workflow.
+
+**Performance review**  
+A disciplined check of whether the project rebuilds efficiently enough for real use without sacrificing correctness or clarity.
+
+**Pipeline**  
+An ordered sequence of project stages where the output of one stage becomes the input to another.
+
+**Project-relative path**  
+A file path written from the project folder rather than from a private location on one person’s computer.
+
+**Raw data**  
+The original source data as received or distributed, kept separate from cleaned or processed versions.
+
+**Rebuild**  
+To recreate project outputs from source files, scripts, data, and reports rather than from memory or manual editing.
+
+**Render**  
+To ask Quarto to execute the source document and produce the final output, such as HTML, PDF, or Word.
+
+**Reproducibility**  
+The ability to recreate the same analytical output from the documented data, code, environment, and workflow.
+
+**Source data**  
+The original data file or files from which analysis begins.
+
+**Validation**  
+A deliberate check that confirms whether data, assumptions, or outputs meet expected conditions.
+
+**Version control**  
+A system for recording project changes so the history of files can be inspected, compared, and recovered.
+
+**Workflow**  
+The ordered movement of work from input to output.
+
+## Book Outcome
+
+At the end of Chapter 25, Leo can describe and build an end-to-end analytical system.
+
+He can explain where the data enters. He can show what cleans it. He can identify the object used for analysis. He can validate the assumptions behind the output. He can produce summaries and figures. He can render the report. He can preserve the project history. He can think about efficiency without sacrificing clarity.
+
+This is the outcome the book has been moving toward from the beginning.
+
+Leo has not become a different person. He is still busy. He still encounters errors. He still has to check documentation, inspect objects, and revise code. The difference is that confusion no longer controls the work. He has a map.
+
+He can now move from an Excel file to an R project. From a copied command to a named function. From a fragile script to a reproducible report. From a beautiful plot to a traceable figure. From a local output to a project history. From a slow workflow to a measured performance decision. From scattered pieces to a system.
+
+That is the promise of *Not So Short Introduction to R*: not instant mastery, but durable control.
+
+## Closing Reflection: From First Command to Analytical System
+
+The first command matters because it breaks fear. It tells the learner that R is not unreachable.
+
+But the first command is not the destination.
+
+The destination is a way of working in which analysis can be inspected, rebuilt, questioned, improved, and shared. The destination is not speed alone, or beautiful plots alone, or long scripts alone, or clever functions alone. It is a disciplined relationship among data, code, explanation, and judgement.
+
+Leo began with fragments. A file here. A command there. A copied example that worked until it did not. A plot that appeared without a clear route behind it. An error message that felt like a wall.
+
+He ends with a system.
+
+That system is not perfect, and it does not need to be. It is structured enough to inspect. Clear enough to revise. Reproducible enough to rerun. Efficient enough to use. Honest enough to explain.
+
+That is the real movement of the book: from confusion and dependency to control, clarity, and professional-grade output.
+
+Leo no longer asks only, "What code should I run?"
+
+He can now ask the better question:
+
+> What system should I build so the evidence can be trusted?
+
+That question is where serious R work begins.
