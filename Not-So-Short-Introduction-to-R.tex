@@ -164,6 +164,7 @@
 % Show chapter number inline before the chapter title.
 \renewcommand*{\chapterformat}{\thechapter\enskip}
 \renewcommand*{\chaptermarkformat}{\thechapter\enskip}
+\renewcommand*{\chapterlinesformat}[3]{#2#3}
 \setkomafont{chapter}{\normalfont\huge\bfseries}
 \KOMAoption{captions}{tableheading}
 \makeatletter
@@ -253,7 +254,7 @@ R},
 \subtitle{A Practical Learning Journey from First Contact to
 Reproducible Data Systems}
 \author{Daniel James}
-\date{June 6, 2026}
+\date{June 7, 2026}
 \begin{document}
 \maketitle
 
@@ -1014,6 +1015,8 @@ of progress.
 \end{tcolorbox}
 
 \part{Part 1: Foundations}
+
+\chapter{---}\label{section}
 
 \chapter{Before the First Command: Why R Changes the Way Data Work
 Thinks}\label{before-the-first-command-why-r-changes-the-way-data-work-thinks}
@@ -34305,9 +34308,9 @@ SameResult
 \bottomrule\noalign{}
 \endlastfoot
 Loop over each element & Create an output vector, then fill it one value
-at a time & 0.03 & TRUE \\
+at a time & 0.01 & TRUE \\
 Vectorised expression & Apply \texttt{sqrt()} directly to the full
-vector & 0.01 & TRUE \\
+vector & 0.00 & TRUE \\
 
 \end{longtable}
 

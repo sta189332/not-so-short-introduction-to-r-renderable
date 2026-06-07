@@ -13,14 +13,16 @@ book:
   favicon: images/favicon.png
   date-format: "MMMM D, YYYY"
 
-  site-url: "https://sta189332.github.io/not-so-short-introduction-to-r/"
-  repo-url: "https://github.com/sta189332/not-so-short-introduction-to-r"
+  site-url: "https://sta189332.github.io/not-so-short-introduction-to-r-renderable
+/"
+  repo-url: "https://github.com/sta189332/not-so-short-introduction-to-r-renderable
+"
   repo-actions: [edit, issue]
 
   search: true
   page-navigation: true
   reader-mode: true
-  downloads: [pdf, epub]
+  downloads: [pdf, epub, docx]
   cover-image: images/cover.jpg
 
   repo-branch: main
@@ -30,7 +32,8 @@ book:
     collapse-level: 1
     tools:
       - icon: github
-        href: "https://github.com/sta189332/not-so-short-introduction-to-r"
+        href: "https://github.com/sta189332/not-so-short-introduction-to-r-renderable
+"
 
   chapters:
     - index.qmd
@@ -147,6 +150,7 @@ format:
 
   pdf:
     documentclass: scrreprt
+    top-level-division: chapter
     papersize: a4
     geometry:
       - top=1in
@@ -180,7 +184,17 @@ format:
         % Show chapter number inline before the chapter title.
         \renewcommand*{\chapterformat}{\thechapter\enskip}
         \renewcommand*{\chaptermarkformat}{\thechapter\enskip}
+        \renewcommand*{\chapterlinesformat}[3]{#2#3}
         \setkomafont{chapter}{\normalfont\huge\bfseries}
+
+  docx:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    number-depth: 3
+    fig-width: 6.5
+    fig-height: 4.5
+    fig-cap-location: bottom
 
   epub:
     cover-image: assets/cover.png

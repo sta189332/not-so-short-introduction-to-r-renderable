@@ -1,6 +1,7 @@
 ---
-title: "Before the First Command: Why R Changes the Way Data Work Thinks"
 ---
+
+# Before the First Command: Why R Changes the Way Data Work Thinks
 
 ## Opening Scene: Leo Before the Prompt
 
