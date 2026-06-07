@@ -1,31 +1,16 @@
 # Not So Short Introduction to R
 
-This is a renderable Quarto book scaffold.
+A practical, story-driven introduction to R for researchers, analysts, graduate students, Excel/SPSS/STATA users, and emerging data workers who want to move from fragile manual workflows to reproducible analytical systems.
 
-## Why this fixes the error
+## About the Book
 
-Quarto book projects require every file listed under `book: chapters:` in `_quarto.yml` to exist. This scaffold includes placeholder `.qmd` files for all chapters so the book can render while the manuscript is still being written.
+This repository contains the Quarto source files for *Not So Short Introduction to R* by Daniel James.
 
-## Render commands
+The book teaches R through a gradual journey from first contact with the console to reproducible data systems. It covers RStudio, objects, data types, data structures, functions, packages, debugging, data import, cleaning, transformation, visualization, Quarto reporting, Git, automation, performance, and a final integration project.
+
+## Render the Book
 
 From the project root, run:
 
 ```bash
 quarto render
-```
-
-For HTML only:
-
-```bash
-quarto render --to html
-```
-
-For PDF only:
-
-```bash
-quarto render --to pdf
-```
-
-## Important note
-
-The file `assets/apa.csl` is a placeholder CSL file included to avoid a missing-file error. Replace it with the official APA 7 CSL file before final publication if you need strict APA output.
